@@ -1,0 +1,244 @@
+:root {
+  color-scheme: light dark;
+  --blue: #008fff;
+  --blue-strong: #006fd1;
+  --yellow: #ffe400;
+  --ink: #111111;
+  --muted: #5c6672;
+  --surface: #ffffff;
+  --soft: #f3f6f9;
+  --border: rgba(17, 17, 17, 0.12);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  width: 380px;
+  margin: 0;
+  background: var(--surface);
+  color: var(--ink);
+  font: 400 13px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 12px 14px;
+  background: linear-gradient(120deg, var(--blue), var(--blue-strong));
+  color: #ffffff;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.brand-mark {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 12px;
+  border: 2px solid #111111;
+  background: var(--yellow);
+  color: #111111;
+  font: 900 18px/1 system-ui, sans-serif;
+  flex: 0 0 auto;
+}
+
+.brand-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
+.brand-copy strong {
+  font-size: 13px;
+  font-weight: 900;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.app-status {
+  font-size: 10px;
+  font-weight: 700;
+  color: #fff2a8;
+}
+
+.app-status[data-online="true"] {
+  color: #d9ffe6;
+}
+
+.badge {
+  display: grid;
+  place-items: center;
+  min-width: 28px;
+  height: 28px;
+  padding: 0 8px;
+  border-radius: 999px;
+  background: var(--yellow);
+  color: #111111;
+  font: 900 12px/1 system-ui, sans-serif;
+  flex: 0 0 auto;
+}
+
+.actions {
+  display: flex;
+  gap: 6px;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border);
+  align-items: center;
+}
+
+.btn {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--ink);
+  padding: 8px 12px;
+  font: 800 12px/1 system-ui, sans-serif;
+  text-decoration: none;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.btn:hover {
+  background: var(--soft);
+}
+
+.btn.primary {
+  background: var(--blue);
+  border-color: var(--blue);
+  color: #ffffff;
+  flex: 1 1 auto;
+}
+
+.btn.primary:hover {
+  background: var(--blue-strong);
+}
+
+.btn.icon {
+  width: 34px;
+  padding: 8px 0;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  padding: 10px 12px;
+  max-height: 360px;
+  overflow-y: auto;
+}
+
+.empty {
+  margin: 16px 6px;
+  color: var(--muted);
+  text-align: center;
+  font-size: 12px;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--soft);
+}
+
+.type {
+  flex: 0 0 auto;
+  font: 900 10px/1 system-ui, sans-serif;
+  padding: 5px 7px;
+  border-radius: 7px;
+  background: rgba(0, 143, 255, 0.14);
+  color: var(--blue-strong);
+}
+
+.type[data-type="audio"] {
+  background: rgba(63, 204, 107, 0.18);
+  color: #187a3d;
+}
+
+.type[data-type="stream"] {
+  background: rgba(255, 228, 0, 0.45);
+  color: #6b5b00;
+}
+
+.copy {
+  flex: 1 1 auto;
+  min-width: 0;
+  direction: ltr;
+  text-align: left;
+}
+
+.url {
+  display: block;
+  font: 700 11px/1.35 ui-monospace, "SFMono-Regular", Consolas, monospace;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.meta {
+  display: block;
+  font: 500 9px/1.3 system-ui, sans-serif;
+  color: var(--muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.row .btn {
+  padding: 5px 9px;
+  font-size: 10px;
+}
+
+.foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 12px;
+  border-top: 1px solid var(--border);
+  font: 700 10px/1.3 system-ui, sans-serif;
+  color: var(--muted);
+}
+
+.status[data-error="true"] {
+  color: #b42318;
+}
+
+.status[data-error="false"] {
+  color: #187a3d;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --ink: #eaf1f8;
+    --muted: #9fb0c2;
+    --surface: #111d2c;
+    --soft: #17283b;
+    --border: rgba(234, 241, 248, 0.14);
+  }
+
+  .brand-mark,
+  .badge {
+    color: #111111;
+  }
+}

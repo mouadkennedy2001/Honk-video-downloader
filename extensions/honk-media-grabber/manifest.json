@@ -1,0 +1,51 @@
+{
+  "manifest_version": 3,
+  "name": "Honk Media Grabber",
+  "version": "2.0.0",
+  "description": "اكتشف روابط الفيديو والصوت في الصفحة وأرسلها مباشرة إلى تطبيق Honk Downloader أو انسخها.",
+  "icons": {
+    "128": "icon128.png"
+  },
+  "permissions": [
+    "clipboardWrite",
+    "storage",
+    "tabs",
+    "webRequest"
+  ],
+  "host_permissions": [
+    "http://*/*",
+    "https://*/*",
+    "http://127.0.0.1/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_title": "Honk Media Grabber",
+    "default_popup": "popup.html",
+    "default_icon": {
+      "128": "icon128.png"
+    }
+  },
+  "commands": {
+    "toggle-panel": {
+      "suggested_key": {
+        "default": "Alt+Shift+H"
+      },
+      "description": "فتح أو إغلاق لوحة روابط الوسائط"
+    }
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "http://*/*",
+        "https://*/*"
+      ],
+      "js": [
+        "content.js"
+      ],
+      "run_at": "document_idle",
+      "all_frames": false
+    }
+  ]
+}
