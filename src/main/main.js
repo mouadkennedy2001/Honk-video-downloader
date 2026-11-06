@@ -12,7 +12,14 @@ const {
   clipboard,
   session,
   nativeTheme,
+<<<<<<< HEAD
   Menu
+=======
+  Menu,
+  Tray,
+  nativeImage,
+  Notification
+>>>>>>> 10888db (v2.0.0 update)
 } = require('electron');
 
 const binaries = require('./binaries');
@@ -21,6 +28,10 @@ const settings = require('./settings');
 const downloader = require('./downloader');
 const extensions = require('./extensions');
 const bridge = require('./bridge');
+<<<<<<< HEAD
+=======
+const { SITES } = require('./sites');
+>>>>>>> 10888db (v2.0.0 update)
 const { BROWSER_PARTITION, exportCookies } = require('./cookies');
 
 const BROWSER_COOKIE_SOURCES = new Set([
@@ -90,10 +101,50 @@ function focusWindow() {
   mainWindow.focus();
 }
 
+<<<<<<< HEAD
+=======
+let tray = null;
+function createTray() {
+  try {
+    if (tray) return;
+    const iconPath = path.join(__dirname, '..', 'renderer', 'assets', 'icon.png');
+    const icon = nativeImage.createFromPath(iconPath);
+    if (icon.isEmpty()) return;
+    tray = new Tray(icon.resize({ width: 16, height: 16 }));
+    const menu = Menu.buildFromTemplate([
+      { label: 'إظهار', click: focusWindow },
+      { label: 'تحميل جديد', click: () => { focusWindow(); sendToWindow('tray:new-download'); } },
+      { type: 'separator' },
+      { label: 'خروج', click: () => app.quit() },
+    ]);
+    tray.setToolTip('Honk Downloader');
+    tray.setContextMenu(menu);
+    tray.on('click', focusWindow);
+  } catch {}
+}
+
+function applyAutoStart() {
+  try {
+    const s = settings.load();
+    app.setLoginItemSettings({ openAtLogin: Boolean(s.autoStart), openAsHidden: false });
+  } catch {}
+}
+
+function notify(title, body) {
+  try {
+    const s = settings.load();
+    if (!s.showNotifications) return;
+    if (!Notification.isSupported()) return;
+    new Notification({ title: title || 'Honk Downloader', body: body || '', icon: path.join(__dirname, '..', 'renderer', 'assets', 'icon.png') }).show();
+  } catch {}
+}
+
+>>>>>>> 10888db (v2.0.0 update)
 function createWindow() {
   applyTheme();
 
   mainWindow = new BrowserWindow({
+<<<<<<< HEAD
     width: 1340,
     height: 900,
     minWidth: 980,
@@ -102,6 +153,18 @@ function createWindow() {
     backgroundColor: isDarkTheme() ? '#07101c' : '#008fff',
     title: 'Honk Downloader',
     autoHideMenuBar: true,
+=======
+    width: 1380,
+    height: 920,
+    minWidth: 980,
+    minHeight: 640,
+    show: false,
+    maximize: true,
+    backgroundColor: isDarkTheme() ? '#07101c' : '#ffffff',
+    title: 'Honk Downloader',
+    autoHideMenuBar: true,
+    titleBarStyle: process.platform === 'win32' ? 'default' : 'hiddenInset',
+>>>>>>> 10888db (v2.0.0 update)
     icon: path.join(__dirname, '..', 'renderer', 'assets', 'icon.png'),
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
@@ -129,6 +192,22 @@ function createWindow() {
     mainWindow = null;
   });
 
+<<<<<<< HEAD
+=======
+  mainWindow.on('minimize', (e) => {
+    try {
+      const s = settings.load();
+      if (s.minimizeToTray) { e.preventDefault(); mainWindow.hide(); createTray(); }
+    } catch {}
+  });
+  mainWindow.on('close', (e) => {
+    try {
+      const s = settings.load();
+      if (s.minimizeToTray && mainWindow) { e.preventDefault(); mainWindow.hide(); createTray(); }
+    } catch {}
+  });
+
+>>>>>>> 10888db (v2.0.0 update)
   mainWindow.webContents.setWindowOpenHandler(({ url }) => {
     if (/^https?:\/\//i.test(url)) {
       shell.openExternal(url);
@@ -390,6 +469,22 @@ function registerIpc() {
     return result.canceled ? null : result.filePaths[0];
   });
 
+<<<<<<< HEAD
+=======
+  ipcMain.handle('sites:list', () => SITES);
+  ipcMain.handle('sites:count', () => SITES.length);
+  ipcMain.handle('sites:categories', () => {
+    const { CATEGORIES } = require('./sites');
+    return CATEGORIES || [...new Set(SITES.map(s=>s.category))];
+  });
+  ipcMain.handle('app:apply-autostart', () => { applyAutoStart(); return true; });
+  ipcMain.handle('app:notify', (_e, title, body) => { notify(title, body); return true; });
+  ipcMain.handle('dialog:open-file', async () => {
+    const r = await dialog.showOpenDialog(mainWindow, { properties: ['openFile'], filters: [{ name: 'Cookies / Files', extensions: ['txt','json','*'] }] });
+    return r.canceled ? null : r.filePaths[0];
+  });
+
+>>>>>>> 10888db (v2.0.0 update)
   ipcMain.handle('env:check', () => envStatus());
 
   ipcMain.handle('clipboard:read', () => clipboard.readText());
@@ -448,6 +543,12 @@ function registerIpc() {
         mode: options.mode === 'audio' ? 'audio' : 'video',
         quality: options.quality,
         audioFormat: options.audioFormat,
+<<<<<<< HEAD
+=======
+        videoFormat: options.videoFormat || currentSettings.videoFormat,
+        mergeOutputFormat: options.mergeOutputFormat || currentSettings.mergeOutputFormat,
+        recodeVideo: options.recodeVideo || currentSettings.recodeVideo,
+>>>>>>> 10888db (v2.0.0 update)
         playlist: Boolean(options.playlist),
         embedMetadata: options.embedMetadata !== undefined
           ? Boolean(options.embedMetadata)
@@ -457,7 +558,33 @@ function registerIpc() {
           : currentSettings.downloadSubtitles,
         subtitleLangs: options.subtitleLangs || currentSettings.subtitleLangs,
         maxConcurrent: currentSettings.maxConcurrentDownloads,
+<<<<<<< HEAD
         outputDir: currentSettings.downloadDir
+=======
+        outputDir: currentSettings.downloadDir,
+        // advanced merged from settings + per-job
+        speedLimit: options.speedLimit ?? currentSettings.speedLimit,
+        proxy: options.proxy ?? currentSettings.proxy,
+        filenameTemplate: options.filenameTemplate ?? currentSettings.filenameTemplate,
+        outputSubfolder: options.outputSubfolder ?? currentSettings.outputSubfolder,
+        downloadChapters: options.downloadChapters ?? currentSettings.downloadChapters,
+        downloadThumbnail: options.downloadThumbnail ?? currentSettings.downloadThumbnail,
+        downloadInfoJson: options.downloadInfoJson ?? currentSettings.downloadInfoJson,
+        writeDescription: options.writeDescription ?? currentSettings.writeDescription,
+        sponsorblock: options.sponsorblock ?? currentSettings.sponsorblock,
+        restrictFilenames: options.restrictFilenames ?? currentSettings.restrictFilenames,
+        playlistStart: options.playlistStart ?? currentSettings.playlistStart,
+        playlistEnd: options.playlistEnd ?? currentSettings.playlistEnd,
+        audioBitrate: options.audioBitrate ?? currentSettings.audioBitrate,
+        embedChapters: options.embedChapters ?? currentSettings.embedChapters,
+        parseMetadata: options.parseMetadata ?? currentSettings.parseMetadata,
+        skipDownload: options.skipDownload ?? currentSettings.skipDownload,
+        extractorArgs: options.extractorArgs ?? currentSettings.extractorArgs,
+        maxHeight: options.maxHeight ?? currentSettings.maxHeight,
+        userAgent: options.userAgent ?? currentSettings.userAgent,
+        bufferSize: options.bufferSize ?? currentSettings.bufferSize,
+        thumbnailOnly: Boolean(options.thumbnailOnly)
+>>>>>>> 10888db (v2.0.0 update)
       },
       cookieArgs,
       (payload) => {
@@ -477,6 +604,11 @@ function registerIpc() {
   });
 
   ipcMain.handle('yt:cancel', (_event, id) => downloader.cancelDownload(String(id)));
+<<<<<<< HEAD
+=======
+  ipcMain.handle('yt:pause', (_event, id) => downloader.pauseDownload(String(id)));
+  ipcMain.handle('yt:resume', (_event, id) => downloader.resumeDownload(String(id)));
+>>>>>>> 10888db (v2.0.0 update)
 
   ipcMain.handle('extensions:list', () => extensions.list());
 

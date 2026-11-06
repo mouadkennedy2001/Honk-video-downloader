@@ -16,10 +16,22 @@ const state = {
   busyInfo: false,
   incomingBusy: false,
   installing: new Set(),
+<<<<<<< HEAD
   browserUrl: 'https://www.youtube.com',
   pendingLink: null,
   toastTimer: null,
   extensions: []
+=======
+  browserUrl: 'https://www.google.com',
+  pendingLink: null,
+  toastTimer: null,
+  extensions: [],
+  sites: [],
+  language: 'ar',
+  font: 'cairo',
+  history: [],
+  favorites: [],
+>>>>>>> 10888db (v2.0.0 update)
 };
 
 const PHASE_LABEL = {
@@ -122,6 +134,49 @@ function applyTheme(theme) {
   document.documentElement.dataset.theme = resolveTheme(theme);
 }
 
+<<<<<<< HEAD
+=======
+function applyLanguage(lang) {
+  const L = window.HonkLocales;
+  if (!L) return;
+  state.language = lang || 'ar';
+  const tr = L.TRANSLATIONS[state.language] || L.TRANSLATIONS.ar;
+  document.documentElement.lang = state.language;
+  document.documentElement.dir = tr.dir || 'rtl';
+  $$('[data-i18n]').forEach(el => {
+    const key = el.dataset.i18n;
+    if (tr[key]) el.textContent = tr[key];
+  });
+  // placeholders
+  const hint = $('#url-hint'); if (hint && tr.supportsHint) hint.textContent = tr.supportsHint;
+  const topLang = $('#top-language'); if (topLang) topLang.value = state.language;
+  const setLang = $('#settings-language'); if (setLang) setLang.value = state.language;
+  // engine pill text will be refreshed by refreshEnv
+}
+
+function applyFont(font) {
+  const L = window.HonkLocales;
+  state.font = font || 'cairo';
+  document.documentElement.dataset.font = state.font;
+  const f = L ? L.FONT_OPTIONS.find(x=>x.value===state.font) : null;
+  if (f) document.documentElement.style.setProperty('--font', f.family);
+  const ff = $('#font-preview');
+  if (ff && f) ff.style.fontFamily = f.family;
+  const sel = $('#settings-font'); if (sel) sel.value = state.font;
+}
+
+function populateLanguageAndFont() {
+  const L = window.HonkLocales;
+  if (!L) return;
+  const mk = (sel, opts) => { if(!sel) return; sel.textContent=''; for(const o of opts){ const op=document.createElement('option'); op.value=o.value; op.textContent=o.label; sel.appendChild(op);} };
+  mk($('#top-language'), L.LANGUAGE_OPTIONS);
+  mk($('#settings-language'), L.LANGUAGE_OPTIONS);
+  mk($('#settings-font'), L.FONT_OPTIONS);
+}
+
+function t(key){ return window.HonkLocales ? window.HonkLocales.getTranslation(state.language, key) : key; }
+
+>>>>>>> 10888db (v2.0.0 update)
 function setTab(name) {
   $$('.tab').forEach((tab) => {
     const active = tab.dataset.tab === name;
@@ -140,6 +195,12 @@ function setTab(name) {
   }
 
   if (name === 'extensions') loadExtensions();
+<<<<<<< HEAD
+=======
+  if (name === 'sites') loadSites();
+  if (name === 'history') renderHistory();
+  if (name === 'favorites') renderFavorites();
+>>>>>>> 10888db (v2.0.0 update)
   if (name === 'settings') {
     refreshEnv();
     refreshBridge();
@@ -147,6 +208,165 @@ function setTab(name) {
   }
 }
 
+<<<<<<< HEAD
+=======
+function iconUrlFor(site){
+  const slug = (site.icon || site.name.toLowerCase().replace(/[^a-z0-9]+/g,'-')).replace(/^-+|-+$/g,'') || 'site';
+  return `assets/icons/${slug}.svg`;
+}
+
+function isFavorite(url){
+  return (state.favorites||[]).some(f=>f.url===url);
+}
+
+async function toggleFavorite(site){
+  const isFav = isFavorite(site.url);
+  let favs = [...(state.favorites || [])];
+  if (isFav) favs = favs.filter(f=>f.url!==site.url);
+  else favs.unshift({ url: site.url, name: site.name, icon: site.icon, color: site.color, initials: site.initials, category: site.category, at: Date.now() });
+  state.favorites = favs;
+  try { state.settings = await api.saveSettings({ favorites: favs }); } catch {}
+  renderSites();
+  renderFavorites();
+  showToast(isFav ? 'أُزيل من المفضلة' : 'أُضيف للمفضلة', 'success');
+}
+
+async function addHistory(entry){
+  if (!state.settings?.enableHistory) return;
+  const hist = [entry, ...(state.history||[])].filter((v,i,a)=>a.findIndex(x=>x.url===v.url)===i).slice(0, state.settings.maxHistory||200);
+  state.history = hist;
+  try { await api.saveSettings({ history: hist }); } catch {}
+  renderHistory();
+}
+
+function renderHistory(){
+  const list = $('#history-list'); if(!list) return;
+  list.textContent='';
+  const items = state.history || state.settings?.history || [];
+  $('#history-count').textContent = String(items.length);
+  $('#history-empty').classList.toggle('is-hidden', items.length>0);
+  for (const h of items){
+    const row = createElement('div','history-item');
+    const copy = createElement('div'); copy.style.minWidth='0'; copy.style.flex='1';
+    const b = createElement('b', null, h.title || h.url);
+    b.title = h.title || h.url;
+    const url = createElement('span', null, h.url);
+    const when = createElement('span', null, h.at ? new Date(h.at).toLocaleString(state.language||'ar', {dateStyle:'short',timeStyle:'short'}) : '');
+    copy.append(b,url,when);
+    const act = createElement('div'); act.style.display='flex'; act.style.gap='6px';
+    const btn = createElement('button','btn ghost compact','فتح');
+    btn.type='button';
+    btn.onclick=()=>{ $('#url').value=h.url; setTab('download'); analyze(h.url); };
+    const del = createElement('button','btn ghost compact','حذف');
+    del.type='button';
+    del.onclick=async ()=>{
+      const nh = (state.history||[]).filter(x=>x.url!==h.url);
+      state.history=nh;
+      await api.saveSettings({ history: nh }).catch(()=>{});
+      renderHistory();
+    };
+    act.append(btn,del);
+    row.append(copy,act);
+    list.appendChild(row);
+  }
+}
+
+function renderFavorites(){
+  const list = $('#fav-list'); if(!list) return;
+  list.textContent='';
+  const favs = state.favorites || state.settings?.favorites || [];
+  $('#fav-count').textContent = String(favs.length);
+  $('#fav-empty').classList.toggle('is-hidden', favs.length>0);
+  for (const f of favs){
+    const card = createElement('div','site-card');
+    const img = createElement('img','site-icon');
+    img.src = iconUrlFor(f);
+    img.alt = f.name;
+    img.onerror = ()=>{ img.style.display='none'; };
+    const copy = createElement('div','site-copy');
+    copy.append(createElement('b',null,f.name), createElement('span',null,f.category||'عام'));
+    const star = createElement('button','fav-btn is-fav','★');
+    star.type='button'; star.title='إزالة من المفضلة';
+    star.onclick=(e)=>{ e.stopPropagation(); toggleFavorite(f); };
+    card.append(img,copy,star);
+    card.style.cursor='pointer';
+    card.onclick=()=>{ $('#url').value=f.url; setTab('download'); analyze(f.url); };
+    list.appendChild(card);
+  }
+}
+
+async function loadSites() {
+  if (!api.listSites) return;
+  try {
+    const sites = await api.listSites();
+    state.sites = Array.isArray(sites) ? sites : [];
+    // populate categories dynamically
+    try {
+      const cats = api.sitesCategories ? await api.sitesCategories() : [...new Set(state.sites.map(s=>s.category))].sort();
+      const sel = $('#sites-category');
+      if (sel && sel.options.length <= 11) {
+        sel.innerHTML = '<option value="">كل الفئات</option>' + cats.map(c=>`<option value="${c}">${c}</option>`).join('');
+      }
+    } catch {}
+    renderSites();
+  } catch(e){ showToast(sanitizeError(e),'error'); }
+}
+
+function renderSites() {
+  const grid = $('#sites-grid'); if(!grid) return;
+  const q = ($('#sites-search')?.value || '').toLowerCase();
+  const cat = $('#sites-category')?.value || '';
+  const list = state.sites.filter(s => {
+    const okQ = !q || s.name.toLowerCase().includes(q) || (s.url||'').toLowerCase().includes(q);
+    const okC = !cat || s.category===cat;
+    return okQ && okC;
+  });
+  grid.textContent='';
+  $('#sites-count').textContent = String(list.length);
+  const showIcons = state.settings?.showSiteIcons !== false;
+  for (const s of list) {
+    const card = createElement('div','site-card animate-in');
+    if (showIcons) {
+      const img = createElement('img','site-icon');
+      img.src = iconUrlFor(s);
+      img.alt = s.name;
+      img.loading = 'lazy';
+      img.onerror = ()=>{ img.style.display='none'; };
+      card.appendChild(img);
+    }
+    const copy = createElement('div','site-copy');
+    copy.append(createElement('b', null, s.name), createElement('span', null, `${s.category}`));
+    const star = createElement('button','fav-btn' + (isFavorite(s.url)?' is-fav':''), isFavorite(s.url)?'★':'☆');
+    star.type='button'; star.title='مفضلة';
+    star.addEventListener('click', (e)=>{ e.stopPropagation(); toggleFavorite(s); });
+    card.append(copy, star);
+    card.title = `${s.name} — ${s.url}`;
+    card.addEventListener('click', ()=>{ $('#url').value = s.url; setTab('download'); analyze(s.url); });
+    grid.appendChild(card);
+  }
+}
+
+function bindSites(){
+  const search = $('#sites-search'); if(search) search.addEventListener('input', renderSites);
+  const cat = $('#sites-category'); if(cat) cat.addEventListener('change', renderSites);
+  const add = $('#batch-add');
+  if(add) add.addEventListener('click', async ()=>{
+    const txt = $('#batch-input').value || '';
+    const urls = txt.split(/\r?\n/).map(l=>l.trim()).filter(Boolean).map(u=>normalizeDownloadUrl(u)||u);
+    if(!urls.length){ showToast('الصق روابطًا أولًا'); return; }
+    for(const url of urls){
+      // add as queued jobs without info? Create jobs directly
+      const id = crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+      const job = { id, url, title: url, thumbnail:null, mode: state.mode, quality: $('#quality-select')?.value || 'best', audioFormat: $('#audio-format-select')?.value || 'mp3', playlist:false, percent:0, phase:'queued', speed:null, eta:null, size:null, item:null, totalItems:null, status:'queued', error:null, finalPath:null, folder:null, el:null };
+      state.jobs.set(id, job);
+    }
+    renderQueue();
+    showToast(`تمت إضافة ${urls.length} روابط`, 'success');
+  });
+  const clearB = $('#batch-clear'); if(clearB) clearB.addEventListener('click', ()=>{ const el=$('#batch-input'); if(el) el.value=''; });
+}
+
+>>>>>>> 10888db (v2.0.0 update)
 function setUrlHint(text, isError) {
   const hint = $('#url-hint');
   hint.textContent = text;
@@ -197,6 +417,13 @@ async function analyze(urlOverride, preferredMode) {
     state.mode = preferredMode === 'audio' ? 'audio' : 'video';
     renderPreview(info);
     setUrlHint('تم التحليل بنجاح. اختر الجودة ثم اضغط «تحميل الآن».', false);
+<<<<<<< HEAD
+=======
+    // History
+    if (state.settings?.enableHistory) {
+      addHistory({ url, title: info.title || url, thumb: info.thumbnail || null, extractor: info.extractor || null, at: Date.now() });
+    }
+>>>>>>> 10888db (v2.0.0 update)
     return info;
   } catch (error) {
     state.info = null;
@@ -396,11 +623,28 @@ async function startDownload() {
       mode: job.mode,
       quality: job.quality,
       audioFormat: job.audioFormat,
+<<<<<<< HEAD
+=======
+      videoFormat: $('#settings-video-format')?.value || 'mp4',
+>>>>>>> 10888db (v2.0.0 update)
       playlist: job.playlist,
       embedMetadata: $('#opt-metadata').checked,
       downloadSubtitles: $('#opt-subtitles').checked,
       subtitleLangs: $('#subtitle-lang').value,
+<<<<<<< HEAD
       cookieSource: $('#cookie-source').value
+=======
+      cookieSource: $('#cookie-source').value,
+      speedLimit: $('#settings-speed')?.value || '',
+      proxy: $('#settings-proxy')?.value || '',
+      filenameTemplate: $('#settings-template')?.value || '%(title).150s [%(id)s].%(ext)s',
+      outputSubfolder: $('#opt-subfolder')?.checked || false,
+      downloadChapters: $('#opt-chapters')?.checked || false,
+      sponsorblock: $('#opt-sponsorblock')?.checked || false,
+      thumbnailOnly: $('#opt-thumb-only')?.checked || false,
+      playlistStart: Number($('#playlist-start')?.value || 1),
+      playlistEnd: Number($('#playlist-end')?.value || 0),
+>>>>>>> 10888db (v2.0.0 update)
     });
 
     if (result && result.folder) job.folder = result.folder;
@@ -455,17 +699,42 @@ function createJobCard(job) {
   folderBtn.dataset.action = 'folder';
   folderBtn.addEventListener('click', () => openJobFolder(job));
 
+<<<<<<< HEAD
+=======
+  const pauseBtn = createElement('button', 'queue-action', '⏸ إيقاف');
+  pauseBtn.type = 'button';
+  pauseBtn.dataset.action = 'pause';
+  pauseBtn.addEventListener('click', async () => {
+    if (job.status === 'running' && !job.paused) { await api.pauseDownload(job.id); job.paused = true; pauseBtn.textContent = '▶ استئناف'; job.status = 'paused'; updateJobCard(job); }
+    else if (job.paused) { await api.resumeDownload(job.id); job.paused = false; pauseBtn.textContent = '⏸ إيقاف'; job.status = 'running'; updateJobCard(job); }
+  });
+
+  const retryBtn = createElement('button', 'queue-action', '↻ إعادة');
+  retryBtn.type = 'button';
+  retryBtn.dataset.action = 'retry';
+  retryBtn.classList.add('is-hidden');
+  retryBtn.addEventListener('click', () => startDownload());
+
+>>>>>>> 10888db (v2.0.0 update)
   const cancelBtn = createElement('button', 'queue-action', 'إلغاء');
   cancelBtn.type = 'button';
   cancelBtn.dataset.action = 'cancel';
   cancelBtn.addEventListener('click', () => api.cancelDownload(job.id));
 
+<<<<<<< HEAD
   actions.append(openBtn, folderBtn, cancelBtn);
+=======
+  actions.append(openBtn, folderBtn, pauseBtn, retryBtn, cancelBtn);
+>>>>>>> 10888db (v2.0.0 update)
   bottom.append(detail, actions);
   body.append(top, meta, bar, bottom);
   card.append(thumb, body);
 
+<<<<<<< HEAD
   card.refs = { img, fileType, badge, meta, fill, detail, openBtn, cancelBtn };
+=======
+  card.refs = { img, fileType, badge, meta, fill, detail, openBtn, cancelBtn, pauseBtn, retryBtn };
+>>>>>>> 10888db (v2.0.0 update)
   return card;
 }
 
@@ -519,6 +788,13 @@ function updateJobCard(job) {
     badgeText = 'خطأ';
     refs.meta.textContent = job.error || 'فشل التحميل.';
     refs.meta.title = job.error || '';
+<<<<<<< HEAD
+=======
+  } else if (job.status === 'paused') {
+    badgeText = 'متوقف';
+    refs.meta.textContent = 'إيقاف مؤقت — اضغط استئناف';
+    refs.meta.title = '';
+>>>>>>> 10888db (v2.0.0 update)
   }
 
   refs.badge.textContent = badgeText;
@@ -538,7 +814,18 @@ function updateJobCard(job) {
 
   refs.openBtn.classList.toggle('is-hidden', job.status !== 'done' || !job.finalPath);
   refs.openBtn.disabled = !job.finalPath;
+<<<<<<< HEAD
   refs.cancelBtn.classList.toggle('is-hidden', job.status !== 'running' && job.status !== 'queued');
+=======
+  refs.cancelBtn.classList.toggle('is-hidden', job.status !== 'running' && job.status !== 'queued' && job.status !== 'paused');
+  if (refs.pauseBtn) {
+    refs.pauseBtn.classList.toggle('is-hidden', job.status !== 'running' && job.status !== 'paused');
+    refs.pauseBtn.textContent = job.paused ? '▶ استئناف' : '⏸ إيقاف';
+  }
+  if (refs.retryBtn) {
+    refs.retryBtn.classList.toggle('is-hidden', job.status !== 'error' && job.status !== 'cancelled');
+  }
+>>>>>>> 10888db (v2.0.0 update)
 }
 
 function renderQueue() {
@@ -812,6 +1099,27 @@ function applySettingsToForm(settings) {
   $('#settings-subtitle-lang').value = settings.subtitleLangs || 'ar,en';
   $('#bridge-enabled').checked = settings.extensionBridge !== false;
   $('#auto-download-extension').checked = Boolean(settings.autoDownloadFromExtension);
+<<<<<<< HEAD
+=======
+  // new
+  const $id = (s)=>document.getElementById(s);
+  if ($id('settings-language')) $id('settings-language').value = settings.language || 'ar';
+  if ($id('settings-font')) $id('settings-font').value = settings.font || 'cairo';
+  if ($id('settings-video-format')) $id('settings-video-format').value = settings.videoFormat || 'mp4';
+  if ($id('settings-speed')) $id('settings-speed').value = settings.speedLimit || '';
+  if ($id('settings-proxy')) $id('settings-proxy').value = settings.proxy || '';
+  if ($id('settings-template')) $id('settings-template').value = settings.filenameTemplate || '';
+  if ($id('playlist-start')) $id('playlist-start').value = settings.playlistStart || 1;
+  if ($id('playlist-end')) $id('playlist-end').value = settings.playlistEnd || 0;
+  if ($id('opt-chapters')) $id('opt-chapters').checked = Boolean(settings.downloadChapters);
+  if ($id('opt-sponsorblock')) $id('opt-sponsorblock').checked = Boolean(settings.sponsorblock);
+  if ($id('opt-subfolder')) $id('opt-subfolder').checked = Boolean(settings.outputSubfolder);
+  if ($id('opt-thumb-only')) $id('opt-thumb-only').checked = Boolean(settings.downloadThumbnail);
+  if ($id('minimize-tray')) $id('minimize-tray').checked = Boolean(settings.minimizeToTray);
+  if ($id('auto-start')) $id('auto-start').checked = Boolean(settings.autoStart);
+  applyLanguage(settings.language || 'ar');
+  applyFont(settings.font || 'cairo');
+>>>>>>> 10888db (v2.0.0 update)
   setCookieSource(settings.cookieSource);
 
   if (!state.info) {
@@ -1351,22 +1659,55 @@ function bindSettings() {
         downloadDir: $('#settings-dir').value.trim(),
         videoQuality: $('#settings-quality').value,
         audioFormat: $('#settings-audio').value,
+<<<<<<< HEAD
         browserHome: $('#settings-home').value.trim(),
         cookieSource: $('#settings-cookie-source').value,
         theme: $('#settings-theme').value,
+=======
+        videoFormat: $('#settings-video-format')?.value || 'mp4',
+        browserHome: $('#settings-home').value.trim(),
+        cookieSource: $('#settings-cookie-source').value,
+        theme: $('#settings-theme').value,
+        language: $('#settings-language')?.value || $('#top-language')?.value || 'ar',
+        font: $('#settings-font')?.value || 'cairo',
+>>>>>>> 10888db (v2.0.0 update)
         maxConcurrentDownloads: Number($('#settings-concurrent').value),
         embedMetadata: $('#settings-metadata').checked,
         downloadSubtitles: $('#settings-subtitles').checked,
         subtitleLangs: $('#settings-subtitle-lang').value,
         extensionBridge: $('#bridge-enabled').checked,
+<<<<<<< HEAD
         autoDownloadFromExtension: $('#auto-download-extension').checked
+=======
+        autoDownloadFromExtension: $('#auto-download-extension').checked,
+        speedLimit: $('#settings-speed')?.value || '',
+        proxy: $('#settings-proxy')?.value || '',
+        filenameTemplate: $('#settings-template')?.value || '%(title).150s [%(id)s].%(ext)s',
+        outputSubfolder: $('#opt-subfolder')?.checked || false,
+        downloadChapters: $('#opt-chapters')?.checked || false,
+        sponsorblock: $('#opt-sponsorblock')?.checked || false,
+        downloadThumbnail: $('#opt-thumb-only')?.checked || false,
+        playlistStart: Number($('#playlist-start')?.value || 1),
+        playlistEnd: Number($('#playlist-end')?.value || 0),
+        minimizeToTray: $('#minimize-tray')?.checked || false,
+        autoStart: $('#auto-start')?.checked || false,
+>>>>>>> 10888db (v2.0.0 update)
       });
 
       state.settings = saved;
       applyTheme(saved.theme);
+<<<<<<< HEAD
       applySettingsToForm(saved);
       updatePreviewNote();
       await refreshBridge();
+=======
+      applyLanguage(saved.language);
+      applyFont(saved.font);
+      applySettingsToForm(saved);
+      updatePreviewNote();
+      await refreshBridge();
+      if (api.applyAutoStart) api.applyAutoStart();
+>>>>>>> 10888db (v2.0.0 update)
       showToast('تم حفظ الإعدادات.', 'success');
     } catch (error) {
       showToast(sanitizeError(error), 'error');
@@ -1375,6 +1716,26 @@ function bindSettings() {
     }
   });
 
+<<<<<<< HEAD
+=======
+  $('#settings-language')?.addEventListener('change', async (e)=>{
+    applyLanguage(e.target.value);
+    const top = $('#top-language'); if(top) top.value = e.target.value;
+    try { state.settings = await api.saveSettings({ language: e.target.value }); } catch {}
+  });
+  $('#top-language')?.addEventListener('change', async (e)=>{
+    const v = e.target.value;
+    applyLanguage(v);
+    const s = $('#settings-language'); if(s) s.value = v;
+    try { state.settings = await api.saveSettings({ language: v }); } catch {}
+  });
+  $('#settings-font')?.addEventListener('change', async (e)=>{
+    applyFont(e.target.value);
+    try { state.settings = await api.saveSettings({ font: e.target.value }); } catch {}
+    if (api.notify) api.notify('Font', e.target.value);
+  });
+
+>>>>>>> 10888db (v2.0.0 update)
   $('#reset-settings').addEventListener('click', async () => {
     if (!window.confirm('إعادة الإعدادات الافتراضية (سيُبقى مجلد التحميل الحالي)؟')) return;
 
@@ -1580,6 +1941,10 @@ function bindGlobalShortcuts() {
 }
 
 async function init() {
+<<<<<<< HEAD
+=======
+  populateLanguageAndFont();
+>>>>>>> 10888db (v2.0.0 update)
   bindTabs();
   bindTheme();
   bindDownloader();
@@ -1588,8 +1953,18 @@ async function init() {
   bindSettings();
   bindDropZone();
   bindGlobalShortcuts();
+<<<<<<< HEAD
 
   await loadSettings();
+=======
+  bindSites();
+
+  await loadSettings();
+  if (state.settings) {
+    applyLanguage(state.settings.language || 'ar');
+    applyFont(state.settings.font || 'cairo');
+  }
+>>>>>>> 10888db (v2.0.0 update)
 
   await Promise.all([
     refreshEnv(),

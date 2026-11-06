@@ -180,6 +180,11 @@ function getInfo(url, cookieArgs) {
 }
 
 function buildDownloadArgs(options, cookieArgs, hasFfmpeg) {
+<<<<<<< HEAD
+=======
+  const template = options.filenameTemplate || '%(title).150s [%(id)s].%(ext)s';
+  const outputPath = options.outputDir ? (options.outputSubfolder ? path.join(options.outputDir, '%(uploader)s', template) : path.join(options.outputDir, template)) : template;
+>>>>>>> 10888db (v2.0.0 update)
   const args = [
     options.playlist ? '--yes-playlist' : '--no-playlist',
     '--newline',
@@ -188,6 +193,7 @@ function buildDownloadArgs(options, cookieArgs, hasFfmpeg) {
     '--socket-timeout', '20',
     '--retries', '10',
     '--fragment-retries', '10',
+<<<<<<< HEAD
     '--concurrent-fragments', '4',
     '--trim-filenames', '180',
     '-o', path.join(options.outputDir, '%(title).150s [%(id)s].%(ext)s')
@@ -196,16 +202,57 @@ function buildDownloadArgs(options, cookieArgs, hasFfmpeg) {
   if (hasFfmpeg) {
     const ffmpegDir = path.dirname(binaries.resolve('ffmpeg'));
     args.push('--ffmpeg-location', ffmpegDir);
+=======
+    '--concurrent-fragments', '6',
+    '--buffer-size', options.bufferSize || '16K',
+    '--trim-filenames', '180',
+    '-O', 'filename',
+    '-c', // resume partial
+    '-o', outputPath
+  ];
+
+  if (options.restrictFilenames) args.push('--restrict-filenames');
+  if (options.speedLimit) args.push('-r', options.speedLimit);
+  if (options.proxy) args.push('--proxy', options.proxy);
+  if (options.userAgent) args.push('--user-agent', options.userAgent);
+  if (options.playlistStart || options.playlistEnd) {
+    args.push('--playlist-start', String(options.playlistStart || 1));
+    if (options.playlistEnd) args.push('--playlist-end', String(options.playlistEnd));
+  }
+  if (options.maxHeight) args.push('--max-height', String(options.maxHeight));
+  if (options.sponsorblock) args.push('--sponsorblock-remove', 'default');
+  if (options.downloadChapters || options.embedChapters) args.push('--embed-chapters');
+  if (options.downloadThumbnail || options.thumbnailOnly) args.push('--write-thumbnail','--convert-thumbnails','jpg');
+  if (options.downloadInfoJson) args.push('--write-info-json');
+  if (options.writeDescription) args.push('--write-description');
+  if (options.parseMetadata) args.push('--parse-metadata','title:%()s');
+  if (options.skipDownload) args.push('-s');
+
+  if (hasFfmpeg) {
+    try { const ffmpegDir = path.dirname(binaries.resolve('ffmpeg')); if (ffmpegDir) args.push('--ffmpeg-location', ffmpegDir); } catch {}
+>>>>>>> 10888db (v2.0.0 update)
   }
 
   if (Array.isArray(cookieArgs) && cookieArgs.length) args.push(...cookieArgs);
 
+<<<<<<< HEAD
   if (options.mode === 'audio') {
     args.push('-f', 'ba/b', '-x');
 
     if (options.audioFormat && options.audioFormat !== 'best') {
       args.push('--audio-format', options.audioFormat);
       if (options.audioFormat === 'mp3') args.push('--audio-quality', '0');
+=======
+  if (options.mode === 'audio' || options.thumbnailOnly) {
+    if (options.thumbnailOnly) args.push('--skip-download','--write-thumbnail');
+    else {
+      args.push('-f', 'ba/b', '-x');
+      if (options.audioFormat && options.audioFormat !== 'best') {
+        args.push('--audio-format', options.audioFormat);
+        if (options.audioFormat === 'mp3') args.push('--audio-quality', '0');
+        if (options.audioBitrate && options.audioBitrate !== '0') args.push('--audio-quality', options.audioBitrate);
+      }
+>>>>>>> 10888db (v2.0.0 update)
     }
   } else {
     const quality = options.quality && options.quality !== 'best'
@@ -218,7 +265,13 @@ function buildDownloadArgs(options, cookieArgs, hasFfmpeg) {
       } else {
         args.push('-f', 'bv*+ba/b');
       }
+<<<<<<< HEAD
       args.push('--merge-output-format', 'mp4');
+=======
+      const outFmt = options.mergeOutputFormat || options.videoFormat || 'mp4';
+      if (outFmt !== 'best') args.push('--merge-output-format', outFmt);
+      if (options.recodeVideo && options.recodeVideo !== 'best') args.push('--recode-video', options.recodeVideo);
+>>>>>>> 10888db (v2.0.0 update)
     } else if (quality) {
       args.push('-f', `b[height<=${quality}]/b`);
     } else {
@@ -244,6 +297,14 @@ function buildDownloadArgs(options, cookieArgs, hasFfmpeg) {
     );
   }
 
+<<<<<<< HEAD
+=======
+  if (options.extractorArgs) {
+    const parts = String(options.extractorArgs).split(/\s+/).filter(Boolean);
+    for (const p of parts) args.push(p);
+  }
+
+>>>>>>> 10888db (v2.0.0 update)
   args.push('--', options.url);
   return args;
 }
@@ -586,6 +647,41 @@ function runJob(job) {
   });
 }
 
+<<<<<<< HEAD
+=======
+function pauseDownload(id) {
+  const job = jobs.get(String(id));
+  if (!job || !job.child) return false;
+  try {
+    if (process.platform === 'win32') {
+      // Windows: suspend via taskkill? Use SIGSTOP not available, emulate by killing and re-queue
+      job.paused = true;
+      killTree(job.child);
+      return true;
+    } else {
+      job.child.kill('SIGSTOP');
+      job.paused = true;
+      return true;
+    }
+  } catch { return false; }
+}
+
+function resumeDownload(id) {
+  const job = jobs.get(String(id));
+  if (!job) return false;
+  job.paused = false;
+  if (job.child && process.platform !== 'win32') {
+    try { job.child.kill('SIGCONT'); return true; } catch { return false; }
+  }
+  // Windows restart: re-run job (yt-dlp supports --continue)
+  if (job.child) {
+    try { job.child.kill('SIGTERM'); } catch {}
+  }
+  setTimeout(() => { if (job && !job.settled) runJob(job); }, 300);
+  return true;
+}
+
+>>>>>>> 10888db (v2.0.0 update)
 function cancelDownload(id) {
   const job = jobs.get(String(id));
   if (!job) return false;
@@ -613,5 +709,11 @@ function cancelDownload(id) {
 module.exports = {
   getInfo,
   startDownload,
+<<<<<<< HEAD
   cancelDownload
+=======
+  cancelDownload,
+  pauseDownload,
+  resumeDownload
+>>>>>>> 10888db (v2.0.0 update)
 };

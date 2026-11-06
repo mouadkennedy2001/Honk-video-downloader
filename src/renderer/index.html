@@ -1,10 +1,22 @@
 <!doctype html>
+<<<<<<< HEAD
 <html lang="ar" dir="rtl" data-theme="light">
 <head>
   <meta charset="utf-8">
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data: https: http:; style-src 'self' 'unsafe-inline'; script-src 'self'; connect-src 'self'; frame-src https: http:; child-src https: http:; object-src 'none';">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Honk Downloader</title>
+=======
+<html lang="ar" dir="rtl" data-theme="light" data-font="cairo">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data: https: http:; style-src 'self' 'unsafe-inline'; script-src 'self'; connect-src 'self'; frame-src https: http:; child-src https: http:; object-src 'none'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:;">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Honk Downloader</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&family=Tajawal:wght@400;700;900&family=Almarai:wght@300;400;700;800&family=Noto+Kufi+Arabic:wght@400;700;900&family=Amiri:wght@400;700&family=IBM+Plex+Sans+Arabic:wght@300;400;600;700&family=Noto+Sans+Arabic:wght@400;700;900&family=Noto+Naskh+Arabic:wght@400;700&family=Readex+Pro:wght@300;400;700&family=Alexandria:wght@300;400;700;900&family=El+Messiri:wght@400;700&family=Rubik:wght@400;700;900&family=Inter:wght@400;600;800&family=Roboto:wght@400;700&family=Poppins:wght@400;600;800&family=Exo+2:wght@400;700;900&display=swap" rel="stylesheet">
+>>>>>>> 10888db (v2.0.0 update)
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -22,11 +34,26 @@
       </div>
 
       <nav class="tabs" role="tablist" aria-label="أقسام التطبيق">
+<<<<<<< HEAD
         <button class="tab is-active" data-tab="download" role="tab" aria-selected="true">التحميل</button>
         <button class="tab" data-tab="browser" role="tab" aria-selected="false">المتصفح</button>
         <button class="tab" data-tab="extensions" role="tab" aria-selected="false">الإضافات</button>
         <button class="tab" data-tab="settings" role="tab" aria-selected="false">الإعدادات</button>
       </nav>
+=======
+        <button class="tab is-active" data-tab="download" role="tab" aria-selected="true" data-i18n="download">التحميل</button>
+        <button class="tab" data-tab="browser" role="tab" aria-selected="false" data-i18n="browser">المتصفح</button>
+        <button class="tab" data-tab="sites" role="tab" aria-selected="false" data-i18n="sites">المواقع المدعومة</button>
+        <button class="tab" data-tab="batch" role="tab" aria-selected="false" data-i18n="batch">تحميل متعدد</button>
+        <button class="tab" data-tab="history" role="tab" aria-selected="false" data-i18n="history">السجل</button>
+        <button class="tab" data-tab="favorites" role="tab" aria-selected="false" data-i18n="favorites">المفضلة</button>
+        <button class="tab" data-tab="extensions" role="tab" aria-selected="false" data-i18n="extensions">الإضافات</button>
+        <button class="tab" data-tab="settings" role="tab" aria-selected="false" data-i18n="settings">الإعدادات</button>
+      </nav>
+      <select id="top-language" class="select" style="max-width:190px;margin-inline-start:8px" aria-label="Language">
+        <!-- populated via JS -->
+      </select>
+>>>>>>> 10888db (v2.0.0 update)
 
       <div class="topbar-actions">
         <span id="engine-pill" class="engine-pill is-warn" title="حالة محرّكات التحميل">
@@ -261,6 +288,85 @@
         </div>
       </section>
 
+<<<<<<< HEAD
+=======
+      <section id="tab-sites" class="tab-panel" role="tabpanel">
+        <div class="settings-wrap">
+          <span class="eyebrow">300+ موقع • 183 أيقونة في icons/</span>
+          <h1 class="display display-small">المواقع المدعومة</h1>
+          <p class="lead">يدعم التطبيق الآن أكثر من 300 موقع مشهور مدعوم عبر yt-dlp (يتجاوز 1000+ مستخرج في الواقع) — كل موقع مع أيقونة SVG في <code>src/renderer/assets/icons/</code> و <code>icons/</code>. اضغط على أي موقع لوضع رابطه في التحميل.</p>
+          <div class="panel settings-panel">
+            <div class="input-row" style="margin-bottom:12px">
+              <input id="sites-search" class="text-input" placeholder="ابحث عن موقع… YouTube, TikTok, Instagram">
+              <select id="sites-category" class="select" style="max-width:190px">
+                <option value="">كل الفئات</option>
+                <option value="عام">عام</option><option value="تواصل اجتماعي">تواصل اجتماعي</option>
+                <option value="فيديو">فيديو</option><option value="صوت">صوت</option>
+                <option value="أخبار">أخبار</option><option value="رياضة">رياضة</option>
+                <option value="ألعاب">ألعاب</option><option value="تعليمي">تعليمي</option>
+                <option value="ترفيه">ترفيه</option><option value="تخزين">تخزين</option>
+              </select>
+              <span id="sites-count" class="count-pill">0</span>
+            </div>
+            <div id="sites-grid" class="sites-grid"></div>
+          </div>
+        </div>
+      </section>
+
+      <section id="tab-batch" class="tab-panel" role="tabpanel">
+        <div class="settings-wrap">
+          <span class="eyebrow">URL Batch</span>
+          <h1 class="display display-small">التحميل المتعدد</h1>
+          <p class="lead">الصق عدة روابط (رابط في كل سطر) ثم أضفها لقائمة التحميل دفعة واحدة.</p>
+          <div class="panel settings-panel">
+            <label class="field-label" for="batch-input">روابط (كل سطر رابط)</label>
+            <textarea id="batch-input" class="text-input batch-list" rows="8" dir="ltr" placeholder="https://www.youtube.com/watch?v=...&#10;https://www.tiktok.com/...&#10;https://www.instagram.com/reel/..."></textarea>
+            <div class="settings-actions">
+              <button id="batch-add" class="btn primary" type="button">إضافة للقائمة</button>
+              <button id="batch-analyze-all" class="btn ghost" type="button">تحليل الكل</button>
+              <button id="batch-clear" class="btn ghost" type="button">مسح</button>
+            </div>
+            <p class="hint">سيتم إنشاء مهمة تحميل لكل رابط. يمكنك التحكم في الجودة والصيغة من الأعلى.</p>
+          </div>
+        </div>
+      </section>
+
+      <section id="tab-history" class="tab-panel" role="tabpanel">
+        <div class="settings-wrap">
+          <span class="eyebrow">History</span>
+          <h1 class="display display-small" data-i18n="history">السجل</h1>
+          <p class="lead">سجل آخر التحليلات والتنزيلات — يمكنك إعادة التحميل أو إلغاء التثبيت.</p>
+          <div class="panel settings-panel">
+            <div class="env-head">
+              <h3>السجل</h3>
+              <div style="display:flex;gap:8px;align-items:center">
+                <span id="history-count" class="count-pill">0</span>
+                <button id="clear-history" class="btn ghost compact" type="button" data-i18n="clearHistory">مسح السجل</button>
+              </div>
+            </div>
+            <div id="history-list" class="history-list"></div>
+            <p id="history-empty" class="hint">لا يوجد سجل بعد.</p>
+          </div>
+        </div>
+      </section>
+
+      <section id="tab-favorites" class="tab-panel" role="tabpanel">
+        <div class="settings-wrap">
+          <span class="eyebrow">Favorites</span>
+          <h1 class="display display-small" data-i18n="favorites">المفضلة</h1>
+          <p class="lead">مواقع وصفحات مثبتة للوصول السريع.</p>
+          <div class="panel settings-panel">
+            <div class="env-head">
+              <h3>المفضلة</h3>
+              <span id="fav-count" class="count-pill">0</span>
+            </div>
+            <div id="fav-list" class="fav-list" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px"></div>
+            <p id="fav-empty" class="hint">لا توجد عناصر مفضلة. أضف موقعًا بالضغط على ⭐ من بطاقة الموقع.</p>
+          </div>
+        </div>
+      </section>
+
+>>>>>>> 10888db (v2.0.0 update)
       <section id="tab-settings" class="tab-panel" role="tabpanel">
         <div class="settings-wrap">
           <span class="eyebrow">التحكم الكامل</span>
@@ -330,6 +436,66 @@
 
             <div class="settings-row">
               <div class="settings-copy">
+<<<<<<< HEAD
+=======
+                <h3>اللغة — Language</h3>
+                <p class="hint">12 لغة: العربية، الإنجليزية، الفرنسية، الإسبانية، الألمانية، التركية، الهندية، الصينية، الروسية، البرتغالية، اليابانية، الكورية.</p>
+              </div>
+              <div class="settings-control">
+                <select id="settings-language" class="select"></select>
+                <select id="top-language-dup" class="select is-hidden"></select>
+              </div>
+            </div>
+
+            <div class="settings-row">
+              <div class="settings-copy">
+                <h3>الخط — Font</h3>
+                <p class="hint">اختر خطًا من 12 خطًا عربيًا ولاتينيًا. تُعرض المعاينة مباشرة.</p>
+                <div id="font-preview" class="font-preview">معاينة الخط — Aa 123 — العربية والإنجليزية</div>
+              </div>
+              <div class="settings-control settings-control-stack">
+                <select id="settings-font" class="select"></select>
+                <input id="font-size" class="text-input" type="number" min="12" max="20" value="14" title="حجم الخط" style="max-width:90px">
+              </div>
+            </div>
+
+            <div class="settings-row">
+              <div class="settings-copy">
+                <h3>صيغة الفيديو الإخراج</h3>
+                <p class="hint">صيغة الملف النهائي بعد الدمج/التحويل.</p>
+              </div>
+              <div class="settings-control">
+                <select id="settings-video-format" class="select">
+                  <option value="mp4">MP4</option>
+                  <option value="mkv">MKV</option>
+                  <option value="webm">WebM</option>
+                  <option value="mov">MOV</option>
+                  <option value="best">الأصلية</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="settings-row">
+              <div class="settings-copy">
+                <h3>ميزات متقدمة</h3>
+              </div>
+              <div class="settings-control settings-control-stack">
+                <label class="checkline"><input id="opt-chapters" type="checkbox"> <span>فصول الفيديو</span></label>
+                <label class="checkline"><input id="opt-sponsorblock" type="checkbox"> <span>إزالة SponsorBlock</span></label>
+                <label class="checkline"><input id="opt-subfolder" type="checkbox"> <span>مجلد فرعي لكل فيديو</span></label>
+                <label class="checkline"><input id="opt-thumb-only" type="checkbox"> <span>تحميل صورة فقط</span></label>
+                <label class="field"><span>حد السرعة (مثال 2M)</span><input id="settings-speed" class="text-input" placeholder="فارغ = بدون حد" dir="ltr"></label>
+                <label class="field"><span>Proxy (http://host:port)</span><input id="settings-proxy" class="text-input" placeholder="اختياري" dir="ltr"></label>
+                <label class="field"><span>قالب اسم الملف</span><input id="settings-template" class="text-input" dir="ltr" placeholder="%(title).150s [%(id)s].%(ext)s"></label>
+                <label class="field"><span>نطاق قائمة التشغيل (من - إلى)</span><div class="input-row"><input id="playlist-start" class="text-input" type="number" value="1" min="1"><input id="playlist-end" class="text-input" type="number" value="0" min="0"></div></label>
+                <label class="checkline"><input id="minimize-tray" type="checkbox"> <span>تصغير لصينية النظام</span></label>
+                <label class="checkline"><input id="auto-start" type="checkbox"> <span>تشغيل مع ويندوز</span></label>
+              </div>
+            </div>
+
+            <div class="settings-row">
+              <div class="settings-copy">
+>>>>>>> 10888db (v2.0.0 update)
                 <h3>صفحة البداية للمتصفح</h3>
                 <p class="hint">العنوان الذي يُفتح عند الضغط على زر الرئيسية.</p>
               </div>
@@ -531,6 +697,10 @@
     </div>
   </div>
 
+<<<<<<< HEAD
+=======
+  <script src="locales.js"></script>
+>>>>>>> 10888db (v2.0.0 update)
   <script src="app.js"></script>
 </body>
 </html>

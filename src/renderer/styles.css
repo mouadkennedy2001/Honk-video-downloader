@@ -14,6 +14,7 @@
   --border-strong: rgba(14, 21, 32, 0.2);
   --danger: #d92d20;
   --success: #12805c;
+<<<<<<< HEAD
   --radius: 18px;
   --radius-sm: 12px;
   --shadow: 0 18px 42px rgba(14, 21, 32, 0.1);
@@ -22,6 +23,56 @@
   --mono: ui-monospace, "SFMono-Regular", Consolas, "Liberation Mono", monospace;
   --font: "Segoe UI", system-ui, -apple-system, "Noto Sans Arabic", "Noto Kufi Arabic", sans-serif;
 }
+=======
+  --radius: 20px;
+  --radius-sm: 12px;
+  --shadow: 0 24px 60px rgba(14, 21, 32, 0.12);
+  --shadow-soft: 0 8px 24px rgba(14, 21, 32, 0.08);
+  --topbar-bg: rgba(255, 255, 255, 0.9);
+  --mono: ui-monospace, "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+  --font: "Cairo","Segoe UI", system-ui, -apple-system, "Noto Sans Arabic", "Noto Kufi Arabic", sans-serif;
+}
+html[data-font="cairo"]{ --font:"Cairo","Segoe UI",system-ui,sans-serif; }
+html[data-font="tajawal"]{ --font:"Tajawal","Segoe UI",system-ui,sans-serif; }
+html[data-font="almarai"]{ --font:"Almarai","Segoe UI",system-ui,sans-serif; }
+html[data-font="noto-kufi-arabic"]{ --font:"Noto Kufi Arabic","Segoe UI",system-ui,sans-serif; }
+html[data-font="amiri"]{ --font:"Amiri",serif; }
+html[data-font="ibm-plex-arabic"]{ --font:"IBM Plex Sans Arabic","Segoe UI",system-ui,sans-serif; }
+html[data-font="noto-sans-arabic"]{ --font:"Noto Sans Arabic","Segoe UI",system-ui,sans-serif; }
+html[data-font="noto-naskh-arabic"]{ --font:"Noto Naskh Arabic",serif; }
+html[data-font="readex-pro"]{ --font:"Readex Pro","Segoe UI",system-ui,sans-serif; }
+html[data-font="aladin"]{ --font:"Alexandria","Segoe UI",system-ui,sans-serif; }
+html[data-font="el-messiri"]{ --font:"El Messiri",serif; }
+html[data-font="rubik"]{ --font:"Rubik","Segoe UI",system-ui,sans-serif; }
+html[data-font="inter"]{ --font:"Inter","Segoe UI",system-ui,sans-serif; }
+html[data-font="roboto"]{ --font:"Roboto","Segoe UI",system-ui,sans-serif; }
+html[data-font="poppins"]{ --font:"Poppins","Segoe UI",system-ui,sans-serif; }
+html[data-font="exo2"]{ --font:"Exo 2","Segoe UI",system-ui,sans-serif; }
+html[data-font="segoe"]{ --font:"Segoe UI",system-ui,sans-serif; }
+html[data-font="system"]{ --font:system-ui,-apple-system,"Segoe UI",sans-serif; }
+.sites-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(168px,1fr));gap:10px;max-height:520px;overflow:auto;padding:8px}
+.site-card{padding:12px;border:1px solid var(--border);border-radius:16px;background:linear-gradient(180deg,var(--surface-2),var(--surface));cursor:pointer;display:flex;gap:10px;align-items:center;transition:all .18s ease;overflow:hidden}
+.site-card:hover{border-color:var(--blue);transform:translateY(-2px);box-shadow:var(--shadow-soft)}
+.site-card img.site-icon{width:40px;height:40px;border-radius:10px;flex:0 0 auto;box-shadow:0 4px 10px rgba(0,0,0,.12)}
+.site-card .site-copy{min-width:0}
+.site-card b{display:block;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.site-card span{font-size:10px;color:var(--muted);display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.site-card .fav-btn{margin-inline-start:auto;flex:0 0 auto;border:0;background:transparent;font-size:16px;cursor:pointer;opacity:.6}
+.site-card .fav-btn.is-fav{opacity:1}
+.font-preview{font-size:18px;padding:10px;border:1px dashed var(--border-strong);border-radius:10px;margin-top:8px}
+.batch-list{min-height:80px}
+.history-list,.fav-list{display:flex;flex-direction:column;gap:7px;max-height:380px;overflow:auto}
+.history-item{display:flex;gap:10px;align-items:center;padding:10px;border:1px solid var(--border);border-radius:12px;background:var(--surface-2)}
+.history-item b{font-size:12px;display:block}
+.history-item span{font-size:10px;color:var(--muted);display:block;word-break:break-all}
+.glass-panel{background:rgba(255,255,255,.75);backdrop-filter:blur(16px) saturate(1.2);border:1px solid rgba(255,255,255,.5)}
+html[data-theme="dark"] .glass-panel{background:rgba(17,28,42,.75);border-color:rgba(255,255,255,.08)}
+.pulse-dot{animation:pulse 1.6s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.45}}
+.animate-in{animation:rise .35s cubic-bezier(.2,.9,.3,1) both}
+kbd{padding:2px 6px;border-radius:6px;background:var(--surface-3);border:1px solid var(--border-strong);font:700 10px var(--mono)}
+
+>>>>>>> 10888db (v2.0.0 update)
 
 html[data-theme="dark"] {
   color-scheme: dark;

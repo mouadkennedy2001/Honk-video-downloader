@@ -16,7 +16,13 @@ const files = [
   'src/main/cookies.js',
   'src/main/extensions.js',
   'src/main/downloader.js',
+<<<<<<< HEAD
   'src/renderer/app.js',
+=======
+  'src/main/sites.js',
+  'src/renderer/app.js',
+  'src/renderer/locales.js',
+>>>>>>> 10888db (v2.0.0 update)
   'extensions/honk-media-grabber/background.js',
   'extensions/honk-media-grabber/content.js',
   'extensions/honk-media-grabber/popup.js',
@@ -58,7 +64,11 @@ for (const file of files) {
 
 const rendererDir = 'src/renderer';
 const html = read(`${rendererDir}/index.html`);
+<<<<<<< HEAD
 const requiredAssets = ['styles.css', 'app.js', 'assets/icon.png'];
+=======
+const requiredAssets = ['styles.css', 'app.js', 'locales.js', 'assets/icon.png'];
+>>>>>>> 10888db (v2.0.0 update)
 
 for (const asset of requiredAssets) {
   const present = exists(`${rendererDir}/${asset}`);

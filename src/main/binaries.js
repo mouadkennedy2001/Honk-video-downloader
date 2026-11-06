@@ -30,6 +30,7 @@ function isFile(candidate) {
 }
 
 function which(command) {
+<<<<<<< HEAD
   try {
     const finder = isWindows ? 'where' : 'which';
     const output = execFileSync(finder, [command], {
@@ -45,6 +46,47 @@ function which(command) {
   } catch {
     return null;
   }
+=======
+  const cmd = isWindows && !command.endsWith('.exe') ? `${command}.exe` : command;
+  const candidates = [];
+  if (isWindows) {
+    candidates.push('where.exe', 'where');
+  }
+  candidates.push(isWindows ? 'where.exe' : 'which');
+  // Common Windows install locations
+  const winCommon = [
+    'C:\\Program Files\\ffmpeg\\bin',
+    'C:\\Program Files (x86)\\ffmpeg\\bin',
+    'C:\\Users\\Public\\ffmpeg\\bin',
+    process.env.LOCALAPPDATA ? `${process.env.LOCALAPPDATA}\\Microsoft\\WinGet\\Packages` : null,
+    process.env.PROGRAMDATA ? `${process.env.PROGRAMDATA}\\chocolatey\\bin` : null,
+    process.env.HOME ? `${process.env.HOME}\\scoop\\shims` : null,
+  ].filter(Boolean);
+  if (isWindows && winCommon.length) {
+    const exe = `${command}.exe`;
+    for (const dir of winCommon) {
+      try {
+        const p = require('path').join(dir, exe);
+        if (require('fs').existsSync(p)) return p;
+      } catch {}
+    }
+  }
+  for (const finder of candidates) {
+    try {
+      const output = execFileSync(finder, [isWindows ? cmd : command], {
+        encoding: 'utf8',
+        timeout: 5000,
+        windowsHide: true
+      });
+      const match = output
+        .split(/\r?\n/)
+        .map((line) => line.trim())
+        .find(Boolean);
+      if (match) return match;
+    } catch {}
+  }
+  return null;
+>>>>>>> 10888db (v2.0.0 update)
 }
 
 function bundledPaths(name) {
