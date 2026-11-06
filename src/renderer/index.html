@@ -1,0 +1,680 @@
+<!doctype html>
+<html lang="ar" dir="rtl" data-theme="light" data-font="cairo">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data: https: http:; style-src 'self' 'unsafe-inline'; script-src 'self'; connect-src 'self'; frame-src https: http:; child-src https: http:; object-src 'none'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:;">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Honk Downloader</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&family=Tajawal:wght@400;700;900&family=Almarai:wght@300;400;700;800&family=Noto+Kufi+Arabic:wght@400;700;900&family=Amiri:wght@400;700&family=IBM+Plex+Sans+Arabic:wght@300;400;600;700&family=Noto+Sans+Arabic:wght@400;700;900&family=Noto+Naskh+Arabic:wght@400;700&family=Readex+Pro:wght@300;400;700&family=Alexandria:wght@300;400;700;900&family=El+Messiri:wght@400;700&family=Rubik:wght@400;700;900&family=Inter:wght@400;600;800&family=Roboto:wght@400;700&family=Poppins:wght@400;600;800&family=Exo+2:wght@400;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="app">
+    <header class="topbar">
+      <div class="brand">
+        <span class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 32 32" width="24" height="24" fill="none">
+            <path d="M9 6v20M23 6v20M9 16h14" stroke="#111111" stroke-width="3.2" stroke-linecap="round"/>
+            <path d="M4 4l24 24" stroke="#ffe400" stroke-width="3.2" stroke-linecap="round"/>
+          </svg>
+        </span>
+        <span class="brand-name">HONK</span>
+        <span class="brand-tag">DOWNLOADER</span>
+      </div>
+
+      <nav class="tabs" role="tablist" aria-label="أقسام التطبيق">
+        <button class="tab is-active" data-tab="download" role="tab" aria-selected="true" data-i18n="download">التحميل</button>
+        <button class="tab" data-tab="browser" role="tab" aria-selected="false" data-i18n="browser">المتصفح</button>
+        <button class="tab" data-tab="sites" role="tab" aria-selected="false" data-i18n="sites">المواقع المدعومة</button>
+        <button class="tab" data-tab="batch" role="tab" aria-selected="false" data-i18n="batch">تحميل متعدد</button>
+        <button class="tab" data-tab="history" role="tab" aria-selected="false" data-i18n="history">السجل</button>
+        <button class="tab" data-tab="favorites" role="tab" aria-selected="false" data-i18n="favorites">المفضلة</button>
+        <button class="tab" data-tab="extensions" role="tab" aria-selected="false" data-i18n="extensions">الإضافات</button>
+        <button class="tab" data-tab="settings" role="tab" aria-selected="false" data-i18n="settings">الإعدادات</button>
+      </nav>
+      <select id="top-language" class="select" style="max-width:190px;margin-inline-start:8px" aria-label="Language">
+        <!-- populated via JS -->
+      </select>
+
+      <div class="topbar-actions">
+        <span id="engine-pill" class="engine-pill is-warn" title="حالة محرّكات التحميل">
+          <span class="engine-dot" aria-hidden="true"></span>
+          <span id="engine-pill-text">فحص المحرّكات…</span>
+        </span>
+        <button id="theme-toggle" class="icon-btn topbar-icon" type="button" title="تبديل المظهر" aria-label="تبديل المظهر">
+          <svg class="icon-sun" viewBox="0 0 24 24" width="18" height="18" fill="none" aria-hidden="true">
+            <circle cx="12" cy="12" r="4.2" stroke="currentColor" stroke-width="2"/>
+            <path d="M12 2v2.4M12 19.6V22M2 12h2.4M19.6 12H22M4.9 4.9l1.7 1.7M17.4 17.4l1.7 1.7M19.1 4.9l-1.7 1.7M6.6 17.4l-1.7 1.7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+          <svg class="icon-moon" viewBox="0 0 24 24" width="18" height="18" fill="none" aria-hidden="true">
+            <path d="M20 14.2A8.2 8.2 0 0 1 9.8 4a8.3 8.3 0 1 0 10.2 10.2Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+          </svg>
+        </button>
+      </div>
+    </header>
+
+    <main class="stage">
+      <section id="tab-download" class="tab-panel is-active" role="tabpanel">
+        <div class="columns">
+          <div class="column hero-column">
+            <span class="eyebrow">تحميل سريع وآمن</span>
+            <h1 class="display">حمّل أي <span class="accent">فيديو</span><br>من أي موقع.</h1>
+            <p class="lead">فيديو وصوت بجودة عالية عبر yt-dlp وFFmpeg. الصق الرابط، أو تصفّح المواقع من داخل التطبيق مباشرة.</p>
+
+            <div class="panel url-panel">
+              <label class="field-label" for="url">رابط الفيديو</label>
+              <div class="input-row">
+                <input id="url" class="text-input" type="url" dir="ltr" placeholder="https://www.youtube.com/watch?v=..." autocomplete="off" spellcheck="false">
+                <button id="paste-btn" class="btn ghost compact" type="button" title="لصق من الحافظة">لصق</button>
+              </div>
+
+              <label class="field cookie-field">
+                <span>الكوكيز (للمواقع التي تتطلب تسجيل دخول)</span>
+                <select id="cookie-source" class="select">
+                  <option value="none">بدون كوكيز</option>
+                  <option value="embedded">المتصفح المدمج (سجّل الدخول أولًا)</option>
+                  <option value="chrome">Google Chrome</option>
+                  <option value="chromium">Chromium</option>
+                  <option value="firefox">Firefox</option>
+                  <option value="brave">Brave</option>
+                  <option value="edge">Microsoft Edge</option>
+                  <option value="opera">Opera</option>
+                  <option value="vivaldi">Vivaldi</option>
+                  <option value="safari">Safari (macOS)</option>
+                </select>
+              </label>
+
+              <div class="row-actions">
+                <button id="analyze-btn" class="btn primary" type="button">تحليل الرابط</button>
+                <button id="open-in-browser" class="btn ghost" type="button">فتح في المتصفح</button>
+              </div>
+              <p id="url-hint" class="hint">يدعم آلاف المواقع عبر yt-dlp، وأي رابط مباشر لملف فيديو أو صوت. يمكنك أيضًا إفلات رابط في أي مكان من النافذة.</p>
+            </div>
+
+            <div class="panel features-panel">
+              <div class="feature">
+                <span class="feature-dot"></span>
+                <div><strong>فيديو + صوت</strong><span>دمج تلقائي بأعلى جودة متاحة</span></div>
+              </div>
+              <div class="feature">
+                <span class="feature-dot"></span>
+                <div><strong>استخراج الصوت</strong><span>MP3، M4A، Opus، WAV، FLAC</span></div>
+              </div>
+              <div class="feature">
+                <span class="feature-dot"></span>
+                <div><strong>إرسال من الإضافة</strong><span>أرسل أي رابط من متصفحك مباشرة</span></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="column preview-column">
+            <div id="preview-empty" class="panel empty-panel">
+              <div class="empty-icon" aria-hidden="true">
+                <svg viewBox="0 0 48 48" width="40" height="40" fill="none">
+                  <rect x="6" y="10" width="36" height="28" rx="7" stroke="#ffffff" stroke-width="2.4"/>
+                  <path d="M20 18v12l10-6-10-6Z" fill="#ffe400"/>
+                </svg>
+              </div>
+              <h2>جاهز للتحميل</h2>
+              <p>الصق رابط فيديو في الحقل المجاور ثم اضغط «تحليل الرابط» لعرض التفاصيل والجودات المتاحة.</p>
+            </div>
+
+            <article id="preview" class="panel preview-panel is-hidden">
+              <div class="thumb-wrap">
+                <img id="preview-thumb" class="thumb" alt="معاينة الفيديو">
+                <span id="preview-duration" class="thumb-duration is-hidden"></span>
+              </div>
+              <div class="preview-body">
+                <div id="preview-badges" class="preview-badges"></div>
+                <h2 id="preview-title" class="preview-title">—</h2>
+                <p id="preview-meta" class="meta">—</p>
+
+                <div id="mode-toggle" class="segmented" role="group" aria-label="نوع التحميل">
+                  <button class="seg is-active" data-mode="video" type="button">فيديو</button>
+                  <button class="seg" data-mode="audio" type="button">صوت فقط</button>
+                </div>
+
+                <div class="field-grid">
+                  <label id="quality-field" class="field">
+                    <span>الجودة</span>
+                    <select id="quality-select" class="select">
+                      <option value="best">أفضل جودة</option>
+                    </select>
+                  </label>
+                  <label id="audio-format-field" class="field is-hidden">
+                    <span>صيغة الصوت</span>
+                    <select id="audio-format-select" class="select">
+                      <option value="mp3">MP3</option>
+                      <option value="m4a">M4A</option>
+                      <option value="opus">Opus</option>
+                      <option value="wav">WAV</option>
+                      <option value="flac">FLAC</option>
+                      <option value="best">الصيغة الأصلية</option>
+                    </select>
+                  </label>
+                </div>
+
+                <div class="option-grid">
+                  <label class="checkline">
+                    <input id="opt-metadata" type="checkbox" checked>
+                    <span>دمج البيانات والغلاف</span>
+                  </label>
+                  <label class="checkline">
+                    <input id="opt-subtitles" type="checkbox">
+                    <span>تحميل الترجمة ودمجها</span>
+                  </label>
+                  <label id="subtitle-lang-field" class="field is-hidden">
+                    <span>لغة الترجمة</span>
+                    <select id="subtitle-lang" class="select">
+                      <option value="ar,en">العربية + الإنجليزية</option>
+                      <option value="ar">العربية</option>
+                      <option value="en">الإنجليزية</option>
+                      <option value="all">كل اللغات</option>
+                    </select>
+                  </label>
+                  <label id="playlist-field" class="checkline is-hidden">
+                    <input id="opt-playlist" type="checkbox">
+                    <span>تحميل قائمة التشغيل كاملة</span>
+                  </label>
+                </div>
+
+                <div class="preview-actions">
+                  <button id="download-btn" class="btn primary wide" type="button">تحميل الآن</button>
+                  <button id="preview-browse" class="btn ghost" type="button">فتح الرابط</button>
+                  <button id="preview-copy" class="icon-btn" type="button" title="نسخ الرابط" aria-label="نسخ الرابط">
+                    <svg viewBox="0 0 24 24" width="17" height="17" fill="none"><rect x="9" y="9" width="11" height="11" rx="3" stroke="currentColor" stroke-width="2"/><path d="M6 15H5a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1h9a1 1 0 0 1 1 1v1" stroke="currentColor" stroke-width="2"/></svg>
+                  </button>
+                </div>
+                <p id="preview-note" class="hint"></p>
+              </div>
+            </article>
+
+            <section class="queue">
+              <div class="queue-head">
+                <h2>قائمة التحميل</h2>
+                <span id="queue-count" class="count-pill">0</span>
+                <span class="queue-spacer"></span>
+                <button id="clear-completed" class="btn ghost compact" type="button">مسح المكتمل</button>
+              </div>
+              <div id="queue-list" class="queue-list"></div>
+              <p id="queue-empty" class="queue-empty">لا توجد تحميلات بعد.</p>
+            </section>
+          </div>
+        </div>
+      </section>
+
+      <section id="tab-browser" class="tab-panel" role="tabpanel">
+        <div class="browser-shell">
+          <div class="panel browser-toolbar">
+            <div class="nav-buttons">
+              <button id="nav-back" class="icon-btn" type="button" title="رجوع" aria-label="رجوع">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none"><path d="M15 5l-7 7 7 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </button>
+              <button id="nav-forward" class="icon-btn" type="button" title="تقدّم" aria-label="تقدّم">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none"><path d="M9 5l7 7-7 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </button>
+              <button id="nav-reload" class="icon-btn" type="button" title="إعادة تحميل" aria-label="إعادة تحميل">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none"><path d="M20 11a8 8 0 1 0-2.34 5.66M20 4v7h-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </button>
+              <button id="nav-home" class="icon-btn" type="button" title="الصفحة الرئيسية" aria-label="الصفحة الرئيسية">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none"><path d="M4 11l8-7 8 7v8a1 1 0 0 1-1 1h-5v-6H10v6H5a1 1 0 0 1-1-1v-8Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </button>
+            </div>
+            <form id="address-form" class="address-form">
+              <input id="address" class="text-input address-input" type="text" dir="ltr" placeholder="ابحث أو اكتب عنوان الموقع..." autocomplete="off" spellcheck="false">
+            </form>
+            <button id="page-download" class="btn primary compact" type="button">تحميل الصفحة</button>
+            <button id="browser-open-external" class="icon-btn" type="button" title="فتح في المتصفح الخارجي" aria-label="فتح في المتصفح الخارجي">
+              <svg viewBox="0 0 24 24" width="17" height="17" fill="none"><path d="M14 4h6v6M20 4l-9 9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M18 14v4a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+            </button>
+          </div>
+          <div class="browser-loading" aria-hidden="true"><span id="browser-loading-bar"></span></div>
+          <div class="browser-frame">
+            <webview id="browser-view" src="https://www.youtube.com" partition="persist:honk-browser" allowpopups></webview>
+          </div>
+        </div>
+      </section>
+
+      <section id="tab-extensions" class="tab-panel" role="tabpanel">
+        <div class="settings-wrap">
+          <span class="eyebrow">توسيع المتصفح</span>
+          <h1 class="display display-small">إضافات المتصفح</h1>
+          <p class="lead">ثبّت إضافات Chrome لتوسيع المتصفح المدمج: مجلد غير مضغوط، أو ملف .crx، أو .zip. بعض الإضافات قد لا تعمل بالكامل داخل Electron.</p>
+
+          <div class="panel extensions-panel">
+            <div class="env-head">
+              <h3>الإضافات المثبتة</h3>
+              <span id="extensions-count" class="count-pill">0</span>
+            </div>
+            <div id="extensions-list" class="extensions-list"></div>
+            <p id="extensions-empty" class="hint">لا توجد إضافات بعد.</p>
+            <div class="settings-actions">
+              <button id="add-extension-folder" class="btn primary" type="button">إضافة من مجلد</button>
+              <button id="add-extension-archive" class="btn ghost" type="button">تثبيت .crx / .zip</button>
+              <button id="install-bundled-extension" class="btn ghost" type="button">تثبيت / تحديث الإضافة المدمجة</button>
+              <button id="open-extensions-folder" class="btn ghost" type="button">فتح مجلد الإضافات</button>
+              <button id="refresh-extensions" class="btn ghost compact" type="button">تحديث</button>
+            </div>
+          </div>
+
+          <div class="panel bundled-panel">
+            <h3>Honk Media Grabber</h3>
+            <p class="hint">إضافة مدمجة تُضيف زرًا صغيرًا في صفحات الويب لاكتشاف روابط الفيديو والصوت. يمكنك نسخ الرابط أو إرساله مباشرة إلى التطبيق عبر جسر محلي يعمل على جهازك فقط.</p>
+            <div class="bundled-points">
+              <span>اكتشاف تلقائي من الشبكة وDOM</span>
+              <span>إرسال بضغطة واحدة للتطبيق</span>
+              <span>نافذة منبثقة وسجل روابط</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="tab-sites" class="tab-panel" role="tabpanel">
+        <div class="settings-wrap">
+          <span class="eyebrow">300+ موقع • 183 أيقونة في icons/</span>
+          <h1 class="display display-small">المواقع المدعومة</h1>
+          <p class="lead">يدعم التطبيق الآن أكثر من 300 موقع مشهور مدعوم عبر yt-dlp (يتجاوز 1000+ مستخرج في الواقع) — كل موقع مع أيقونة SVG في <code>src/renderer/assets/icons/</code> و <code>icons/</code>. اضغط على أي موقع لوضع رابطه في التحميل.</p>
+          <div class="panel settings-panel">
+            <div class="input-row" style="margin-bottom:12px">
+              <input id="sites-search" class="text-input" placeholder="ابحث عن موقع… YouTube, TikTok, Instagram">
+              <select id="sites-category" class="select" style="max-width:190px">
+                <option value="">كل الفئات</option>
+                <option value="عام">عام</option><option value="تواصل اجتماعي">تواصل اجتماعي</option>
+                <option value="فيديو">فيديو</option><option value="صوت">صوت</option>
+                <option value="أخبار">أخبار</option><option value="رياضة">رياضة</option>
+                <option value="ألعاب">ألعاب</option><option value="تعليمي">تعليمي</option>
+                <option value="ترفيه">ترفيه</option><option value="تخزين">تخزين</option>
+              </select>
+              <span id="sites-count" class="count-pill">0</span>
+            </div>
+            <div id="sites-grid" class="sites-grid"></div>
+          </div>
+        </div>
+      </section>
+
+      <section id="tab-batch" class="tab-panel" role="tabpanel">
+        <div class="settings-wrap">
+          <span class="eyebrow">URL Batch</span>
+          <h1 class="display display-small">التحميل المتعدد</h1>
+          <p class="lead">الصق عدة روابط (رابط في كل سطر) ثم أضفها لقائمة التحميل دفعة واحدة.</p>
+          <div class="panel settings-panel">
+            <label class="field-label" for="batch-input">روابط (كل سطر رابط)</label>
+            <textarea id="batch-input" class="text-input batch-list" rows="8" dir="ltr" placeholder="https://www.youtube.com/watch?v=...&#10;https://www.tiktok.com/...&#10;https://www.instagram.com/reel/..."></textarea>
+            <div class="settings-actions">
+              <button id="batch-add" class="btn primary" type="button">إضافة للقائمة</button>
+              <button id="batch-analyze-all" class="btn ghost" type="button">تحليل الكل</button>
+              <button id="batch-clear" class="btn ghost" type="button">مسح</button>
+            </div>
+            <p class="hint">سيتم إنشاء مهمة تحميل لكل رابط. يمكنك التحكم في الجودة والصيغة من الأعلى.</p>
+          </div>
+        </div>
+      </section>
+
+      <section id="tab-history" class="tab-panel" role="tabpanel">
+        <div class="settings-wrap">
+          <span class="eyebrow">History</span>
+          <h1 class="display display-small" data-i18n="history">السجل</h1>
+          <p class="lead">سجل آخر التحليلات والتنزيلات — يمكنك إعادة التحميل أو إلغاء التثبيت.</p>
+          <div class="panel settings-panel">
+            <div class="env-head">
+              <h3>السجل</h3>
+              <div style="display:flex;gap:8px;align-items:center">
+                <span id="history-count" class="count-pill">0</span>
+                <button id="clear-history" class="btn ghost compact" type="button" data-i18n="clearHistory">مسح السجل</button>
+              </div>
+            </div>
+            <div id="history-list" class="history-list"></div>
+            <p id="history-empty" class="hint">لا يوجد سجل بعد.</p>
+          </div>
+        </div>
+      </section>
+
+      <section id="tab-favorites" class="tab-panel" role="tabpanel">
+        <div class="settings-wrap">
+          <span class="eyebrow">Favorites</span>
+          <h1 class="display display-small" data-i18n="favorites">المفضلة</h1>
+          <p class="lead">مواقع وصفحات مثبتة للوصول السريع.</p>
+          <div class="panel settings-panel">
+            <div class="env-head">
+              <h3>المفضلة</h3>
+              <span id="fav-count" class="count-pill">0</span>
+            </div>
+            <div id="fav-list" class="fav-list" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px"></div>
+            <p id="fav-empty" class="hint">لا توجد عناصر مفضلة. أضف موقعًا بالضغط على ⭐ من بطاقة الموقع.</p>
+          </div>
+        </div>
+      </section>
+
+      <section id="tab-settings" class="tab-panel" role="tabpanel">
+        <div class="settings-wrap">
+          <span class="eyebrow">التحكم الكامل</span>
+          <h1 class="display display-small">الإعدادات</h1>
+          <p class="lead">اضبط مجلد الحفظ والجودة الافتراضية والمظهر، وثبّت المكتبات المطلوبة بضغطة زر.</p>
+
+          <div class="panel settings-panel">
+            <div class="settings-row">
+              <div class="settings-copy">
+                <h3>مجلد التحميل</h3>
+                <p class="hint">تُحفظ كل الملفات هنا.</p>
+              </div>
+              <div class="settings-control">
+                <input id="settings-dir" class="text-input" dir="ltr" readonly>
+                <button id="choose-dir" class="btn ghost compact" type="button">تغيير</button>
+              </div>
+            </div>
+
+            <div class="settings-row">
+              <div class="settings-copy">
+                <h3>الجودة الافتراضية للفيديو</h3>
+                <p class="hint">تُستخدم عند فتح رابط جديد.</p>
+              </div>
+              <div class="settings-control">
+                <select id="settings-quality" class="select">
+                  <option value="best">أفضل جودة</option>
+                  <option value="2160">2160p (4K)</option>
+                  <option value="1440">1440p</option>
+                  <option value="1080">1080p</option>
+                  <option value="720">720p</option>
+                  <option value="480">480p</option>
+                  <option value="360">360p</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="settings-row">
+              <div class="settings-copy">
+                <h3>صيغة الصوت الافتراضية</h3>
+                <p class="hint">تُستخدم عند اختيار «صوت فقط».</p>
+              </div>
+              <div class="settings-control">
+                <select id="settings-audio" class="select">
+                  <option value="mp3">MP3</option>
+                  <option value="m4a">M4A</option>
+                  <option value="opus">Opus</option>
+                  <option value="wav">WAV</option>
+                  <option value="flac">FLAC</option>
+                  <option value="best">الصيغة الأصلية</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="settings-row">
+              <div class="settings-copy">
+                <h3>المظهر</h3>
+                <p class="hint">اختر مظهر التطبيق أو اتبع النظام.</p>
+              </div>
+              <div class="settings-control">
+                <select id="settings-theme" class="select">
+                  <option value="system">حسب النظام</option>
+                  <option value="light">فاتح</option>
+                  <option value="dark">داكن</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="settings-row">
+              <div class="settings-copy">
+                <h3>اللغة — Language</h3>
+                <p class="hint">12 لغة: العربية، الإنجليزية، الفرنسية، الإسبانية، الألمانية، التركية، الهندية، الصينية، الروسية، البرتغالية، اليابانية، الكورية.</p>
+              </div>
+              <div class="settings-control">
+                <select id="settings-language" class="select"></select>
+                <select id="top-language-dup" class="select is-hidden"></select>
+              </div>
+            </div>
+
+            <div class="settings-row">
+              <div class="settings-copy">
+                <h3>الخط — Font</h3>
+                <p class="hint">اختر خطًا من 12 خطًا عربيًا ولاتينيًا. تُعرض المعاينة مباشرة.</p>
+                <div id="font-preview" class="font-preview">معاينة الخط — Aa 123 — العربية والإنجليزية</div>
+              </div>
+              <div class="settings-control settings-control-stack">
+                <select id="settings-font" class="select"></select>
+                <input id="font-size" class="text-input" type="number" min="12" max="20" value="14" title="حجم الخط" style="max-width:90px">
+              </div>
+            </div>
+
+            <div class="settings-row">
+              <div class="settings-copy">
+                <h3>صيغة الفيديو الإخراج</h3>
+                <p class="hint">صيغة الملف النهائي بعد الدمج/التحويل.</p>
+              </div>
+              <div class="settings-control">
+                <select id="settings-video-format" class="select">
+                  <option value="mp4">MP4</option>
+                  <option value="mkv">MKV</option>
+                  <option value="webm">WebM</option>
+                  <option value="mov">MOV</option>
+                  <option value="best">الأصلية</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="settings-row">
+              <div class="settings-copy">
+                <h3>ميزات متقدمة</h3>
+              </div>
+              <div class="settings-control settings-control-stack">
+                <label class="checkline"><input id="opt-chapters" type="checkbox"> <span>فصول الفيديو</span></label>
+                <label class="checkline"><input id="opt-sponsorblock" type="checkbox"> <span>إزالة SponsorBlock</span></label>
+                <label class="checkline"><input id="opt-subfolder" type="checkbox"> <span>مجلد فرعي لكل فيديو</span></label>
+                <label class="checkline"><input id="opt-thumb-only" type="checkbox"> <span>تحميل صورة فقط</span></label>
+                <label class="field"><span>حد السرعة (مثال 2M)</span><input id="settings-speed" class="text-input" placeholder="فارغ = بدون حد" dir="ltr"></label>
+                <label class="field"><span>Proxy (http://host:port)</span><input id="settings-proxy" class="text-input" placeholder="اختياري" dir="ltr"></label>
+                <label class="field"><span>قالب اسم الملف</span><input id="settings-template" class="text-input" dir="ltr" placeholder="%(title).150s [%(id)s].%(ext)s"></label>
+                <label class="field"><span>نطاق قائمة التشغيل (من - إلى)</span><div class="input-row"><input id="playlist-start" class="text-input" type="number" value="1" min="1"><input id="playlist-end" class="text-input" type="number" value="0" min="0"></div></label>
+                <label class="checkline"><input id="minimize-tray" type="checkbox"> <span>تصغير لصينية النظام</span></label>
+                <label class="checkline"><input id="auto-start" type="checkbox"> <span>تشغيل مع ويندوز</span></label>
+              </div>
+            </div>
+
+            <div class="settings-row">
+              <div class="settings-copy">
+                <h3>صفحة البداية للمتصفح</h3>
+                <p class="hint">العنوان الذي يُفتح عند الضغط على زر الرئيسية.</p>
+              </div>
+              <div class="settings-control">
+                <input id="settings-home" class="text-input" type="url" dir="ltr" placeholder="https://www.youtube.com">
+              </div>
+            </div>
+
+            <div class="settings-row">
+              <div class="settings-copy">
+                <h3>مصدر الكوكيز الافتراضي</h3>
+                <p class="hint">للمواقع المحمية مثل يوتيوب وإنستغرام وفيسبوك وتيك توك.</p>
+              </div>
+              <div class="settings-control">
+                <select id="settings-cookie-source" class="select">
+                  <option value="none">بدون كوكيز</option>
+                  <option value="embedded">المتصفح المدمج</option>
+                  <option value="chrome">Google Chrome</option>
+                  <option value="chromium">Chromium</option>
+                  <option value="firefox">Firefox</option>
+                  <option value="brave">Brave</option>
+                  <option value="edge">Microsoft Edge</option>
+                  <option value="opera">Opera</option>
+                  <option value="vivaldi">Vivaldi</option>
+                  <option value="safari">Safari (macOS)</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="settings-row">
+              <div class="settings-copy">
+                <h3>التحميلات المتزامنة</h3>
+                <p class="hint">عدد الملفات التي تُحمّل في الوقت نفسه.</p>
+              </div>
+              <div class="settings-control">
+                <select id="settings-concurrent" class="select">
+                  <option value="1">1</option>
+                  <option value="2">2</option>
+                  <option value="3">3</option>
+                  <option value="4">4</option>
+                  <option value="5">5</option>
+                  <option value="6">6</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="settings-row">
+              <div class="settings-copy">
+                <h3>خيارات افتراضية للتحميل</h3>
+                <p class="hint">تُطبّق على كل تحميل جديد إذا كان FFmpeg متوفرًا.</p>
+              </div>
+              <div class="settings-control settings-control-stack">
+                <label class="checkline">
+                  <input id="settings-metadata" type="checkbox" checked>
+                  <span>دمج البيانات والغلاف</span>
+                </label>
+                <label class="checkline">
+                  <input id="settings-subtitles" type="checkbox">
+                  <span>تحميل الترجمة ودمجها</span>
+                </label>
+                <label class="field">
+                  <span>لغة الترجمة</span>
+                  <select id="settings-subtitle-lang" class="select">
+                    <option value="ar,en">العربية + الإنجليزية</option>
+                    <option value="ar">العربية</option>
+                    <option value="en">الإنجليزية</option>
+                    <option value="all">كل اللغات</option>
+                  </select>
+                </label>
+              </div>
+            </div>
+
+            <div class="settings-actions">
+              <button id="save-settings" class="btn primary" type="button">حفظ الإعدادات</button>
+              <button id="open-downloads" class="btn ghost" type="button">فتح مجلد التحميل</button>
+              <button id="reset-settings" class="btn ghost" type="button">إعادة الإعدادات الافتراضية</button>
+            </div>
+          </div>
+
+          <div class="panel bridge-panel">
+            <div class="env-head">
+              <div>
+                <h3>جسر إضافة المتصفح</h3>
+                <p class="hint">يتيح للإضافة إرسال الروابط إلى التطبيق عبر <span dir="ltr">127.0.0.1</span> فقط. لا يخرج أي شيء من جهازك.</p>
+              </div>
+              <span id="bridge-dot" class="status-dot" data-online="false" aria-hidden="true"></span>
+            </div>
+
+            <div class="bridge-grid">
+              <label class="checkline">
+                <input id="bridge-enabled" type="checkbox" checked>
+                <span>تفعيل جسر الإضافة</span>
+              </label>
+              <label class="checkline">
+                <input id="auto-download-extension" type="checkbox">
+                <span>بدء التحميل تلقائيًا عند الإرسال</span>
+              </label>
+            </div>
+
+            <div class="bridge-status-row">
+              <span id="bridge-status" class="hint">جارٍ فحص الجسر…</span>
+              <span id="bridge-port" class="badge" dir="ltr">—</span>
+              <span class="bridge-spacer"></span>
+              <button id="bridge-test" class="btn ghost compact" type="button">اختبار</button>
+              <button id="bridge-restart" class="btn ghost compact" type="button">إعادة التشغيل</button>
+            </div>
+          </div>
+
+          <div class="panel env-panel">
+            <div class="env-head">
+              <div>
+                <h3>المحرّكات والمكتبات</h3>
+                <p class="hint">يمكنك تثبيت الأدوات المطلوبة داخل التطبيق دون الحاجة إلى الطرفية.</p>
+              </div>
+              <div class="env-actions">
+                <button id="install-all" class="btn primary compact" type="button">تثبيت الناقص</button>
+                <button id="update-ytdlp" class="btn ghost compact" type="button">تحديث yt-dlp</button>
+                <button id="env-refresh" class="btn ghost compact" type="button">إعادة الفحص</button>
+              </div>
+            </div>
+
+            <div class="env-card" data-tool="yt-dlp">
+              <div class="env-card-head">
+                <div class="env-card-title">
+                  <h4>yt-dlp</h4>
+                  <span id="env-ytdlp-version" class="env-version" dir="ltr">—</span>
+                </div>
+                <span id="env-ytdlp" class="badge">جارٍ الفحص…</span>
+              </div>
+              <div class="install-progress"><span id="install-ytdlp-fill"></span></div>
+              <div class="env-card-foot">
+                <span id="install-ytdlp-text" class="hint">محرّك التحميل الأساسي.</span>
+                <button id="install-ytdlp" class="btn ghost compact" type="button">تثبيت</button>
+              </div>
+            </div>
+
+            <div class="env-card" data-tool="ffmpeg">
+              <div class="env-card-head">
+                <div class="env-card-title">
+                  <h4>FFmpeg</h4>
+                  <span id="env-ffmpeg-version" class="env-version" dir="ltr">—</span>
+                </div>
+                <span id="env-ffmpeg" class="badge">جارٍ الفحص…</span>
+              </div>
+              <div class="install-progress"><span id="install-ffmpeg-fill"></span></div>
+              <div class="env-card-foot">
+                <span id="install-ffmpeg-text" class="hint">مطلوب لدمج الفيديو والصوت وتحويل الصيغ.</span>
+                <button id="install-ffmpeg" class="btn ghost compact" type="button">تثبيت</button>
+              </div>
+            </div>
+
+            <div class="env-row">
+              <span class="env-name">كوكيز المتصفح المدمج</span>
+              <span class="env-version">—</span>
+              <span id="env-cookies" class="badge">—</span>
+            </div>
+            <p class="hint">عند تعذّر التثبيت التلقائي، راجع قسم المتطلبات في ملف README.md.</p>
+          </div>
+
+          <div class="panel about-panel">
+            <div class="env-head">
+              <h3>حول التطبيق</h3>
+              <span id="app-version" class="badge" dir="ltr">—</span>
+            </div>
+            <div class="about-grid">
+              <span>Electron <b id="app-electron" dir="ltr">—</b></span>
+              <span>Chrome <b id="app-chrome" dir="ltr">—</b></span>
+              <span>المنصة <b id="app-platform" dir="ltr">—</b></span>
+              <span>مجلد الأدوات <b id="app-bindir" dir="ltr">—</b></span>
+            </div>
+            <div class="settings-actions">
+              <button id="open-userdata" class="btn ghost compact" type="button">فتح مجلد البيانات</button>
+              <button id="open-bindir" class="btn ghost compact" type="button">فتح مجلد الأدوات</button>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <div id="toast" class="toast is-hidden" role="status"></div>
+
+    <div id="link-chip" class="link-chip is-hidden">
+      <div class="link-chip-copy">
+        <strong id="link-chip-title">رابط محدد</strong>
+        <span id="link-chip-url" dir="ltr"></span>
+      </div>
+      <div class="link-chip-actions">
+        <button id="link-chip-download" class="btn primary compact" type="button">تحميل</button>
+        <button id="link-chip-open" class="btn ghost compact" type="button">فتح</button>
+        <button id="link-chip-close" class="icon-btn small" type="button" aria-label="إغلاق">×</button>
+      </div>
+    </div>
+
+    <div id="drop-overlay" class="drop-overlay is-hidden" aria-hidden="true">
+      <div class="drop-card">
+        <strong>أفلت الرابط هنا</strong>
+        <span>سيتم تحليله وبدء التحميل</span>
+      </div>
+    </div>
+  </div>
+
+  <script src="locales.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Honk Media Grabber</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <header class="head">
+    <div class="brand">
+      <span class="brand-mark">H</span>
+      <div class="brand-copy">
+        <strong>Honk Media Grabber</strong>
+        <span id="app-status" class="app-status">جارٍ فحص التطبيق…</span>
+      </div>
+    </div>
+    <span id="badge" class="badge">0</span>
+  </header>
+
+  <div class="actions">
+    <button id="send-page" class="btn primary" type="button">إرسال الصفحة</button>
+    <a id="open-app" class="btn" href="honk://open">فتح التطبيق</a>
+    <button id="refresh" class="btn icon" type="button" title="تحديث">⟳</button>
+  </div>
+
+  <main id="list" class="list"></main>
+
+  <footer class="foot">
+    <span id="status" class="status"></span>
+    <span class="hint">Alt+Shift+H</span>
+  </footer>
+
+  <script src="popup.js"></script>
+</body>
+</html>

@@ -1,0 +1,1586 @@
+[
+  {
+    "name": "YouTube",
+    "icon": "youtube",
+    "file": "youtube.svg",
+    "color": "#FF0000",
+    "initials": "YT",
+    "url": "https://youtube.com"
+  },
+  {
+    "name": "YouTube Music",
+    "icon": "youtube",
+    "file": "youtube.svg",
+    "color": "#FF0000",
+    "initials": "YM",
+    "url": "https://music.youtube.com"
+  },
+  {
+    "name": "YouTube Shorts",
+    "icon": "youtube",
+    "file": "youtube.svg",
+    "color": "#FF0000",
+    "initials": "YS",
+    "url": "https://youtube.com/shorts"
+  },
+  {
+    "name": "TikTok",
+    "icon": "tiktok",
+    "file": "tiktok.svg",
+    "color": "#000000",
+    "initials": "TT",
+    "url": "https://tiktok.com"
+  },
+  {
+    "name": "Instagram",
+    "icon": "instagram",
+    "file": "instagram.svg",
+    "color": "#E4405F",
+    "initials": "IG",
+    "url": "https://instagram.com"
+  },
+  {
+    "name": "Facebook",
+    "icon": "facebook",
+    "file": "facebook.svg",
+    "color": "#1877F2",
+    "initials": "FB",
+    "url": "https://facebook.com"
+  },
+  {
+    "name": "X (Twitter)",
+    "icon": "twitter",
+    "file": "twitter.svg",
+    "color": "#000000",
+    "initials": "X",
+    "url": "https://x.com"
+  },
+  {
+    "name": "Threads",
+    "icon": "threads",
+    "file": "threads.svg",
+    "color": "#000000",
+    "initials": "TH",
+    "url": "https://threads.net"
+  },
+  {
+    "name": "Pinterest",
+    "icon": "pinterest",
+    "file": "pinterest.svg",
+    "color": "#BD081C",
+    "initials": "P",
+    "url": "https://pinterest.com"
+  },
+  {
+    "name": "Reddit",
+    "icon": "reddit",
+    "file": "reddit.svg",
+    "color": "#FF5700",
+    "initials": "R",
+    "url": "https://reddit.com"
+  },
+  {
+    "name": "Snapchat",
+    "icon": "snapchat",
+    "file": "snapchat.svg",
+    "color": "#FFFC00",
+    "initials": "S",
+    "url": "https://snapchat.com"
+  },
+  {
+    "name": "LinkedIn",
+    "icon": "linkedin",
+    "file": "linkedin.svg",
+    "color": "#0A66C2",
+    "initials": "IN",
+    "url": "https://linkedin.com"
+  },
+  {
+    "name": "Tumblr",
+    "icon": "tumblr",
+    "file": "tumblr.svg",
+    "color": "#36465D",
+    "initials": "T",
+    "url": "https://tumblr.com"
+  },
+  {
+    "name": "SoundCloud",
+    "icon": "soundcloud",
+    "file": "soundcloud.svg",
+    "color": "#FF5500",
+    "initials": "SC",
+    "url": "https://soundcloud.com"
+  },
+  {
+    "name": "Vimeo",
+    "icon": "vimeo",
+    "file": "vimeo.svg",
+    "color": "#1AB7EA",
+    "initials": "V",
+    "url": "https://vimeo.com"
+  },
+  {
+    "name": "Dailymotion",
+    "icon": "dailymotion",
+    "file": "dailymotion.svg",
+    "color": "#0AA0FF",
+    "initials": "DM",
+    "url": "https://dailymotion.com"
+  },
+  {
+    "name": "Twitch",
+    "icon": "twitch",
+    "file": "twitch.svg",
+    "color": "#9146FF",
+    "initials": "TW",
+    "url": "https://twitch.tv"
+  },
+  {
+    "name": "Kick",
+    "icon": "kick",
+    "file": "kick.svg",
+    "color": "#53FC18",
+    "initials": "K",
+    "url": "https://kick.com"
+  },
+  {
+    "name": "LiveStream",
+    "icon": "livestream",
+    "file": "livestream.svg",
+    "color": "#00A0FF",
+    "initials": "LS",
+    "url": "https://livestream.com"
+  },
+  {
+    "name": "Bilibili",
+    "icon": "bilibili",
+    "file": "bilibili.svg",
+    "color": "#00A1D6",
+    "initials": "B",
+    "url": "https://bilibili.com"
+  },
+  {
+    "name": "NicoNico",
+    "icon": "niconico",
+    "file": "niconico.svg",
+    "color": "#252525",
+    "initials": "NN",
+    "url": "https://nicovideo.jp"
+  },
+  {
+    "name": "Douyin",
+    "icon": "douyin",
+    "file": "douyin.svg",
+    "color": "#000000",
+    "initials": "DY",
+    "url": "https://douyin.com"
+  },
+  {
+    "name": "Baidu Video",
+    "icon": "baidu",
+    "file": "baidu.svg",
+    "color": "#293E51",
+    "initials": "BD",
+    "url": "https://v.baidu.com"
+  },
+  {
+    "name": "VK Video",
+    "icon": "vk",
+    "file": "vk.svg",
+    "color": "#0077FF",
+    "initials": "VK",
+    "url": "https://vk.com/video"
+  },
+  {
+    "name": "Rutube",
+    "icon": "rutube",
+    "file": "rutube.svg",
+    "color": "#FF0000",
+    "initials": "RT",
+    "url": "https://rutube.ru"
+  },
+  {
+    "name": "Odnoklassniki",
+    "icon": "ok",
+    "file": "ok.svg",
+    "color": "#ED812B",
+    "initials": "OK",
+    "url": "https://odnoklassniki.ru"
+  },
+  {
+    "name": "Flickr",
+    "icon": "flickr",
+    "file": "flickr.svg",
+    "color": "#FF0084",
+    "initials": "F",
+    "url": "https://flickr.com"
+  },
+  {
+    "name": "Imgur",
+    "icon": "imgur",
+    "file": "imgur.svg",
+    "color": "#1BB76B",
+    "initials": "IM",
+    "url": "https://imgur.com"
+  },
+  {
+    "name": "Giphy",
+    "icon": "giphy",
+    "file": "giphy.svg",
+    "color": "#000000",
+    "initials": "G",
+    "url": "https://giphy.com"
+  },
+  {
+    "name": "Tenor",
+    "icon": "tenor",
+    "file": "tenor.svg",
+    "color": "#00C1FF",
+    "initials": "T",
+    "url": "https://tenor.com"
+  },
+  {
+    "name": "Shazam",
+    "icon": "shazam",
+    "file": "shazam.svg",
+    "color": "#1E90FF",
+    "initials": "SH",
+    "url": "https://shazam.com"
+  },
+  {
+    "name": "Spotify",
+    "icon": "spotify",
+    "file": "spotify.svg",
+    "color": "#1DB954",
+    "initials": "SP",
+    "url": "https://spotify.com"
+  },
+  {
+    "name": "Audiomack",
+    "icon": "audiomack",
+    "file": "audiomack.svg",
+    "color": "#FFA500",
+    "initials": "AM",
+    "url": "https://audiomack.com"
+  },
+  {
+    "name": "Bandcamp",
+    "icon": "bandcamp",
+    "file": "bandcamp.svg",
+    "color": "#629AA9",
+    "initials": "BC",
+    "url": "https://bandcamp.com"
+  },
+  {
+    "name": "Mixcloud",
+    "icon": "mixcloud",
+    "file": "mixcloud.svg",
+    "color": "#5000FF",
+    "initials": "MC",
+    "url": "https://mixcloud.com"
+  },
+  {
+    "name": "HearThis",
+    "icon": "hearthis",
+    "file": "hearthis.svg",
+    "color": "#0A66C2",
+    "initials": "HT",
+    "url": "https://hearthis.at"
+  },
+  {
+    "name": "Deezer",
+    "icon": "deezer",
+    "file": "deezer.svg",
+    "color": "#A238FF",
+    "initials": "DZ",
+    "url": "https://deezer.com"
+  },
+  {
+    "name": "Apple Music",
+    "icon": "apple",
+    "file": "apple.svg",
+    "color": "#FA57C3",
+    "initials": "AM",
+    "url": "https://music.apple.com"
+  },
+  {
+    "name": "Vevo",
+    "icon": "vevo",
+    "file": "vevo.svg",
+    "color": "#FF0000",
+    "initials": "V",
+    "url": "https://vevo.com"
+  },
+  {
+    "name": "MTV",
+    "icon": "mtv",
+    "file": "mtv.svg",
+    "color": "#FFD400",
+    "initials": "MTV",
+    "url": "https://mtv.com"
+  },
+  {
+    "name": "ESPN",
+    "icon": "espn",
+    "file": "espn.svg",
+    "color": "#D6002A",
+    "initials": "ES",
+    "url": "https://espn.com"
+  },
+  {
+    "name": "Fox Sports",
+    "icon": "fox",
+    "file": "fox.svg",
+    "color": "#003366",
+    "initials": "FX",
+    "url": "https://foxsports.com"
+  },
+  {
+    "name": "NBA Video",
+    "icon": "nba",
+    "file": "nba.svg",
+    "color": "#C8102E",
+    "initials": "NBA",
+    "url": "https://nba.com/video"
+  },
+  {
+    "name": "NFL Video",
+    "icon": "nfl",
+    "file": "nfl.svg",
+    "color": "#013369",
+    "initials": "NFL",
+    "url": "https://nfl.com/videos"
+  },
+  {
+    "name": "BBC",
+    "icon": "bbc",
+    "file": "bbc.svg",
+    "color": "#B80000",
+    "initials": "BBC",
+    "url": "https://bbc.com"
+  },
+  {
+    "name": "BBC Arabic",
+    "icon": "bbc",
+    "file": "bbc.svg",
+    "color": "#B80000",
+    "initials": "BBC",
+    "url": "https://bbc.com/arabic"
+  },
+  {
+    "name": "Al Jazeera",
+    "icon": "aljazeera",
+    "file": "aljazeera.svg",
+    "color": "#C8A600",
+    "initials": "AJ",
+    "url": "https://aljazeera.com"
+  },
+  {
+    "name": "Al Arabiya",
+    "icon": "alarabiya",
+    "file": "alarabiya.svg",
+    "color": "#000080",
+    "initials": "AA",
+    "url": "https://alarabiya.net"
+  },
+  {
+    "name": "CNN",
+    "icon": "cnn",
+    "file": "cnn.svg",
+    "color": "#CC0000",
+    "initials": "CNN",
+    "url": "https://cnn.com"
+  },
+  {
+    "name": "NBC News",
+    "icon": "nbc",
+    "file": "nbc.svg",
+    "color": "#000000",
+    "initials": "NBC",
+    "url": "https://nbcnews.com"
+  },
+  {
+    "name": "ABC News",
+    "icon": "abc",
+    "file": "abc.svg",
+    "color": "#000000",
+    "initials": "ABC",
+    "url": "https://abcnews.go.com"
+  },
+  {
+    "name": "CBS News",
+    "icon": "cbs",
+    "file": "cbs.svg",
+    "color": "#FFD700",
+    "initials": "CBS",
+    "url": "https://cbsnews.com"
+  },
+  {
+    "name": "DW",
+    "icon": "dw",
+    "file": "dw.svg",
+    "color": "#00A0FF",
+    "initials": "DW",
+    "url": "https://dw.com"
+  },
+  {
+    "name": "France 24",
+    "icon": "france24",
+    "file": "france24.svg",
+    "color": "#0055FF",
+    "initials": "F24",
+    "url": "https://france24.com"
+  },
+  {
+    "name": "RT Arabic",
+    "icon": "rt",
+    "file": "rt.svg",
+    "color": "#7F00FF",
+    "initials": "RT",
+    "url": "https://arabic.rt.com"
+  },
+  {
+    "name": "Sky News Arabia",
+    "icon": "sky",
+    "file": "sky.svg",
+    "color": "#0071BC",
+    "initials": "SK",
+    "url": "https://skynewsarabia.com"
+  },
+  {
+    "name": "Archive.org",
+    "icon": "archive",
+    "file": "archive.svg",
+    "color": "#000000",
+    "initials": "AR",
+    "url": "https://archive.org"
+  },
+  {
+    "name": "Wikimedia Commons",
+    "icon": "wikimedia",
+    "file": "wikimedia.svg",
+    "color": "#000000",
+    "initials": "WM",
+    "url": "https://commons.wikimedia.org"
+  },
+  {
+    "name": "Wikipedia",
+    "icon": "wikipedia",
+    "file": "wikipedia.svg",
+    "color": "#000000",
+    "initials": "W",
+    "url": "https://wikipedia.org"
+  },
+  {
+    "name": "Khan Academy",
+    "icon": "khan",
+    "file": "khan.svg",
+    "color": "#00D15A",
+    "initials": "KA",
+    "url": "https://khanacademy.org"
+  },
+  {
+    "name": "Coursera",
+    "icon": "coursera",
+    "file": "coursera.svg",
+    "color": "#0056D2",
+    "initials": "C",
+    "url": "https://coursera.org"
+  },
+  {
+    "name": "Udemy",
+    "icon": "udemy",
+    "file": "udemy.svg",
+    "color": "#A435F0",
+    "initials": "U",
+    "url": "https://udemy.com"
+  },
+  {
+    "name": "TED",
+    "icon": "ted",
+    "file": "ted.svg",
+    "color": "#FF0000",
+    "initials": "TED",
+    "url": "https://ted.com"
+  },
+  {
+    "name": "RaiPlay",
+    "icon": "raiplay",
+    "file": "raiplay.svg",
+    "color": "#00A0FF",
+    "initials": "RP",
+    "url": "https://raiplay.it"
+  },
+  {
+    "name": "Mediaset",
+    "icon": "mediaset",
+    "file": "mediaset.svg",
+    "color": "#1E90FF",
+    "initials": "MS",
+    "url": "https://mediasetplay.mediaset.it"
+  },
+  {
+    "name": "ARTE",
+    "icon": "arte",
+    "file": "arte.svg",
+    "color": "#000000",
+    "initials": "ARTE",
+    "url": "https://arte.tv"
+  },
+  {
+    "name": "Euronews",
+    "icon": "euronews",
+    "file": "euronews.svg",
+    "color": "#003366",
+    "initials": "EN",
+    "url": "https://euronews.com"
+  },
+  {
+    "name": "Naver TV",
+    "icon": "naver",
+    "file": "naver.svg",
+    "color": "#03C75A",
+    "initials": "NV",
+    "url": "https://tv.naver.com"
+  },
+  {
+    "name": "Vlive",
+    "icon": "vlive",
+    "file": "vlive.svg",
+    "color": "#67D0D4",
+    "initials": "VL",
+    "url": "https://vlive.tv"
+  },
+  {
+    "name": "YouKu",
+    "icon": "youku",
+    "file": "youku.svg",
+    "color": "#00C8FF",
+    "initials": "YK",
+    "url": "https://youku.com"
+  },
+  {
+    "name": "Tencent Video",
+    "icon": "tencent",
+    "file": "tencent.svg",
+    "color": "#F38020",
+    "initials": "TX",
+    "url": "https://v.qq.com"
+  },
+  {
+    "name": "iQiyi",
+    "icon": "iqiyi",
+    "file": "iqiyi.svg",
+    "color": "#00E676",
+    "initials": "IQ",
+    "url": "https://iqiyi.com"
+  },
+  {
+    "name": "Weibo Video",
+    "icon": "weibo",
+    "file": "weibo.svg",
+    "color": "#E6162D",
+    "initials": "WB",
+    "url": "https://weibo.com"
+  },
+  {
+    "name": "Steam TV",
+    "icon": "steam",
+    "file": "steam.svg",
+    "color": "#171A21",
+    "initials": "ST",
+    "url": "https://steam.tv"
+  },
+  {
+    "name": "Epic Games",
+    "icon": "epic",
+    "file": "epic.svg",
+    "color": "#000000",
+    "initials": "EG",
+    "url": "https://epicgames.com"
+  },
+  {
+    "name": "IGN",
+    "icon": "ign",
+    "file": "ign.svg",
+    "color": "#BF081F",
+    "initials": "IGN",
+    "url": "https://ign.com/videos"
+  },
+  {
+    "name": "GameSpot",
+    "icon": "gamespot",
+    "file": "gamespot.svg",
+    "color": "#000000",
+    "initials": "GS",
+    "url": "https://gamespot.com/videos"
+  },
+  {
+    "name": "Imgflip",
+    "icon": "imgflip",
+    "file": "imgflip.svg",
+    "color": "#000000",
+    "initials": "IF",
+    "url": "https://imgflip.com"
+  },
+  {
+    "name": "Patreon",
+    "icon": "patreon",
+    "file": "patreon.svg",
+    "color": "#FF424D",
+    "initials": "P",
+    "url": "https://patreon.com"
+  },
+  {
+    "name": "OnlyFans",
+    "icon": "onlyfans",
+    "file": "onlyfans.svg",
+    "color": "#00AFF4",
+    "initials": "OF",
+    "url": "https://onlyfans.com"
+  },
+  {
+    "name": "Bitchute",
+    "icon": "bitchute",
+    "file": "bitchute.svg",
+    "color": "#000000",
+    "initials": "BT",
+    "url": "https://bitchute.com"
+  },
+  {
+    "name": "Odysee",
+    "icon": "odysee",
+    "file": "odysee.svg",
+    "color": "#7F00FF",
+    "initials": "O",
+    "url": "https://odysee.com"
+  },
+  {
+    "name": "Rumble",
+    "icon": "rumble",
+    "file": "rumble.svg",
+    "color": "#00FF00",
+    "initials": "R",
+    "url": "https://rumble.com"
+  },
+  {
+    "name": "PeersTube",
+    "icon": "peertube",
+    "file": "peertube.svg",
+    "color": "#000000",
+    "initials": "PT",
+    "url": "https://peertube.tv"
+  },
+  {
+    "name": "Trovo",
+    "icon": "trovo",
+    "file": "trovo.svg",
+    "color": "#00FF00",
+    "initials": "TR",
+    "url": "https://trovo.live"
+  },
+  {
+    "name": "DLive",
+    "icon": "dlive",
+    "file": "dlive.svg",
+    "color": "#FFD500",
+    "initials": "DL",
+    "url": "https://dlive.tv"
+  },
+  {
+    "name": "Picarto",
+    "icon": "picarto",
+    "file": "picarto.svg",
+    "color": "#00C853",
+    "initials": "PI",
+    "url": "https://picarto.tv"
+  },
+  {
+    "name": "Wistia",
+    "icon": "wistia",
+    "file": "wistia.svg",
+    "color": "#4B4B4B",
+    "initials": "W",
+    "url": "https://wistia.com"
+  },
+  {
+    "name": "Brightcove",
+    "icon": "brightcove",
+    "file": "brightcove.svg",
+    "color": "#000000",
+    "initials": "BC",
+    "url": "https://brightcove.com"
+  },
+  {
+    "name": "JW Player",
+    "icon": "jwplayer",
+    "file": "jwplayer.svg",
+    "color": "#000000",
+    "initials": "JW",
+    "url": "https://jwplayer.com"
+  },
+  {
+    "name": "Streamable",
+    "icon": "streamable",
+    "file": "streamable.svg",
+    "color": "#00C0FF",
+    "initials": "SM",
+    "url": "https://streamable.com"
+  },
+  {
+    "name": "Streamtape",
+    "icon": "streamtape",
+    "file": "streamtape.svg",
+    "color": "#FF8C00",
+    "initials": "ST",
+    "url": "https://streamtape.com"
+  },
+  {
+    "name": "DoodStream",
+    "icon": "dood",
+    "file": "dood.svg",
+    "color": "#8224FF",
+    "initials": "DS",
+    "url": "https://doodstream.com"
+  },
+  {
+    "name": "FileMoon",
+    "icon": "filemoon",
+    "file": "filemoon.svg",
+    "color": "#FFD700",
+    "initials": "FM",
+    "url": "https://filemoon.sx"
+  },
+  {
+    "name": "VidHide",
+    "icon": "vidhide",
+    "file": "vidhide.svg",
+    "color": "#FFAE00",
+    "initials": "VH",
+    "url": "https://vidhide.com"
+  },
+  {
+    "name": "Dropbox",
+    "icon": "dropbox",
+    "file": "dropbox.svg",
+    "color": "#0061FF",
+    "initials": "DB",
+    "url": "https://dropbox.com"
+  },
+  {
+    "name": "Google Drive",
+    "icon": "drive",
+    "file": "drive.svg",
+    "color": "#34A853",
+    "initials": "GD",
+    "url": "https://drive.google.com"
+  },
+  {
+    "name": "Mega",
+    "icon": "mega",
+    "file": "mega.svg",
+    "color": "#D9272E",
+    "initials": "M",
+    "url": "https://mega.nz"
+  },
+  {
+    "name": "OneDrive",
+    "icon": "onedrive",
+    "file": "onedrive.svg",
+    "color": "#0364B8",
+    "initials": "OD",
+    "url": "https://onedrive.live.com"
+  },
+  {
+    "name": "MediaFire",
+    "icon": "mediafire",
+    "file": "mediafire.svg",
+    "color": "#1299F3",
+    "initials": "MF",
+    "url": "https://mediafire.com"
+  },
+  {
+    "name": "GoFile",
+    "icon": "gofile",
+    "file": "gofile.svg",
+    "color": "#000000",
+    "initials": "GF",
+    "url": "https://gofile.io"
+  },
+  {
+    "name": "Box",
+    "icon": "box",
+    "file": "box.svg",
+    "color": "#000000",
+    "initials": "BOX",
+    "url": "https://box.com"
+  },
+  {
+    "name": "Netflix",
+    "icon": "netflix",
+    "file": "netflix.svg",
+    "color": "#E50914",
+    "initials": "N",
+    "url": "https://netflix.com"
+  },
+  {
+    "name": "Disney+",
+    "icon": "disney",
+    "file": "disney.svg",
+    "color": "#0A1931",
+    "initials": "D+",
+    "url": "https://disneyplus.com"
+  },
+  {
+    "name": "Hulu",
+    "icon": "hulu",
+    "file": "hulu.svg",
+    "color": "#1CE783",
+    "initials": "HU",
+    "url": "https://hulu.com"
+  },
+  {
+    "name": "Paramount+",
+    "icon": "paramount",
+    "file": "paramount.svg",
+    "color": "#0064FF",
+    "initials": "P+",
+    "url": "https://paramountplus.com"
+  },
+  {
+    "name": "Peacock",
+    "icon": "peacock",
+    "file": "peacock.svg",
+    "color": "#000000",
+    "initials": "PE",
+    "url": "https://peacocktv.com"
+  },
+  {
+    "name": "Max (HBO)",
+    "icon": "max",
+    "file": "max.svg",
+    "color": "#000000",
+    "initials": "MAX",
+    "url": "https://max.com"
+  },
+  {
+    "name": "Apple TV+",
+    "icon": "apple",
+    "file": "apple.svg",
+    "color": "#000000",
+    "initials": "TV",
+    "url": "https://tv.apple.com"
+  },
+  {
+    "name": "Shahid",
+    "icon": "shahid",
+    "file": "shahid.svg",
+    "color": "#00A0FF",
+    "initials": "SH",
+    "url": "https://shahid.mbc.net"
+  },
+  {
+    "name": "OSN+",
+    "icon": "osn",
+    "file": "osn.svg",
+    "color": "#000000",
+    "initials": "O",
+    "url": "https://osnplus.com"
+  },
+  {
+    "name": "BeIN Sports",
+    "icon": "bein",
+    "file": "bein.svg",
+    "color": "#6A0082",
+    "initials": "BE",
+    "url": "https://beinsports.com"
+  },
+  {
+    "name": "Pornhub",
+    "icon": "pornhub",
+    "file": "pornhub.svg",
+    "color": "#FF9900",
+    "initials": "PH",
+    "url": "https://pornhub.com"
+  },
+  {
+    "name": "XVideos",
+    "icon": "xvideos",
+    "file": "xvideos.svg",
+    "color": "#FF0000",
+    "initials": "XV",
+    "url": "https://xvideos.com"
+  },
+  {
+    "name": "XNXX",
+    "icon": "xnxx",
+    "file": "xnxx.svg",
+    "color": "#FFD700",
+    "initials": "XX",
+    "url": "https://xnxx.com"
+  },
+  {
+    "name": "Xhamster",
+    "icon": "xhamster",
+    "file": "xhamster.svg",
+    "color": "#FF0000",
+    "initials": "XH",
+    "url": "https://xhamster.com"
+  },
+  {
+    "name": "RedTube",
+    "icon": "redtube",
+    "file": "redtube.svg",
+    "color": "#FF0000",
+    "initials": "RT",
+    "url": "https://redtube.com"
+  },
+  {
+    "name": "SpankBang",
+    "icon": "spankbang",
+    "file": "spankbang.svg",
+    "color": "#000000",
+    "initials": "SB",
+    "url": "https://spankbang.com"
+  },
+  {
+    "name": "Eporner",
+    "icon": "eporner",
+    "file": "eporner.svg",
+    "color": "#FF0000",
+    "initials": "EP",
+    "url": "https://eporner.com"
+  },
+  {
+    "name": "Telegram",
+    "icon": "telegram",
+    "file": "telegram.svg",
+    "color": "#0088CC",
+    "initials": "TG",
+    "url": "https://web.telegram.org"
+  },
+  {
+    "name": "WhatsApp",
+    "icon": "whatsapp",
+    "file": "whatsapp.svg",
+    "color": "#25D366",
+    "initials": "WA",
+    "url": "https://web.whatsapp.com"
+  },
+  {
+    "name": "Discord",
+    "icon": "discord",
+    "file": "discord.svg",
+    "color": "#5865F2",
+    "initials": "DC",
+    "url": "https://discord.com"
+  },
+  {
+    "name": "Slack",
+    "icon": "slack",
+    "file": "slack.svg",
+    "color": "#4A154B",
+    "initials": "SL",
+    "url": "https://slack.com"
+  },
+  {
+    "name": "Skillshare",
+    "icon": "skillshare",
+    "file": "skillshare.svg",
+    "color": "#00FF88",
+    "initials": "SS",
+    "url": "https://skillshare.com"
+  },
+  {
+    "name": "Domestika",
+    "icon": "domestika",
+    "file": "domestika.svg",
+    "color": "#000000",
+    "initials": "DO",
+    "url": "https://domestika.org"
+  },
+  {
+    "name": "MasterClass",
+    "icon": "masterclass",
+    "file": "masterclass.svg",
+    "color": "#000000",
+    "initials": "MC",
+    "url": "https://masterclass.com"
+  },
+  {
+    "name": "Lynda / LinkedIn Learning",
+    "icon": "linkedin",
+    "file": "linkedin.svg",
+    "color": "#0A66C2",
+    "initials": "LL",
+    "url": "https://linkedin.com/learning"
+  },
+  {
+    "name": "Pluralsight",
+    "icon": "pluralsight",
+    "file": "pluralsight.svg",
+    "color": "#EC008C",
+    "initials": "PS",
+    "url": "https://pluralsight.com"
+  },
+  {
+    "name": "Codecademy",
+    "icon": "codecademy",
+    "file": "codecademy.svg",
+    "color": "#141E3C",
+    "initials": "CA",
+    "url": "https://codecademy.com"
+  },
+  {
+    "name": "ArXiv",
+    "icon": "arxiv",
+    "file": "arxiv.svg",
+    "color": "#B31B1B",
+    "initials": "AX",
+    "url": "https://arxiv.org"
+  },
+  {
+    "name": "F95Zone",
+    "icon": "f95",
+    "file": "f95.svg",
+    "color": "#000000",
+    "initials": "FZ",
+    "url": "https://f95zone.to"
+  },
+  {
+    "name": "Pokki",
+    "icon": "pokki",
+    "file": "pokki.svg",
+    "color": "#E74C3C",
+    "initials": "PK",
+    "url": "https://pokki.com"
+  },
+  {
+    "name": "CrazyGames",
+    "icon": "crazy",
+    "file": "crazy.svg",
+    "color": "#9E68FF",
+    "initials": "CG",
+    "url": "https://crazygames.com"
+  },
+  {
+    "name": "YouTube Gaming",
+    "icon": "youtube",
+    "file": "youtube.svg",
+    "color": "#FF0000",
+    "initials": "YG",
+    "url": "https://youtube.com/gaming"
+  },
+  {
+    "name": "Xbox",
+    "icon": "xbox",
+    "file": "xbox.svg",
+    "color": "#107C10",
+    "initials": "XB",
+    "url": "https://xbox.com"
+  },
+  {
+    "name": "PlayStation",
+    "icon": "playstation",
+    "file": "playstation.svg",
+    "color": "#13579D",
+    "initials": "PS",
+    "url": "https://playstation.com"
+  },
+  {
+    "name": "Nintendo",
+    "icon": "nintendo",
+    "file": "nintendo.svg",
+    "color": "#E60012",
+    "initials": "NT",
+    "url": "https://nintendo.com"
+  },
+  {
+    "name": "CDA",
+    "icon": "cda",
+    "file": "cda.svg",
+    "color": "#000000",
+    "initials": "CDA",
+    "url": "https://cda.pl"
+  },
+  {
+    "name": "ProSieben",
+    "icon": "prosieben",
+    "file": "prosieben.svg",
+    "color": "#FF0000",
+    "initials": "PS",
+    "url": "https://prosieben.de"
+  },
+  {
+    "name": "RFI",
+    "icon": "rfi",
+    "file": "rfi.svg",
+    "color": "#000000",
+    "initials": "RFI",
+    "url": "https://rfi.fr"
+  },
+  {
+    "name": "Tagesschau",
+    "icon": "tagesschau",
+    "file": "tagesschau.svg",
+    "color": "#000000",
+    "initials": "TS",
+    "url": "https://tagesschau.de"
+  },
+  {
+    "name": "KakaoTV",
+    "icon": "kakaotv",
+    "file": "kakaotv.svg",
+    "color": "#FEE500",
+    "initials": "KT",
+    "url": "https://tv.kakaotv.com"
+  },
+  {
+    "name": "Metacafe",
+    "icon": "metacafe",
+    "file": "metacafe.svg",
+    "color": "#000000",
+    "initials": "META",
+    "url": "https://metacafe.com"
+  },
+  {
+    "name": "Break.com",
+    "icon": "break",
+    "file": "break.svg",
+    "color": "#FF0000",
+    "initials": "BR",
+    "url": "https://break.com"
+  },
+  {
+    "name": "Worldstar",
+    "icon": "worldstar",
+    "file": "worldstar.svg",
+    "color": "#000000",
+    "initials": "WS",
+    "url": "https://worldstarhiphop.com"
+  },
+  {
+    "name": "Spike",
+    "icon": "spike",
+    "file": "spike.svg",
+    "color": "#000000",
+    "initials": "SPK",
+    "url": "https://spike.com"
+  },
+  {
+    "name": "Trove",
+    "icon": "trovo",
+    "file": "trovo.svg",
+    "color": "#000000",
+    "initials": "TR",
+    "url": "https://trovo.com"
+  },
+  {
+    "name": "JAV",
+    "icon": "jav",
+    "file": "jav.svg",
+    "color": "#000000",
+    "initials": "JAV",
+    "url": "https://jav.com"
+  },
+  {
+    "name": "MissAV",
+    "icon": "missav",
+    "file": "missav.svg",
+    "color": "#000000",
+    "initials": "AV",
+    "url": "https://missav.com"
+  },
+  {
+    "name": "FitGirl Repacks",
+    "icon": "fitgirl",
+    "file": "fitgirl.svg",
+    "color": "#000000",
+    "initials": "FG",
+    "url": "https://fitgirlrepacks.co"
+  },
+  {
+    "name": "GOG Games",
+    "icon": "gog",
+    "file": "gog.svg",
+    "color": "#000000",
+    "initials": "GOG",
+    "url": "https://gog.games"
+  },
+  {
+    "name": "SteamUnlocked",
+    "icon": "steam",
+    "file": "steam.svg",
+    "color": "#000000",
+    "initials": "SU",
+    "url": "https://steamunlocked.net"
+  },
+  {
+    "name": "Loom",
+    "icon": "loom",
+    "file": "loom.svg",
+    "color": "#625DF6",
+    "initials": "LO",
+    "url": "https://loom.com"
+  },
+  {
+    "name": "Cloudinary",
+    "icon": "cloudinary",
+    "file": "cloudinary.svg",
+    "color": "#F5C518",
+    "initials": "CL",
+    "url": "https://cloudinary.com"
+  },
+  {
+    "name": "Descript",
+    "icon": "descript",
+    "file": "descript.svg",
+    "color": "#000000",
+    "initials": "DE",
+    "url": "https://descript.com"
+  },
+  {
+    "name": "VEVO",
+    "icon": "vevo",
+    "file": "vevo.svg",
+    "color": "#FF0000",
+    "initials": "VEVO",
+    "url": "https://vevo.com"
+  },
+  {
+    "name": "NoCopyrightSounds",
+    "icon": "ncs",
+    "file": "ncs.svg",
+    "color": "#000000",
+    "initials": "NCS",
+    "url": "https://ncs.io"
+  },
+  {
+    "name": "Pixabay",
+    "icon": "pixabay",
+    "file": "pixabay.svg",
+    "color": "#008B00",
+    "initials": "PX",
+    "url": "https://pixabay.com"
+  },
+  {
+    "name": "Pexels",
+    "icon": "pexels",
+    "file": "pexels.svg",
+    "color": "#05A081",
+    "initials": "PX",
+    "url": "https://pexels.com"
+  },
+  {
+    "name": "Unsplash",
+    "icon": "unsplash",
+    "file": "unsplash.svg",
+    "color": "#000000",
+    "initials": "UN",
+    "url": "https://unsplash.com"
+  },
+  {
+    "name": "Shutterstock",
+    "icon": "shutterstock",
+    "file": "shutterstock.svg",
+    "color": "#FFD700",
+    "initials": "SH",
+    "url": "https://shutterstock.com"
+  },
+  {
+    "name": "Getty Images",
+    "icon": "getty",
+    "file": "getty.svg",
+    "color": "#000000",
+    "initials": "GI",
+    "url": "https://gettyimages.com"
+  },
+  {
+    "name": "Alamy",
+    "icon": "alamy",
+    "file": "alamy.svg",
+    "color": "#000000",
+    "initials": "AL",
+    "url": "https://alamy.com"
+  },
+  {
+    "name": "Canva",
+    "icon": "canva",
+    "file": "canva.svg",
+    "color": "#00C4CC",
+    "initials": "CA",
+    "url": "https://canva.com"
+  },
+  {
+    "name": "Envato",
+    "icon": "envato",
+    "file": "envato.svg",
+    "color": "#82B541",
+    "initials": "EN",
+    "url": "https://elements.envato.com"
+  },
+  {
+    "name": "Adobe Stock",
+    "icon": "adobe",
+    "file": "adobe.svg",
+    "color": "#FF0000",
+    "initials": "AS",
+    "url": "https://stock.adobe.com"
+  },
+  {
+    "name": "Khan",
+    "icon": "khan",
+    "file": "khan.svg",
+    "color": "#00D15A",
+    "initials": "KA",
+    "url": "https://khanacademy.org"
+  },
+  {
+    "name": "ScienceDirect",
+    "icon": "sciencedirect",
+    "file": "sciencedirect.svg",
+    "color": "#000000",
+    "initials": "SD",
+    "url": "https://sciencedirect.com"
+  },
+  {
+    "name": "ResearchGate",
+    "icon": "researchgate",
+    "file": "researchgate.svg",
+    "color": "#00CCB7",
+    "initials": "RG",
+    "url": "https://researchgate.net"
+  },
+  {
+    "name": "JSTOR",
+    "icon": "jstor",
+    "file": "jstor.svg",
+    "color": "#006F7A",
+    "initials": "JS",
+    "url": "https://jstor.org"
+  },
+  {
+    "name": "Substack",
+    "icon": "substack",
+    "file": "substack.svg",
+    "color": "#FF6719",
+    "initials": "SS",
+    "url": "https://substack.com"
+  },
+  {
+    "name": "Medium",
+    "icon": "medium",
+    "file": "medium.svg",
+    "color": "#000000",
+    "initials": "M",
+    "url": "https://medium.com"
+  },
+  {
+    "name": "Quora",
+    "icon": "quora",
+    "file": "quora.svg",
+    "color": "#B92B27",
+    "initials": "Q",
+    "url": "https://quora.com"
+  },
+  {
+    "name": "Hacker News",
+    "icon": "hacker",
+    "file": "hacker.svg",
+    "color": "#FF6600",
+    "initials": "HN",
+    "url": "https://news.ycombinator.com"
+  },
+  {
+    "name": "Product Hunt",
+    "icon": "ph",
+    "file": "ph.svg",
+    "color": "#DA552F",
+    "initials": "PH",
+    "url": "https://producthunt.com"
+  },
+  {
+    "name": "W3Schools",
+    "icon": "w3",
+    "file": "w3.svg",
+    "color": "#04AA6D",
+    "initials": "W3",
+    "url": "https://w3schools.com"
+  },
+  {
+    "name": "Great Courses",
+    "icon": "tgc",
+    "file": "tgc.svg",
+    "color": "#000000",
+    "initials": "GC",
+    "url": "https://thegreatcourses.com"
+  },
+  {
+    "name": "Nature Video",
+    "icon": "nature",
+    "file": "nature.svg",
+    "color": "#000000",
+    "initials": "NV",
+    "url": "https://nature.com"
+  },
+  {
+    "name": "Starz Play",
+    "icon": "starz",
+    "file": "starz.svg",
+    "color": "#000000",
+    "initials": "SP",
+    "url": "https://www.starzplay.com"
+  },
+  {
+    "name": "Eshabab",
+    "icon": "eshabab",
+    "file": "eshabab.svg",
+    "color": "#000000",
+    "initials": "ES",
+    "url": "https://eshabab.com"
+  },
+  {
+    "name": "Saudi Sports",
+    "icon": "ssc",
+    "file": "ssc.svg",
+    "color": "#000000",
+    "initials": "SSC",
+    "url": "https://ssc.com"
+  },
+  {
+    "name": "AD Sports",
+    "icon": "ad",
+    "file": "ad.svg",
+    "color": "#000000",
+    "initials": "AD",
+    "url": "https://adsports.ae"
+  },
+  {
+    "name": "Dubai Sports",
+    "icon": "dubai",
+    "file": "dubai.svg",
+    "color": "#000000",
+    "initials": "DS",
+    "url": "https://dubaisports.ae"
+  },
+  {
+    "name": "Twitter Spaces",
+    "icon": "twitter",
+    "file": "twitter.svg",
+    "color": "#000000",
+    "initials": "TS",
+    "url": "https://x.com/spaces"
+  },
+  {
+    "name": "Dailymotion",
+    "icon": "dailymotion",
+    "file": "dailymotion.svg",
+    "color": "#0AA0FF",
+    "initials": "DM",
+    "url": "https://dailymotion.com"
+  },
+  {
+    "name": "Clutch",
+    "icon": "clutch",
+    "file": "clutch.svg",
+    "color": "#000000",
+    "initials": "CL",
+    "url": "https://clutch.co.il"
+  },
+  {
+    "name": "CDA",
+    "icon": "cda",
+    "file": "cda.svg",
+    "color": "#000000",
+    "initials": "CDA",
+    "url": "https://cda.pl"
+  },
+  {
+    "name": "Photon",
+    "icon": "photon",
+    "file": "photon.svg",
+    "color": "#000000",
+    "initials": "PH",
+    "url": "https://photon.com"
+  },
+  {
+    "name": "Bitchute",
+    "icon": "bitchute",
+    "file": "bitchute.svg",
+    "color": "#000000",
+    "initials": "BT",
+    "url": "https://bitchute.com"
+  },
+  {
+    "name": "DTube",
+    "icon": "dtube",
+    "file": "dtube.svg",
+    "color": "#000000",
+    "initials": "DT",
+    "url": "https://dtube.finance"
+  },
+  {
+    "name": "Stage It",
+    "icon": "stageit",
+    "file": "stageit.svg",
+    "color": "#000000",
+    "initials": "SI",
+    "url": "https://stageit.com"
+  },
+  {
+    "name": "123RF",
+    "icon": "123rf",
+    "file": "123rf.svg",
+    "color": "#000000",
+    "initials": "123",
+    "url": "https://123rf.com"
+  },
+  {
+    "name": "Periscope",
+    "icon": "periscope",
+    "file": "periscope.svg",
+    "color": "#000000",
+    "initials": "PER",
+    "url": "https://periscope.tv"
+  },
+  {
+    "name": "Facebook Live",
+    "icon": "facebook",
+    "file": "facebook.svg",
+    "color": "#1877F2",
+    "initials": "FL",
+    "url": "https://facebook.com/live"
+  },
+  {
+    "name": "Meme Sound",
+    "icon": "meme",
+    "file": "meme.svg",
+    "color": "#000000",
+    "initials": "MS",
+    "url": "https://meme.com"
+  },
+  {
+    "name": "Fansly",
+    "icon": "fansly",
+    "file": "fansly.svg",
+    "color": "#000000",
+    "initials": "FA",
+    "url": "https://fansly.com"
+  },
+  {
+    "name": "Hub",
+    "icon": "hub",
+    "file": "hub.svg",
+    "color": "#000000",
+    "initials": "HUB",
+    "url": "https://hub.tv"
+  },
+  {
+    "name": "0x",
+    "icon": "0x",
+    "file": "0x.svg",
+    "color": "#000000",
+    "initials": "0X",
+    "url": "https://0xtube.com"
+  }
+]

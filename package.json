@@ -1,0 +1,94 @@
+{
+  "name": "honk-downloader",
+  "productName": "Honk Downloader",
+  "version": "3.0.0",
+  "description": "Premium Video Downloader for Windows — 300+ sites (198 detailed + 1000+ via yt-dlp), 24 languages, 18 Arabic/Latin fonts, 183 site icons, history, favorites, pause/resume, batch, multi-format.",
+  "main": "src/main/main.js",
+  "homepage": "https://github.com/ahmednacer/honk-downloader",
+  "author": {
+    "name": "Honk",
+    "email": "ahmed@example.com"
+  },
+  "license": "MIT",
+  "scripts": {
+    "start": "electron .",
+    "dev": "electron . --dev",
+    "check": "node scripts/check.js",
+    "gen-icons": "node scripts/gen-icons.js",
+    "dist": "electron-builder --win",
+    "dist:win": "electron-builder --win",
+    "dist:win:portable": "electron-builder --win portable",
+    "dist:linux": "electron-builder --linux",
+    "dist:mac": "electron-builder --mac"
+  },
+  "devDependencies": {
+    "electron": "^45.2.1",
+    "electron-builder": "^26.18.0"
+  },
+  "build": {
+    "appId": "app.honk.downloader",
+    "productName": "Honk Downloader",
+    "directories": {
+      "output": "dist",
+      "buildResources": "build"
+    },
+    "files": [
+      "src/**/*",
+      "icons/**/*",
+      "node_modules/**/*",
+      "package.json"
+    ],
+    "extraResources": [
+      {
+        "from": "bin",
+        "to": "bin",
+        "filter": ["**/*"]
+      },
+      {
+        "from": "extensions",
+        "to": "extensions",
+        "filter": ["**/*"]
+      },
+      {
+        "from": "icons",
+        "to": "icons",
+        "filter": ["**/*"]
+      }
+    ],
+    "win": {
+      "target": [
+        { "target": "nsis", "arch": ["x64", "ia32"] },
+        { "target": "portable", "arch": ["x64"] }
+      ],
+      "icon": "build/icon.ico",
+      "requestedExecutionLevel": "asInvoker",
+      "verifyUpdateCodeSignature": false
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Honk Downloader",
+      "installerIcon": "build/icon.ico",
+      "uninstallerIcon": "build/icon.ico",
+      "artifactName": "Honk-Downloader-${version}-${arch}.exe",
+      "deleteAppDataOnUninstall": false,
+      "perMachine": false
+    },
+    "linux": {
+      "target": ["AppImage", "deb"],
+      "category": "AudioVideo",
+      "icon": "build/icon.png",
+      "maintainer": "Honk <ahmed@example.com>"
+    },
+    "mac": {
+      "target": ["dmg"],
+      "category": "public.app-category.video",
+      "icon": "build/icon.icns"
+    }
+  },
+  "dependencies": {
+    "adm-zip": "^0.6.1"
+  }
+}
