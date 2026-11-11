@@ -16,22 +16,14 @@ const state = {
   busyInfo: false,
   incomingBusy: false,
   installing: new Set(),
-<<<<<<< HEAD
   browserUrl: 'https://www.youtube.com',
-  pendingLink: null,
-  toastTimer: null,
-  extensions: []
-=======
-  browserUrl: 'https://www.google.com',
   pendingLink: null,
   toastTimer: null,
   extensions: [],
   sites: [],
   language: 'ar',
-  font: 'cairo',
   history: [],
   favorites: [],
->>>>>>> 10888db (v2.0.0 update)
 };
 
 const PHASE_LABEL = {
@@ -134,8 +126,6 @@ function applyTheme(theme) {
   document.documentElement.dataset.theme = resolveTheme(theme);
 }
 
-<<<<<<< HEAD
-=======
 function applyLanguage(lang) {
   const L = window.HonkLocales;
   if (!L) return;
@@ -154,29 +144,16 @@ function applyLanguage(lang) {
   // engine pill text will be refreshed by refreshEnv
 }
 
-function applyFont(font) {
-  const L = window.HonkLocales;
-  state.font = font || 'cairo';
-  document.documentElement.dataset.font = state.font;
-  const f = L ? L.FONT_OPTIONS.find(x=>x.value===state.font) : null;
-  if (f) document.documentElement.style.setProperty('--font', f.family);
-  const ff = $('#font-preview');
-  if (ff && f) ff.style.fontFamily = f.family;
-  const sel = $('#settings-font'); if (sel) sel.value = state.font;
-}
-
-function populateLanguageAndFont() {
+function populateLanguages() {
   const L = window.HonkLocales;
   if (!L) return;
   const mk = (sel, opts) => { if(!sel) return; sel.textContent=''; for(const o of opts){ const op=document.createElement('option'); op.value=o.value; op.textContent=o.label; sel.appendChild(op);} };
   mk($('#top-language'), L.LANGUAGE_OPTIONS);
   mk($('#settings-language'), L.LANGUAGE_OPTIONS);
-  mk($('#settings-font'), L.FONT_OPTIONS);
 }
 
 function t(key){ return window.HonkLocales ? window.HonkLocales.getTranslation(state.language, key) : key; }
 
->>>>>>> 10888db (v2.0.0 update)
 function setTab(name) {
   $$('.tab').forEach((tab) => {
     const active = tab.dataset.tab === name;
@@ -195,12 +172,9 @@ function setTab(name) {
   }
 
   if (name === 'extensions') loadExtensions();
-<<<<<<< HEAD
-=======
   if (name === 'sites') loadSites();
   if (name === 'history') renderHistory();
   if (name === 'favorites') renderFavorites();
->>>>>>> 10888db (v2.0.0 update)
   if (name === 'settings') {
     refreshEnv();
     refreshBridge();
@@ -208,11 +182,29 @@ function setTab(name) {
   }
 }
 
-<<<<<<< HEAD
-=======
 function iconUrlFor(site){
   const slug = (site.icon || site.name.toLowerCase().replace(/[^a-z0-9]+/g,'-')).replace(/^-+|-+$/g,'') || 'site';
-  return `assets/icons/${slug}.svg`;
+  return `../../icons/${encodeURIComponent(slug)}.svg`;
+}
+
+function setSiteIcon(image, site) {
+  const fallback = iconUrlFor(site);
+  image.onerror = () => {
+    image.onerror = null;
+    image.src = fallback;
+  };
+
+  try {
+    const page = new URL(site.url);
+    if (page.protocol === 'http:' || page.protocol === 'https:') {
+      image.src = new URL('/favicon.ico', page.origin).toString();
+      return;
+    }
+  } catch {
+    // Favorites from older settings files may contain invalid URLs.
+  }
+
+  image.src = fallback;
 }
 
 function isFavorite(url){
@@ -280,9 +272,8 @@ function renderFavorites(){
   for (const f of favs){
     const card = createElement('div','site-card');
     const img = createElement('img','site-icon');
-    img.src = iconUrlFor(f);
+    setSiteIcon(img, f);
     img.alt = f.name;
-    img.onerror = ()=>{ img.style.display='none'; };
     const copy = createElement('div','site-copy');
     copy.append(createElement('b',null,f.name), createElement('span',null,f.category||'عام'));
     const star = createElement('button','fav-btn is-fav','★');
@@ -328,10 +319,9 @@ function renderSites() {
     const card = createElement('div','site-card animate-in');
     if (showIcons) {
       const img = createElement('img','site-icon');
-      img.src = iconUrlFor(s);
+      setSiteIcon(img, s);
       img.alt = s.name;
       img.loading = 'lazy';
-      img.onerror = ()=>{ img.style.display='none'; };
       card.appendChild(img);
     }
     const copy = createElement('div','site-copy');
@@ -366,7 +356,6 @@ function bindSites(){
   const clearB = $('#batch-clear'); if(clearB) clearB.addEventListener('click', ()=>{ const el=$('#batch-input'); if(el) el.value=''; });
 }
 
->>>>>>> 10888db (v2.0.0 update)
 function setUrlHint(text, isError) {
   const hint = $('#url-hint');
   hint.textContent = text;
@@ -417,13 +406,10 @@ async function analyze(urlOverride, preferredMode) {
     state.mode = preferredMode === 'audio' ? 'audio' : 'video';
     renderPreview(info);
     setUrlHint('تم التحليل بنجاح. اختر الجودة ثم اضغط «تحميل الآن».', false);
-<<<<<<< HEAD
-=======
     // History
     if (state.settings?.enableHistory) {
       addHistory({ url, title: info.title || url, thumb: info.thumbnail || null, extractor: info.extractor || null, at: Date.now() });
     }
->>>>>>> 10888db (v2.0.0 update)
     return info;
   } catch (error) {
     state.info = null;
@@ -623,17 +609,11 @@ async function startDownload() {
       mode: job.mode,
       quality: job.quality,
       audioFormat: job.audioFormat,
-<<<<<<< HEAD
-=======
       videoFormat: $('#settings-video-format')?.value || 'mp4',
->>>>>>> 10888db (v2.0.0 update)
       playlist: job.playlist,
       embedMetadata: $('#opt-metadata').checked,
       downloadSubtitles: $('#opt-subtitles').checked,
       subtitleLangs: $('#subtitle-lang').value,
-<<<<<<< HEAD
-      cookieSource: $('#cookie-source').value
-=======
       cookieSource: $('#cookie-source').value,
       speedLimit: $('#settings-speed')?.value || '',
       proxy: $('#settings-proxy')?.value || '',
@@ -644,7 +624,6 @@ async function startDownload() {
       thumbnailOnly: $('#opt-thumb-only')?.checked || false,
       playlistStart: Number($('#playlist-start')?.value || 1),
       playlistEnd: Number($('#playlist-end')?.value || 0),
->>>>>>> 10888db (v2.0.0 update)
     });
 
     if (result && result.folder) job.folder = result.folder;
@@ -699,8 +678,6 @@ function createJobCard(job) {
   folderBtn.dataset.action = 'folder';
   folderBtn.addEventListener('click', () => openJobFolder(job));
 
-<<<<<<< HEAD
-=======
   const pauseBtn = createElement('button', 'queue-action', '⏸ إيقاف');
   pauseBtn.type = 'button';
   pauseBtn.dataset.action = 'pause';
@@ -715,26 +692,17 @@ function createJobCard(job) {
   retryBtn.classList.add('is-hidden');
   retryBtn.addEventListener('click', () => startDownload());
 
->>>>>>> 10888db (v2.0.0 update)
   const cancelBtn = createElement('button', 'queue-action', 'إلغاء');
   cancelBtn.type = 'button';
   cancelBtn.dataset.action = 'cancel';
   cancelBtn.addEventListener('click', () => api.cancelDownload(job.id));
 
-<<<<<<< HEAD
-  actions.append(openBtn, folderBtn, cancelBtn);
-=======
   actions.append(openBtn, folderBtn, pauseBtn, retryBtn, cancelBtn);
->>>>>>> 10888db (v2.0.0 update)
   bottom.append(detail, actions);
   body.append(top, meta, bar, bottom);
   card.append(thumb, body);
 
-<<<<<<< HEAD
-  card.refs = { img, fileType, badge, meta, fill, detail, openBtn, cancelBtn };
-=======
   card.refs = { img, fileType, badge, meta, fill, detail, openBtn, cancelBtn, pauseBtn, retryBtn };
->>>>>>> 10888db (v2.0.0 update)
   return card;
 }
 
@@ -788,13 +756,10 @@ function updateJobCard(job) {
     badgeText = 'خطأ';
     refs.meta.textContent = job.error || 'فشل التحميل.';
     refs.meta.title = job.error || '';
-<<<<<<< HEAD
-=======
   } else if (job.status === 'paused') {
     badgeText = 'متوقف';
     refs.meta.textContent = 'إيقاف مؤقت — اضغط استئناف';
     refs.meta.title = '';
->>>>>>> 10888db (v2.0.0 update)
   }
 
   refs.badge.textContent = badgeText;
@@ -814,9 +779,6 @@ function updateJobCard(job) {
 
   refs.openBtn.classList.toggle('is-hidden', job.status !== 'done' || !job.finalPath);
   refs.openBtn.disabled = !job.finalPath;
-<<<<<<< HEAD
-  refs.cancelBtn.classList.toggle('is-hidden', job.status !== 'running' && job.status !== 'queued');
-=======
   refs.cancelBtn.classList.toggle('is-hidden', job.status !== 'running' && job.status !== 'queued' && job.status !== 'paused');
   if (refs.pauseBtn) {
     refs.pauseBtn.classList.toggle('is-hidden', job.status !== 'running' && job.status !== 'paused');
@@ -825,7 +787,6 @@ function updateJobCard(job) {
   if (refs.retryBtn) {
     refs.retryBtn.classList.toggle('is-hidden', job.status !== 'error' && job.status !== 'cancelled');
   }
->>>>>>> 10888db (v2.0.0 update)
 }
 
 function renderQueue() {
@@ -1099,12 +1060,9 @@ function applySettingsToForm(settings) {
   $('#settings-subtitle-lang').value = settings.subtitleLangs || 'ar,en';
   $('#bridge-enabled').checked = settings.extensionBridge !== false;
   $('#auto-download-extension').checked = Boolean(settings.autoDownloadFromExtension);
-<<<<<<< HEAD
-=======
   // new
   const $id = (s)=>document.getElementById(s);
   if ($id('settings-language')) $id('settings-language').value = settings.language || 'ar';
-  if ($id('settings-font')) $id('settings-font').value = settings.font || 'cairo';
   if ($id('settings-video-format')) $id('settings-video-format').value = settings.videoFormat || 'mp4';
   if ($id('settings-speed')) $id('settings-speed').value = settings.speedLimit || '';
   if ($id('settings-proxy')) $id('settings-proxy').value = settings.proxy || '';
@@ -1118,8 +1076,6 @@ function applySettingsToForm(settings) {
   if ($id('minimize-tray')) $id('minimize-tray').checked = Boolean(settings.minimizeToTray);
   if ($id('auto-start')) $id('auto-start').checked = Boolean(settings.autoStart);
   applyLanguage(settings.language || 'ar');
-  applyFont(settings.font || 'cairo');
->>>>>>> 10888db (v2.0.0 update)
   setCookieSource(settings.cookieSource);
 
   if (!state.info) {
@@ -1659,26 +1615,16 @@ function bindSettings() {
         downloadDir: $('#settings-dir').value.trim(),
         videoQuality: $('#settings-quality').value,
         audioFormat: $('#settings-audio').value,
-<<<<<<< HEAD
-        browserHome: $('#settings-home').value.trim(),
-        cookieSource: $('#settings-cookie-source').value,
-        theme: $('#settings-theme').value,
-=======
         videoFormat: $('#settings-video-format')?.value || 'mp4',
         browserHome: $('#settings-home').value.trim(),
         cookieSource: $('#settings-cookie-source').value,
         theme: $('#settings-theme').value,
         language: $('#settings-language')?.value || $('#top-language')?.value || 'ar',
-        font: $('#settings-font')?.value || 'cairo',
->>>>>>> 10888db (v2.0.0 update)
         maxConcurrentDownloads: Number($('#settings-concurrent').value),
         embedMetadata: $('#settings-metadata').checked,
         downloadSubtitles: $('#settings-subtitles').checked,
         subtitleLangs: $('#settings-subtitle-lang').value,
         extensionBridge: $('#bridge-enabled').checked,
-<<<<<<< HEAD
-        autoDownloadFromExtension: $('#auto-download-extension').checked
-=======
         autoDownloadFromExtension: $('#auto-download-extension').checked,
         speedLimit: $('#settings-speed')?.value || '',
         proxy: $('#settings-proxy')?.value || '',
@@ -1691,23 +1637,15 @@ function bindSettings() {
         playlistEnd: Number($('#playlist-end')?.value || 0),
         minimizeToTray: $('#minimize-tray')?.checked || false,
         autoStart: $('#auto-start')?.checked || false,
->>>>>>> 10888db (v2.0.0 update)
       });
 
       state.settings = saved;
       applyTheme(saved.theme);
-<<<<<<< HEAD
-      applySettingsToForm(saved);
-      updatePreviewNote();
-      await refreshBridge();
-=======
       applyLanguage(saved.language);
-      applyFont(saved.font);
       applySettingsToForm(saved);
       updatePreviewNote();
       await refreshBridge();
       if (api.applyAutoStart) api.applyAutoStart();
->>>>>>> 10888db (v2.0.0 update)
       showToast('تم حفظ الإعدادات.', 'success');
     } catch (error) {
       showToast(sanitizeError(error), 'error');
@@ -1716,8 +1654,6 @@ function bindSettings() {
     }
   });
 
-<<<<<<< HEAD
-=======
   $('#settings-language')?.addEventListener('change', async (e)=>{
     applyLanguage(e.target.value);
     const top = $('#top-language'); if(top) top.value = e.target.value;
@@ -1729,13 +1665,6 @@ function bindSettings() {
     const s = $('#settings-language'); if(s) s.value = v;
     try { state.settings = await api.saveSettings({ language: v }); } catch {}
   });
-  $('#settings-font')?.addEventListener('change', async (e)=>{
-    applyFont(e.target.value);
-    try { state.settings = await api.saveSettings({ font: e.target.value }); } catch {}
-    if (api.notify) api.notify('Font', e.target.value);
-  });
-
->>>>>>> 10888db (v2.0.0 update)
   $('#reset-settings').addEventListener('click', async () => {
     if (!window.confirm('إعادة الإعدادات الافتراضية (سيُبقى مجلد التحميل الحالي)؟')) return;
 
@@ -1941,10 +1870,7 @@ function bindGlobalShortcuts() {
 }
 
 async function init() {
-<<<<<<< HEAD
-=======
-  populateLanguageAndFont();
->>>>>>> 10888db (v2.0.0 update)
+  populateLanguages();
   bindTabs();
   bindTheme();
   bindDownloader();
@@ -1953,18 +1879,12 @@ async function init() {
   bindSettings();
   bindDropZone();
   bindGlobalShortcuts();
-<<<<<<< HEAD
-
-  await loadSettings();
-=======
   bindSites();
 
   await loadSettings();
   if (state.settings) {
     applyLanguage(state.settings.language || 'ar');
-    applyFont(state.settings.font || 'cairo');
   }
->>>>>>> 10888db (v2.0.0 update)
 
   await Promise.all([
     refreshEnv(),

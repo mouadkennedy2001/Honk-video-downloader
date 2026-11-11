@@ -1,13 +1,8 @@
 {
   "name": "honk-downloader",
   "productName": "Honk Downloader",
-<<<<<<< HEAD
-  "version": "1.0.0",
-  "description": "تطبيق سطح مكتب لتحميل الفيديو والصوت من أي موقع، مع متصفح مدمج.",
-=======
-  "version": "3.0.0",
-  "description": "Premium Video Downloader for Windows — 300+ sites (198 detailed + 1000+ via yt-dlp), 24 languages, 18 Arabic/Latin fonts, 183 site icons, history, favorites, pause/resume, batch, multi-format.",
->>>>>>> 10888db (v2.0.0 update)
+  "version": "2.0.0",
+  "description": "Premium Video Downloader for Windows and Linux — 300+ sites (198 detailed + 1000+ via yt-dlp), 24 languages, native system fonts, 183 site icons, history, favorites, pause/resume, batch, multi-format.",
   "main": "src/main/main.js",
   "homepage": "https://github.com/ahmednacer/honk-downloader",
   "author": {
@@ -19,17 +14,11 @@
     "start": "electron .",
     "dev": "electron . --dev",
     "check": "node scripts/check.js",
-<<<<<<< HEAD
-    "dist": "electron-builder",
-    "dist:linux": "electron-builder --linux",
-    "dist:win": "electron-builder --win",
-=======
     "gen-icons": "node scripts/gen-icons.js",
     "dist": "electron-builder --win",
     "dist:win": "electron-builder --win",
     "dist:win:portable": "electron-builder --win portable",
     "dist:linux": "electron-builder --linux",
->>>>>>> 10888db (v2.0.0 update)
     "dist:mac": "electron-builder --mac"
   },
   "devDependencies": {
@@ -45,10 +34,7 @@
     },
     "files": [
       "src/**/*",
-<<<<<<< HEAD
-=======
       "icons/**/*",
->>>>>>> 10888db (v2.0.0 update)
       "node_modules/**/*",
       "package.json"
     ],
@@ -56,29 +42,11 @@
       {
         "from": "bin",
         "to": "bin",
-<<<<<<< HEAD
-        "filter": [
-          "**/*"
-        ]
-=======
         "filter": ["**/*"]
->>>>>>> 10888db (v2.0.0 update)
       },
       {
         "from": "extensions",
         "to": "extensions",
-<<<<<<< HEAD
-        "filter": [
-          "**/*"
-        ]
-      }
-    ],
-    "linux": {
-      "target": [
-        "AppImage",
-        "deb"
-      ],
-=======
         "filter": ["**/*"]
       },
       {
@@ -89,7 +57,7 @@
     ],
     "win": {
       "target": [
-        { "target": "nsis", "arch": ["x64", "ia32"] },
+        { "target": "nsis", "arch": ["x64"] },
         { "target": "portable", "arch": ["x64"] }
       ],
       "icon": "build/icon.ico",
@@ -110,30 +78,14 @@
     },
     "linux": {
       "target": ["AppImage", "deb"],
->>>>>>> 10888db (v2.0.0 update)
       "category": "AudioVideo",
       "icon": "build/icon.png",
       "maintainer": "Honk <ahmed@example.com>"
     },
-<<<<<<< HEAD
-    "win": {
-      "target": [
-        "nsis"
-      ],
-      "icon": "build/icon.png"
-    },
-    "mac": {
-      "target": [
-        "dmg"
-      ],
-      "category": "public.app-category.video",
-      "icon": "build/icon.png"
-=======
     "mac": {
       "target": ["dmg"],
       "category": "public.app-category.video",
       "icon": "build/icon.icns"
->>>>>>> 10888db (v2.0.0 update)
     }
   },
   "dependencies": {

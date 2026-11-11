@@ -55,9 +55,6 @@ contextBridge.exposeInMainWorld('honk', {
   onBrowserOpenUrl: (callback) => subscribe('browser:open-url', callback),
   onBrowserLink: (callback) => subscribe('browser:context-link', callback),
 
-<<<<<<< HEAD
-  onExtensionReceived: (callback) => subscribe('extension:received', callback)
-=======
   onExtensionReceived: (callback) => subscribe('extension:received', callback),
 
   listSites: () => ipcRenderer.invoke('sites:list'),
@@ -68,5 +65,4 @@ contextBridge.exposeInMainWorld('honk', {
   openFile: () => ipcRenderer.invoke('dialog:open-file'),
   pauseDownload: (id) => ipcRenderer.invoke('yt:pause', id),
   resumeDownload: (id) => ipcRenderer.invoke('yt:resume', id),
->>>>>>> 10888db (v2.0.0 update)
 });

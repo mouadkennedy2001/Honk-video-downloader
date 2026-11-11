@@ -1,22 +1,10 @@
 <!doctype html>
-<<<<<<< HEAD
-<html lang="ar" dir="rtl" data-theme="light">
+<html lang="ar" dir="rtl" data-theme="light" data-font="system">
 <head>
   <meta charset="utf-8">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data: https: http:; style-src 'self' 'unsafe-inline'; script-src 'self'; connect-src 'self'; frame-src https: http:; child-src https: http:; object-src 'none';">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data: https: http:; style-src 'self' 'unsafe-inline'; font-src 'self' data:; script-src 'self'; connect-src 'self'; frame-src https: http:; child-src https: http:; object-src 'none';">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Honk Downloader</title>
-=======
-<html lang="ar" dir="rtl" data-theme="light" data-font="cairo">
-<head>
-  <meta charset="utf-8">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data: https: http:; style-src 'self' 'unsafe-inline'; script-src 'self'; connect-src 'self'; frame-src https: http:; child-src https: http:; object-src 'none'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:;">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Honk Downloader</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&family=Tajawal:wght@400;700;900&family=Almarai:wght@300;400;700;800&family=Noto+Kufi+Arabic:wght@400;700;900&family=Amiri:wght@400;700&family=IBM+Plex+Sans+Arabic:wght@300;400;600;700&family=Noto+Sans+Arabic:wght@400;700;900&family=Noto+Naskh+Arabic:wght@400;700&family=Readex+Pro:wght@300;400;700&family=Alexandria:wght@300;400;700;900&family=El+Messiri:wght@400;700&family=Rubik:wght@400;700;900&family=Inter:wght@400;600;800&family=Roboto:wght@400;700&family=Poppins:wght@400;600;800&family=Exo+2:wght@400;700;900&display=swap" rel="stylesheet">
->>>>>>> 10888db (v2.0.0 update)
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -26,7 +14,7 @@
         <span class="brand-mark" aria-hidden="true">
           <svg viewBox="0 0 32 32" width="24" height="24" fill="none">
             <path d="M9 6v20M23 6v20M9 16h14" stroke="#111111" stroke-width="3.2" stroke-linecap="round"/>
-            <path d="M4 4l24 24" stroke="#ffe400" stroke-width="3.2" stroke-linecap="round"/>
+            <path d="M4 4l24 24" stroke="#3584e4" stroke-width="3.2" stroke-linecap="round"/>
           </svg>
         </span>
         <span class="brand-name">HONK</span>
@@ -34,13 +22,6 @@
       </div>
 
       <nav class="tabs" role="tablist" aria-label="أقسام التطبيق">
-<<<<<<< HEAD
-        <button class="tab is-active" data-tab="download" role="tab" aria-selected="true">التحميل</button>
-        <button class="tab" data-tab="browser" role="tab" aria-selected="false">المتصفح</button>
-        <button class="tab" data-tab="extensions" role="tab" aria-selected="false">الإضافات</button>
-        <button class="tab" data-tab="settings" role="tab" aria-selected="false">الإعدادات</button>
-      </nav>
-=======
         <button class="tab is-active" data-tab="download" role="tab" aria-selected="true" data-i18n="download">التحميل</button>
         <button class="tab" data-tab="browser" role="tab" aria-selected="false" data-i18n="browser">المتصفح</button>
         <button class="tab" data-tab="sites" role="tab" aria-selected="false" data-i18n="sites">المواقع المدعومة</button>
@@ -53,7 +34,6 @@
       <select id="top-language" class="select" style="max-width:190px;margin-inline-start:8px" aria-label="Language">
         <!-- populated via JS -->
       </select>
->>>>>>> 10888db (v2.0.0 update)
 
       <div class="topbar-actions">
         <span id="engine-pill" class="engine-pill is-warn" title="حالة محرّكات التحميل">
@@ -131,7 +111,7 @@
               <div class="empty-icon" aria-hidden="true">
                 <svg viewBox="0 0 48 48" width="40" height="40" fill="none">
                   <rect x="6" y="10" width="36" height="28" rx="7" stroke="#ffffff" stroke-width="2.4"/>
-                  <path d="M20 18v12l10-6-10-6Z" fill="#ffe400"/>
+                  <path d="M20 18v12l10-6-10-6Z" fill="#3584e4"/>
                 </svg>
               </div>
               <h2>جاهز للتحميل</h2>
@@ -288,8 +268,6 @@
         </div>
       </section>
 
-<<<<<<< HEAD
-=======
       <section id="tab-sites" class="tab-panel" role="tabpanel">
         <div class="settings-wrap">
           <span class="eyebrow">300+ موقع • 183 أيقونة في icons/</span>
@@ -366,7 +344,6 @@
         </div>
       </section>
 
->>>>>>> 10888db (v2.0.0 update)
       <section id="tab-settings" class="tab-panel" role="tabpanel">
         <div class="settings-wrap">
           <span class="eyebrow">التحكم الكامل</span>
@@ -436,26 +413,12 @@
 
             <div class="settings-row">
               <div class="settings-copy">
-<<<<<<< HEAD
-=======
                 <h3>اللغة — Language</h3>
-                <p class="hint">12 لغة: العربية، الإنجليزية، الفرنسية، الإسبانية، الألمانية، التركية، الهندية، الصينية، الروسية، البرتغالية، اليابانية، الكورية.</p>
+                <p class="hint">24 لغة، من بينها العربية والإنجليزية والفرنسية والإسبانية.</p>
               </div>
               <div class="settings-control">
                 <select id="settings-language" class="select"></select>
                 <select id="top-language-dup" class="select is-hidden"></select>
-              </div>
-            </div>
-
-            <div class="settings-row">
-              <div class="settings-copy">
-                <h3>الخط — Font</h3>
-                <p class="hint">اختر خطًا من 12 خطًا عربيًا ولاتينيًا. تُعرض المعاينة مباشرة.</p>
-                <div id="font-preview" class="font-preview">معاينة الخط — Aa 123 — العربية والإنجليزية</div>
-              </div>
-              <div class="settings-control settings-control-stack">
-                <select id="settings-font" class="select"></select>
-                <input id="font-size" class="text-input" type="number" min="12" max="20" value="14" title="حجم الخط" style="max-width:90px">
               </div>
             </div>
 
@@ -495,7 +458,6 @@
 
             <div class="settings-row">
               <div class="settings-copy">
->>>>>>> 10888db (v2.0.0 update)
                 <h3>صفحة البداية للمتصفح</h3>
                 <p class="hint">العنوان الذي يُفتح عند الضغط على زر الرئيسية.</p>
               </div>
@@ -697,10 +659,7 @@
     </div>
   </div>
 
-<<<<<<< HEAD
-=======
   <script src="locales.js"></script>
->>>>>>> 10888db (v2.0.0 update)
   <script src="app.js"></script>
 </body>
 </html>

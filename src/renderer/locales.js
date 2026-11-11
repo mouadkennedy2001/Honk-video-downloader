@@ -40,25 +40,5 @@ const LANGUAGE_OPTIONS = [
   { value:'th', label:'ไทย — Thai' },{ value:'vi', label:'Tiếng Việt — Vietnamese' },
   { value:'uk', label:'Українська — Ukrainian' },{ value:'el', label:'Ελληνικά — Greek' },
 ];
-const FONT_OPTIONS = [
-  { value:'cairo', label:'Cairo — Cairo', family:'"Cairo", system-ui' },
-  { value:'tajawal', label:'Tajawal — Tajawal', family:'"Tajawal", system-ui' },
-  { value:'almarai', label:'Almarai — Almarai', family:'"Almarai", system-ui' },
-  { value:'noto-kufi-arabic', label:'Noto Kufi Arabic', family:'"Noto Kufi Arabic", system-ui' },
-  { value:'amiri', label:'Amiri — Amiri', family:'"Amiri", serif' },
-  { value:'ibm-plex-arabic', label:'IBM Plex Sans Arabic', family:'"IBM Plex Sans Arabic", system-ui' },
-  { value:'noto-sans-arabic', label:'Noto Sans Arabic', family:'"Noto Sans Arabic", system-ui' },
-  { value:'noto-naskh-arabic', label:'Noto Naskh Arabic', family:'"Noto Naskh Arabic", serif' },
-  { value:'readex-pro', label:'Readex Pro', family:'"Readex Pro", system-ui' },
-  { value:'aladin', label:'Alexandria', family:'"Alexandria", system-ui' },
-  { value:'el-messiri', label:'El Messiri', family:'"El Messiri", serif' },
-  { value:'rubik', label:'Rubik', family:'"Rubik", system-ui' },
-  { value:'inter', label:'Inter — Inter', family:'"Inter", system-ui' },
-  { value:'roboto', label:'Roboto — Roboto', family:'"Roboto", system-ui' },
-  { value:'poppins', label:'Poppins — Poppins', family:'"Poppins", system-ui' },
-  { value:'exo2', label:'Exo 2', family:'"Exo 2", system-ui' },
-  { value:'segoe', label:'Segoe UI — Windows', family:'"Segoe UI", system-ui' },
-  { value:'system', label:'System Default', family:'system-ui, -apple-system, "Segoe UI"' },
-];
 function getTranslation(lang, key){ const t = TRANSLATIONS[lang] || TRANSLATIONS.ar; return t[key] || TRANSLATIONS.ar[key] || key; }
-window.HonkLocales = { TRANSLATIONS, LANGUAGE_OPTIONS, FONT_OPTIONS, getTranslation };
+window.HonkLocales = { TRANSLATIONS, LANGUAGE_OPTIONS, getTranslation };

@@ -30,23 +30,6 @@ function isFile(candidate) {
 }
 
 function which(command) {
-<<<<<<< HEAD
-  try {
-    const finder = isWindows ? 'where' : 'which';
-    const output = execFileSync(finder, [command], {
-      encoding: 'utf8',
-      timeout: 5000,
-      windowsHide: true
-    });
-    const match = output
-      .split(/\r?\n/)
-      .map((line) => line.trim())
-      .find(Boolean);
-    return match || null;
-  } catch {
-    return null;
-  }
-=======
   const cmd = isWindows && !command.endsWith('.exe') ? `${command}.exe` : command;
   const candidates = [];
   if (isWindows) {
@@ -86,7 +69,6 @@ function which(command) {
     } catch {}
   }
   return null;
->>>>>>> 10888db (v2.0.0 update)
 }
 
 function bundledPaths(name) {

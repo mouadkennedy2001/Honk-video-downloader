@@ -458,14 +458,14 @@
     const style = document.createElement('style');
     style.textContent = `
       :host {
-        --hk-blue: #008fff;
-        --hk-blue-strong: #006fd1;
-        --hk-yellow: #ffe400;
-        --hk-ink: #111111;
-        --hk-muted: #5c6672;
+        --hk-blue: #3584e4;
+        --hk-blue-strong: #1c71d8;
+        --hk-yellow: #3584e4;
+        --hk-ink: #241f31;
+        --hk-muted: #5e5c64;
         --hk-surface: #ffffff;
-        --hk-soft: #f3f6f9;
-        --hk-border: rgba(17, 17, 17, 0.12);
+        --hk-soft: #f6f5f4;
+        --hk-border: #deddda;
         --hk-shadow: 0 22px 60px rgba(7, 20, 35, 0.32);
         all: initial;
       }
@@ -480,7 +480,7 @@
         height: 52px;
         border-radius: 18px;
         border: 3px solid var(--hk-ink);
-        background: linear-gradient(145deg, var(--hk-blue), var(--hk-blue-strong));
+        background: var(--hk-blue);
         color: #ffffff;
         font: 900 20px/1 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
         cursor: pointer;
@@ -551,7 +551,7 @@
         justify-content: space-between;
         gap: 10px;
         padding: 12px 14px;
-        background: linear-gradient(120deg, var(--hk-blue), var(--hk-blue-strong));
+        background: var(--hk-blue);
         color: #ffffff;
       }
 

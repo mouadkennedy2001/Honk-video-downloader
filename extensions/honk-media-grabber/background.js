@@ -74,7 +74,7 @@
         tabId,
         text: count > 99 ? '99+' : count > 0 ? String(count) : ''
       });
-      chrome.action.setBadgeBackgroundColor({ tabId, color: '#ffe400' });
+      chrome.action.setBadgeBackgroundColor({ tabId, color: '#3584e4' });
     } catch {
       /* badge is optional */
     }

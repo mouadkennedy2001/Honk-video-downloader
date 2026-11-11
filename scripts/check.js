@@ -16,13 +16,9 @@ const files = [
   'src/main/cookies.js',
   'src/main/extensions.js',
   'src/main/downloader.js',
-<<<<<<< HEAD
-  'src/renderer/app.js',
-=======
   'src/main/sites.js',
   'src/renderer/app.js',
   'src/renderer/locales.js',
->>>>>>> 10888db (v2.0.0 update)
   'extensions/honk-media-grabber/background.js',
   'extensions/honk-media-grabber/content.js',
   'extensions/honk-media-grabber/popup.js',
@@ -64,11 +60,7 @@ for (const file of files) {
 
 const rendererDir = 'src/renderer';
 const html = read(`${rendererDir}/index.html`);
-<<<<<<< HEAD
-const requiredAssets = ['styles.css', 'app.js', 'assets/icon.png'];
-=======
 const requiredAssets = ['styles.css', 'app.js', 'locales.js', 'assets/icon.png'];
->>>>>>> 10888db (v2.0.0 update)
 
 for (const asset of requiredAssets) {
   const present = exists(`${rendererDir}/${asset}`);
@@ -91,6 +83,17 @@ if (/<script(?![^>]*\bsrc=)[^>]*>/i.test(html)) {
   fail('renderer contains an inline script tag');
 } else {
   pass('renderer scripts are external only');
+}
+
+const { SITES } = require('../src/main/sites');
+const iconDir = path.join(root, 'icons');
+const missingIcons = [...new Set(SITES.map((site) => site.icon))]
+  .filter((icon) => !fs.existsSync(path.join(iconDir, `${icon}.svg`)));
+
+if (missingIcons.length) {
+  fail(`missing site icons: ${missingIcons.join(', ')}`);
+} else {
+  pass(`local site icon fallbacks: ${new Set(SITES.map((site) => site.icon)).size} SVG files`);
 }
 
 /* ---------- Renderer element IDs ---------- */

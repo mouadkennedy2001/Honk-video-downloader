@@ -180,11 +180,8 @@ function getInfo(url, cookieArgs) {
 }
 
 function buildDownloadArgs(options, cookieArgs, hasFfmpeg) {
-<<<<<<< HEAD
-=======
   const template = options.filenameTemplate || '%(title).150s [%(id)s].%(ext)s';
   const outputPath = options.outputDir ? (options.outputSubfolder ? path.join(options.outputDir, '%(uploader)s', template) : path.join(options.outputDir, template)) : template;
->>>>>>> 10888db (v2.0.0 update)
   const args = [
     options.playlist ? '--yes-playlist' : '--no-playlist',
     '--newline',
@@ -193,16 +190,6 @@ function buildDownloadArgs(options, cookieArgs, hasFfmpeg) {
     '--socket-timeout', '20',
     '--retries', '10',
     '--fragment-retries', '10',
-<<<<<<< HEAD
-    '--concurrent-fragments', '4',
-    '--trim-filenames', '180',
-    '-o', path.join(options.outputDir, '%(title).150s [%(id)s].%(ext)s')
-  ];
-
-  if (hasFfmpeg) {
-    const ffmpegDir = path.dirname(binaries.resolve('ffmpeg'));
-    args.push('--ffmpeg-location', ffmpegDir);
-=======
     '--concurrent-fragments', '6',
     '--buffer-size', options.bufferSize || '16K',
     '--trim-filenames', '180',
@@ -230,19 +217,10 @@ function buildDownloadArgs(options, cookieArgs, hasFfmpeg) {
 
   if (hasFfmpeg) {
     try { const ffmpegDir = path.dirname(binaries.resolve('ffmpeg')); if (ffmpegDir) args.push('--ffmpeg-location', ffmpegDir); } catch {}
->>>>>>> 10888db (v2.0.0 update)
   }
 
   if (Array.isArray(cookieArgs) && cookieArgs.length) args.push(...cookieArgs);
 
-<<<<<<< HEAD
-  if (options.mode === 'audio') {
-    args.push('-f', 'ba/b', '-x');
-
-    if (options.audioFormat && options.audioFormat !== 'best') {
-      args.push('--audio-format', options.audioFormat);
-      if (options.audioFormat === 'mp3') args.push('--audio-quality', '0');
-=======
   if (options.mode === 'audio' || options.thumbnailOnly) {
     if (options.thumbnailOnly) args.push('--skip-download','--write-thumbnail');
     else {
@@ -252,7 +230,6 @@ function buildDownloadArgs(options, cookieArgs, hasFfmpeg) {
         if (options.audioFormat === 'mp3') args.push('--audio-quality', '0');
         if (options.audioBitrate && options.audioBitrate !== '0') args.push('--audio-quality', options.audioBitrate);
       }
->>>>>>> 10888db (v2.0.0 update)
     }
   } else {
     const quality = options.quality && options.quality !== 'best'
@@ -265,13 +242,9 @@ function buildDownloadArgs(options, cookieArgs, hasFfmpeg) {
       } else {
         args.push('-f', 'bv*+ba/b');
       }
-<<<<<<< HEAD
-      args.push('--merge-output-format', 'mp4');
-=======
       const outFmt = options.mergeOutputFormat || options.videoFormat || 'mp4';
       if (outFmt !== 'best') args.push('--merge-output-format', outFmt);
       if (options.recodeVideo && options.recodeVideo !== 'best') args.push('--recode-video', options.recodeVideo);
->>>>>>> 10888db (v2.0.0 update)
     } else if (quality) {
       args.push('-f', `b[height<=${quality}]/b`);
     } else {
@@ -297,14 +270,11 @@ function buildDownloadArgs(options, cookieArgs, hasFfmpeg) {
     );
   }
 
-<<<<<<< HEAD
-=======
   if (options.extractorArgs) {
     const parts = String(options.extractorArgs).split(/\s+/).filter(Boolean);
     for (const p of parts) args.push(p);
   }
 
->>>>>>> 10888db (v2.0.0 update)
   args.push('--', options.url);
   return args;
 }
@@ -647,8 +617,6 @@ function runJob(job) {
   });
 }
 
-<<<<<<< HEAD
-=======
 function pauseDownload(id) {
   const job = jobs.get(String(id));
   if (!job || !job.child) return false;
@@ -681,7 +649,6 @@ function resumeDownload(id) {
   return true;
 }
 
->>>>>>> 10888db (v2.0.0 update)
 function cancelDownload(id) {
   const job = jobs.get(String(id));
   if (!job) return false;
@@ -709,11 +676,7 @@ function cancelDownload(id) {
 module.exports = {
   getInfo,
   startDownload,
-<<<<<<< HEAD
-  cancelDownload
-=======
   cancelDownload,
   pauseDownload,
   resumeDownload
->>>>>>> 10888db (v2.0.0 update)
 };

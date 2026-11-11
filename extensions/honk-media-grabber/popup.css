@@ -1,13 +1,13 @@
 :root {
   color-scheme: light dark;
-  --blue: #008fff;
-  --blue-strong: #006fd1;
-  --yellow: #ffe400;
-  --ink: #111111;
-  --muted: #5c6672;
+  --blue: #3584e4;
+  --blue-strong: #1c71d8;
+  --yellow: #3584e4;
+  --ink: #241f31;
+  --muted: #5e5c64;
   --surface: #ffffff;
-  --soft: #f3f6f9;
-  --border: rgba(17, 17, 17, 0.12);
+  --soft: #f6f5f4;
+  --border: #deddda;
 }
 
 * {
@@ -28,7 +28,7 @@ body {
   justify-content: space-between;
   gap: 10px;
   padding: 12px 14px;
-  background: linear-gradient(120deg, var(--blue), var(--blue-strong));
+  background: var(--blue);
   color: #ffffff;
 }
 

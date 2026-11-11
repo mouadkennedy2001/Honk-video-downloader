@@ -8,20 +8,13 @@ const VIDEO_QUALITIES = ['best', '2160', '1440', '1080', '720', '480', '360'];
 const AUDIO_FORMATS = ['mp3', 'm4a', 'opus', 'wav', 'flac', 'best'];
 const COOKIE_SOURCES = [
   'none', 'embedded', 'chrome', 'chromium', 'firefox', 'brave',
-<<<<<<< HEAD
-  'edge', 'opera', 'vivaldi', 'safari', 'whale'
-];
-const THEMES = ['system', 'light', 'dark'];
-const SUBTITLE_LANGS = ['ar', 'en', 'ar,en', 'all'];
-=======
   'edge', 'opera', 'vivaldi', 'safari', 'whale', 'file'
 ];
 const THEMES = ['system', 'light', 'dark'];
 const LANGUAGES = ['ar','en','fr','es','de','tr','hi','zh','ru','pt','ja','ko','it','nl','sv','pl','ur','fa','id','ms','th','vi','uk','el'];
-const FONTS = ['cairo','tajawal','almarai','noto-kufi-arabic','amiri','ibm-plex-arabic','noto-sans-arabic','noto-naskh-arabic','readex-pro','aladin','el-messiri','rubik','inter','roboto','poppins','exo2','segoe','system'];
+const FONTS = ['system'];
 const VIDEO_FORMATS = ['mp4','mkv','webm','mov','best'];
 const SUBTITLE_LANGS = ['ar', 'en', 'ar,en', 'all','fr','es','de','tr'];
->>>>>>> 10888db (v2.0.0 update)
 
 const DEFAULT_BRIDGE_PORT = 47821;
 
@@ -32,19 +25,13 @@ function defaults() {
     downloadDir: app.getPath('downloads'),
     videoQuality: 'best',
     audioFormat: 'mp3',
-<<<<<<< HEAD
-    browserHome: 'https://www.youtube.com',
-    cookieSource: 'none',
-    theme: 'system',
-=======
     videoFormat: 'mp4',
     browserHome: 'https://www.youtube.com',
     cookieSource: 'none',
     cookieFile: '',
     theme: 'system',
     language: 'ar',
-    font: 'cairo',
->>>>>>> 10888db (v2.0.0 update)
+    font: 'system',
     maxConcurrentDownloads: 2,
     embedMetadata: true,
     downloadSubtitles: false,
@@ -53,9 +40,6 @@ function defaults() {
     autoDownloadFromExtension: false,
     bridgePort: DEFAULT_BRIDGE_PORT,
     extensions: [],
-<<<<<<< HEAD
-    extensionsInitialized: false
-=======
     extensionsInitialized: false,
     // New enhanced options
     speedLimit: '', // e.g. "2M" per second or empty
@@ -98,7 +82,6 @@ function defaults() {
     pauseOnError: false,
     retryFailed: 0,
     maxHistory: 200,
->>>>>>> 10888db (v2.0.0 update)
   };
 }
 
@@ -107,23 +90,16 @@ function settingsFile() {
 }
 
 function clampNumber(value, min, max, fallback) {
-<<<<<<< HEAD
-  const number = Number.parseInt(value, 10);
-=======
   const number = Number.parseInt(String(value), 10);
->>>>>>> 10888db (v2.0.0 update)
   if (!Number.isFinite(number)) return fallback;
   return Math.min(max, Math.max(min, number));
 }
 
-<<<<<<< HEAD
-=======
 function sanitizeString(value, maxLength) {
   if (typeof value !== 'string') return '';
   return value.slice(0, maxLength || 1000);
 }
 
->>>>>>> 10888db (v2.0.0 update)
 function normalize(value) {
   const base = defaults();
   const next = { ...base, ...(value && typeof value === 'object' ? value : {}) };
@@ -131,44 +107,6 @@ function normalize(value) {
   if (typeof next.downloadDir !== 'string' || !next.downloadDir.trim()) {
     next.downloadDir = base.downloadDir;
   }
-<<<<<<< HEAD
-
-  next.downloadDir = path.resolve(next.downloadDir);
-
-  if (!fs.existsSync(next.downloadDir)) {
-    try {
-      fs.mkdirSync(next.downloadDir, { recursive: true });
-    } catch {
-      next.downloadDir = base.downloadDir;
-    }
-  }
-
-  if (!VIDEO_QUALITIES.includes(String(next.videoQuality))) {
-    next.videoQuality = base.videoQuality;
-  }
-
-  if (!AUDIO_FORMATS.includes(String(next.audioFormat))) {
-    next.audioFormat = base.audioFormat;
-  }
-
-  if (typeof next.browserHome !== 'string' || !/^https?:\/\//i.test(next.browserHome)) {
-    next.browserHome = base.browserHome;
-  }
-
-  if (!COOKIE_SOURCES.includes(String(next.cookieSource))) {
-    next.cookieSource = base.cookieSource;
-  }
-
-  if (!THEMES.includes(String(next.theme))) {
-    next.theme = base.theme;
-  }
-
-  if (!SUBTITLE_LANGS.includes(String(next.subtitleLangs))) {
-    next.subtitleLangs = base.subtitleLangs;
-  }
-
-  next.maxConcurrentDownloads = clampNumber(next.maxConcurrentDownloads, 1, 6, base.maxConcurrentDownloads);
-=======
   next.downloadDir = path.resolve(next.downloadDir);
   try { fs.mkdirSync(next.downloadDir, { recursive: true }); } catch { next.downloadDir = base.downloadDir; }
 
@@ -189,19 +127,12 @@ function normalize(value) {
   }
 
   next.maxConcurrentDownloads = clampNumber(next.maxConcurrentDownloads, 1, 10, base.maxConcurrentDownloads);
->>>>>>> 10888db (v2.0.0 update)
   next.bridgePort = clampNumber(next.bridgePort, 1024, 65535, base.bridgePort);
   next.embedMetadata = Boolean(next.embedMetadata);
   next.downloadSubtitles = Boolean(next.downloadSubtitles);
   next.extensionBridge = Boolean(next.extensionBridge);
   next.autoDownloadFromExtension = Boolean(next.autoDownloadFromExtension);
 
-<<<<<<< HEAD
-  if (!Array.isArray(next.extensions)) {
-    next.extensions = [];
-  }
-
-=======
   // enhanced booleans
   const bools = ['outputSubfolder','downloadChapters','downloadThumbnail','downloadInfoJson','writeDescription','sponsorblock','restrictFilenames','embedChapters','parseMetadata','skipDownload','autoUpdateYtdlp','minimizeToTray','autoStart','showNotifications','noPostOverwrites','continueOnError','enableHistory','enableFavorites','showSiteIcons','smoothAnimations','pauseOnError'];
   for (const k of bools) if (k in next) next[k] = Boolean(next[k]);
@@ -227,15 +158,10 @@ function normalize(value) {
   next.bufferSize = sanitizeString(next.bufferSize, 20) || '16K';
 
   if (!Array.isArray(next.extensions)) next.extensions = [];
->>>>>>> 10888db (v2.0.0 update)
   next.extensions = [...new Set(
     next.extensions
       .filter((folder) => typeof folder === 'string' && folder && folder === path.basename(folder))
   )];
-<<<<<<< HEAD
-
-=======
->>>>>>> 10888db (v2.0.0 update)
   next.extensionsInitialized = Boolean(next.extensionsInitialized);
 
   return next;
@@ -243,20 +169,12 @@ function normalize(value) {
 
 function load() {
   if (cache) return { ...cache };
-<<<<<<< HEAD
-
-=======
->>>>>>> 10888db (v2.0.0 update)
   try {
     const raw = fs.readFileSync(settingsFile(), 'utf8');
     cache = normalize(JSON.parse(raw));
   } catch {
     cache = normalize({});
   }
-<<<<<<< HEAD
-
-=======
->>>>>>> 10888db (v2.0.0 update)
   return { ...cache };
 }
 
@@ -264,17 +182,9 @@ function save(patch) {
   const next = normalize({ ...load(), ...(patch && typeof patch === 'object' ? patch : {}) });
   const file = settingsFile();
   const tmp = `${file}.tmp`;
-<<<<<<< HEAD
-
   fs.mkdirSync(path.dirname(file), { recursive: true });
   fs.writeFileSync(tmp, JSON.stringify(next, null, 2), 'utf8');
   fs.renameSync(tmp, file);
-
-=======
-  fs.mkdirSync(path.dirname(file), { recursive: true });
-  fs.writeFileSync(tmp, JSON.stringify(next, null, 2), 'utf8');
-  fs.renameSync(tmp, file);
->>>>>>> 10888db (v2.0.0 update)
   cache = next;
   return { ...next };
 }
@@ -286,12 +196,9 @@ module.exports = {
   audioFormats: AUDIO_FORMATS,
   cookieSources: COOKIE_SOURCES,
   themes: THEMES,
-<<<<<<< HEAD
-=======
   languages: LANGUAGES,
   fonts: FONTS,
   videoFormats: VIDEO_FORMATS,
->>>>>>> 10888db (v2.0.0 update)
   subtitleLangs: SUBTITLE_LANGS,
   DEFAULT_BRIDGE_PORT
 };
