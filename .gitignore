@@ -5,3 +5,4 @@ bin/*
 !bin/README.md
 *.log
 .DS_Store
+icons.zip

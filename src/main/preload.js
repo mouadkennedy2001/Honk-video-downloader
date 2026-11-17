@@ -9,7 +9,7 @@ function subscribe(channel, callback) {
   return () => ipcRenderer.removeListener(channel, handler);
 }
 
-contextBridge.exposeInMainWorld('honk', {
+contextBridge.exposeInMainWorld('wasel', {
   platform: process.platform,
 
   getSettings: () => ipcRenderer.invoke('settings:get'),

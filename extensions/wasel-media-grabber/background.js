@@ -189,7 +189,7 @@
     const port = await findAppPort();
 
     if (!port) {
-      return { ok: false, error: 'التطبيق غير مشغّل. افتح Honk Downloader أولًا.' };
+      return { ok: false, error: 'التطبيق غير مشغّل. افتح Wasel Downloader أولًا.' };
     }
 
     try {
@@ -198,7 +198,7 @@
         cache: 'no-store',
         headers: {
           'Content-Type': 'application/json',
-          'X-Honk-Client': 'extension'
+          'X-Wasel-Client': 'extension'
         },
         body: JSON.stringify(payload || {})
       }, 5000);
@@ -218,13 +218,13 @@
   chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     const type = message && message.type;
 
-    if (type === 'honk:get-media') {
+    if (type === 'wasel:get-media') {
       const tabId = sender && sender.tab ? sender.tab.id : message.tabId;
       sendResponse({ ok: true, items: typeof tabId === 'number' ? listFor(tabId) : [] });
       return false;
     }
 
-    if (type === 'honk:media-found') {
+    if (type === 'wasel:media-found') {
       const tabId = sender && sender.tab ? sender.tab.id : message.tabId;
       for (const item of Array.isArray(message.items) ? message.items : []) {
         addMedia(tabId, item && item.url, 'page');
@@ -233,20 +233,20 @@
       return false;
     }
 
-    if (type === 'honk:scan-tab') {
+    if (type === 'wasel:scan-tab') {
       const tabId = message.tabId;
       sendResponse({ ok: true, items: typeof tabId === 'number' ? listFor(tabId) : [] });
       return false;
     }
 
-    if (type === 'honk:send-to-app') {
+    if (type === 'wasel:send-to-app') {
       sendToApp(message.payload)
         .then(sendResponse)
         .catch((error) => sendResponse({ ok: false, error: error.message }));
       return true;
     }
 
-    if (type === 'honk:open-app') {
+    if (type === 'wasel:open-app') {
       findAppPort().then((port) => sendResponse({ ok: Boolean(port), port }));
       return true;
     }
@@ -262,7 +262,7 @@
         const tab = tabs && tabs[0];
         if (!tab || typeof tab.id !== 'number') return;
 
-        chrome.tabs.sendMessage(tab.id, { type: 'honk:toggle-panel' }, () => {
+        chrome.tabs.sendMessage(tab.id, { type: 'wasel:toggle-panel' }, () => {
           void chrome.runtime.lastError;
         });
       });

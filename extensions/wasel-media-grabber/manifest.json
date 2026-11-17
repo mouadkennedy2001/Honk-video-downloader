@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "Honk Media Grabber",
+  "name": "Wasel Media Grabber",
   "version": "2.0.0",
-  "description": "اكتشف روابط الفيديو والصوت في الصفحة وأرسلها مباشرة إلى تطبيق Honk Downloader أو انسخها.",
+  "description": "اكتشف روابط الفيديو والصوت في الصفحة وأرسلها مباشرة إلى تطبيق Wasel Downloader أو انسخها.",
   "icons": {
     "128": "icon128.png"
   },
@@ -21,7 +21,7 @@
     "service_worker": "background.js"
   },
   "action": {
-    "default_title": "Honk Media Grabber",
+    "default_title": "Wasel Media Grabber",
     "default_popup": "popup.html",
     "default_icon": {
       "128": "icon128.png"

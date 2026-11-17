@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data: https: http:; style-src 'self' 'unsafe-inline'; font-src 'self' data:; script-src 'self'; connect-src 'self'; frame-src https: http:; child-src https: http:; object-src 'none';">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Honk Downloader</title>
+  <title>Wasel Downloader</title>
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -12,13 +12,12 @@
     <header class="topbar">
       <div class="brand">
         <span class="brand-mark" aria-hidden="true">
-          <svg viewBox="0 0 32 32" width="24" height="24" fill="none">
-            <path d="M9 6v20M23 6v20M9 16h14" stroke="#111111" stroke-width="3.2" stroke-linecap="round"/>
-            <path d="M4 4l24 24" stroke="#3584e4" stroke-width="3.2" stroke-linecap="round"/>
+          <svg viewBox="0 0 32 32" width="22" height="22" fill="none">
+            <path d="M7 10l4.5 13.5L16 15l4.5 8.5L25 10" stroke="#ffffff" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
         </span>
-        <span class="brand-name">HONK</span>
-        <span class="brand-tag">DOWNLOADER</span>
+        <span class="brand-name" id="brand-name">WASEL</span>
+        <span class="brand-tag" id="brand-tag">DOWNLOADER</span>
       </div>
 
       <nav class="tabs" role="tablist" aria-label="أقسام التطبيق">
@@ -229,7 +228,7 @@
           </div>
           <div class="browser-loading" aria-hidden="true"><span id="browser-loading-bar"></span></div>
           <div class="browser-frame">
-            <webview id="browser-view" src="https://www.youtube.com" partition="persist:honk-browser" allowpopups></webview>
+            <webview id="browser-view" src="https://www.youtube.com" partition="persist:wasel-browser" allowpopups></webview>
           </div>
         </div>
       </section>
@@ -257,7 +256,7 @@
           </div>
 
           <div class="panel bundled-panel">
-            <h3>Honk Media Grabber</h3>
+            <h3>Wasel Media Grabber</h3>
             <p class="hint">إضافة مدمجة تُضيف زرًا صغيرًا في صفحات الويب لاكتشاف روابط الفيديو والصوت. يمكنك نسخ الرابط أو إرساله مباشرة إلى التطبيق عبر جسر محلي يعمل على جهازك فقط.</p>
             <div class="bundled-points">
               <span>اكتشاف تلقائي من الشبكة وDOM</span>
@@ -628,6 +627,28 @@
               <span>المنصة <b id="app-platform" dir="ltr">—</b></span>
               <span>مجلد الأدوات <b id="app-bindir" dir="ltr">—</b></span>
             </div>
+
+            <div class="about-license">
+              <div class="license-row">
+                <span class="license-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" width="18" height="18" fill="none"><path d="M12 3l7 3v5c0 4.4-3 7.9-7 9-4-1.1-7-4.6-7-9V6l7-3Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M9 12l2 2 4-4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </span>
+                <div>
+                  <strong>مشروع مفتوح المصدر</strong>
+                  <p>بدون إعلانات، وبدون مصدر دخل. الكود متاح بحرية وفق رخصة MIT للاستخدام والتعديل والتوزيع.</p>
+                </div>
+              </div>
+              <div class="license-row">
+                <span class="license-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" width="18" height="18" fill="none"><path d="M12 11a3 3 0 1 0 0-6 3 3 0 0 0 0 6Zm-6 9c0-3 2.7-5 6-5s6 2 6 5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+                </span>
+                <div>
+                  <strong>التطوير والصيانة</strong>
+                  <p>zerouki ahmed mouad — <span dir="rtl">زروقي احمد معاذ</span></p>
+                </div>
+              </div>
+            </div>
+
             <div class="settings-actions">
               <button id="open-userdata" class="btn ghost compact" type="button">فتح مجلد البيانات</button>
               <button id="open-bindir" class="btn ghost compact" type="button">فتح مجلد الأدوات</button>

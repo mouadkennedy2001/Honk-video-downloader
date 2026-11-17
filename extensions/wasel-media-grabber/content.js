@@ -2,7 +2,7 @@
   'use strict';
 
   if (window.top !== window) return;
-  if (document.getElementById('honk-media-grabber-root')) return;
+  if (document.getElementById('wasel-media-grabber-root')) return;
 
   const BRIDGE_PORTS = [47821, 47822, 47823, 47824, 47825];
   const MEDIA_PATTERN = /\.(mp4|m4v|webm|mkv|mov|avi|flv|wmv|ts|m3u8|mpd|mp3|m4a|aac|ogg|oga|opus|wav|flac)(?:[?#]|$)/i;
@@ -185,7 +185,7 @@
   }
 
   async function collectFromBackground() {
-    const response = await runtimeMessage({ type: 'honk:get-media' });
+    const response = await runtimeMessage({ type: 'wasel:get-media' });
 
     if (response && Array.isArray(response.items)) {
       for (const item of response.items) addItem(item.url, item.source || 'network', item.type);
@@ -197,7 +197,7 @@
       .map((item) => ({ url: item.url, type: item.type }));
 
     if (domItems.length) {
-      runtimeMessage({ type: 'honk:media-found', items: domItems }, 1000);
+      runtimeMessage({ type: 'wasel:media-found', items: domItems }, 1000);
     }
   }
 
@@ -247,7 +247,7 @@
         cache: 'no-store',
         headers: {
           'Content-Type': 'application/json',
-          'X-Honk-Client': 'extension'
+          'X-Wasel-Client': 'extension'
         },
         body: JSON.stringify(payload)
       }, 6000);
@@ -274,7 +274,7 @@
       mode: item.type === 'audio' ? 'audio' : 'video'
     };
 
-    let result = await runtimeMessage({ type: 'honk:send-to-app', payload }, 7000);
+    let result = await runtimeMessage({ type: 'wasel:send-to-app', payload }, 7000);
 
     if (!result || !result.ok) {
       result = await sendDirect(payload);
@@ -336,7 +336,7 @@
 
     state.appStatus.dataset.online = state.appOnline ? 'true' : 'false';
     state.appStatus.textContent = state.appOnline ? 'التطبيق متصل' : 'التطبيق غير مشغّل';
-    state.appStatus.title = state.appPort ? `المنفذ ${state.appPort}` : 'افتح Honk Downloader';
+    state.appStatus.title = state.appPort ? `المنفذ ${state.appPort}` : 'افتح Wasel Downloader';
     updateDot();
   }
 
@@ -418,7 +418,7 @@
       send.type = 'button';
       send.className = 'hk-btn hk-primary';
       send.textContent = 'إرسال';
-      send.title = 'إرسال إلى Honk Downloader';
+      send.title = 'إرسال إلى Wasel Downloader';
       send.addEventListener('click', (event) => {
         event.preventDefault();
         event.stopPropagation();
@@ -761,8 +761,8 @@
     const button = document.createElement('button');
     button.type = 'button';
     button.className = 'hk-launcher';
-    button.title = 'Honk Media Grabber — روابط الفيديو والصوت';
-    button.setAttribute('aria-label', 'Honk Media Grabber');
+    button.title = 'Wasel Media Grabber — روابط الفيديو والصوت';
+    button.setAttribute('aria-label', 'Wasel Media Grabber');
     button.textContent = 'H';
 
     const badge = document.createElement('span');
@@ -939,7 +939,7 @@
 
   function mount() {
     const host = document.createElement('div');
-    host.id = 'honk-media-grabber-root';
+    host.id = 'wasel-media-grabber-root';
     host.style.all = 'initial';
 
     const shadow = host.attachShadow({ mode: 'open' });
@@ -978,12 +978,12 @@
       chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
         if (!message) return false;
 
-        if (message.type === 'honk:toggle-panel') {
+        if (message.type === 'wasel:toggle-panel') {
           togglePanel();
           return false;
         }
 
-        if (message.type === 'honk:scan') {
+        if (message.type === 'wasel:scan') {
           collectFromDom();
           sendResponse({
             ok: true,

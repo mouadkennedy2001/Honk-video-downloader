@@ -1,6 +1,6 @@
 'use strict';
 
-const api = window.honk;
+const api = window.wasel;
 
 const $ = (selector, root = document) => root.querySelector(selector);
 const $$ = (selector, root = document) => Array.from(root.querySelectorAll(selector));
@@ -126,8 +126,12 @@ function applyTheme(theme) {
   document.documentElement.dataset.theme = resolveTheme(theme);
 }
 
+function appDisplayName() {
+  return state.language === 'ar' ? 'واصل محمل فيديوهات' : 'Wasel Downloader';
+}
+
 function applyLanguage(lang) {
-  const L = window.HonkLocales;
+  const L = window.WaselLocales;
   if (!L) return;
   state.language = lang || 'ar';
   const tr = L.TRANSLATIONS[state.language] || L.TRANSLATIONS.ar;
@@ -137,6 +141,12 @@ function applyLanguage(lang) {
     const key = el.dataset.i18n;
     if (tr[key]) el.textContent = tr[key];
   });
+  // brand name follows the app language (واصل محمل فيديوهات in Arabic)
+  const brandName = $('#brand-name');
+  if (brandName) brandName.textContent = state.language === 'ar' ? 'واصل' : 'WASEL';
+  const brandTag = $('#brand-tag');
+  if (brandTag) brandTag.textContent = state.language === 'ar' ? 'محمّل فيديوهات' : 'DOWNLOADER';
+  document.title = appDisplayName();
   // placeholders
   const hint = $('#url-hint'); if (hint && tr.supportsHint) hint.textContent = tr.supportsHint;
   const topLang = $('#top-language'); if (topLang) topLang.value = state.language;
@@ -145,14 +155,14 @@ function applyLanguage(lang) {
 }
 
 function populateLanguages() {
-  const L = window.HonkLocales;
+  const L = window.WaselLocales;
   if (!L) return;
   const mk = (sel, opts) => { if(!sel) return; sel.textContent=''; for(const o of opts){ const op=document.createElement('option'); op.value=o.value; op.textContent=o.label; sel.appendChild(op);} };
   mk($('#top-language'), L.LANGUAGE_OPTIONS);
   mk($('#settings-language'), L.LANGUAGE_OPTIONS);
 }
 
-function t(key){ return window.HonkLocales ? window.HonkLocales.getTranslation(state.language, key) : key; }
+function t(key){ return window.WaselLocales ? window.WaselLocales.getTranslation(state.language, key) : key; }
 
 function setTab(name) {
   $$('.tab').forEach((tab) => {
@@ -168,7 +178,7 @@ function setTab(name) {
   if (name === 'browser') {
     setTimeout(updateBrowserNav, 0);
   } else if (document.title.includes(' — ')) {
-    document.title = 'Honk Downloader';
+    document.title = appDisplayName();
   }
 
   if (name === 'extensions') loadExtensions();
@@ -1535,7 +1545,7 @@ function bindBrowser() {
   browserView.addEventListener('page-title-updated', (event) => {
     const browserActive = $('#tab-browser').classList.contains('is-active');
     if (browserActive) {
-      document.title = event.title ? `${event.title} — Honk Downloader` : 'Honk Downloader';
+      document.title = event.title ? `${event.title} — ${appDisplayName()}` : appDisplayName();
     }
   });
 

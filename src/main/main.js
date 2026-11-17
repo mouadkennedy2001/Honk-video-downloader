@@ -108,7 +108,7 @@ function createTray() {
       { type: 'separator' },
       { label: 'خروج', click: () => app.quit() },
     ]);
-    tray.setToolTip('Honk Downloader');
+    tray.setToolTip('Wasel Downloader');
     tray.setContextMenu(menu);
     tray.on('click', focusWindow);
   } catch {}
@@ -126,7 +126,7 @@ function notify(title, body) {
     const s = settings.load();
     if (!s.showNotifications) return;
     if (!Notification.isSupported()) return;
-    new Notification({ title: title || 'Honk Downloader', body: body || '', icon: path.join(__dirname, '..', 'renderer', 'assets', 'icon.png') }).show();
+    new Notification({ title: title || 'Wasel Downloader', body: body || '', icon: path.join(__dirname, '..', 'renderer', 'assets', 'icon.png') }).show();
   } catch {}
 }
 
@@ -141,7 +141,7 @@ function createWindow() {
     show: false,
     maximize: true,
     backgroundColor: isDarkTheme() ? '#07101c' : '#ffffff',
-    title: 'Honk Downloader',
+    title: 'Wasel Downloader',
     autoHideMenuBar: true,
     titleBarStyle: process.platform === 'win32' ? 'default' : 'hiddenInset',
     icon: path.join(__dirname, '..', 'renderer', 'assets', 'icon.png'),
@@ -373,7 +373,7 @@ function handleProtocolUrl(rawUrl) {
     return;
   }
 
-  if (parsed.protocol !== 'honk:') return;
+  if (parsed.protocol !== 'wasel:') return;
 
   if (parsed.hostname === 'open') {
     focusWindow();
@@ -405,7 +405,7 @@ function handleProtocolUrl(rawUrl) {
 }
 
 function protocolFromArgv(argv) {
-  return (Array.isArray(argv) ? argv : []).find((arg) => /^honk:\/\//i.test(String(arg || '')));
+  return (Array.isArray(argv) ? argv : []).find((arg) => /^wasel:\/\//i.test(String(arg || '')));
 }
 
 function registerIpc() {
@@ -737,7 +737,7 @@ function buildWebviewContextMenu(contents, params) {
 
   const menu = Menu.buildFromTemplate([
     {
-      label: 'تحميل بواسطة Honk',
+      label: 'تحميل بواسطة Wasel',
       click: () => {
         const delivered = sendToWindow('extension:received', {
           url: candidate,
@@ -798,10 +798,44 @@ app.on('open-url', (event, url) => {
   handleProtocolUrl(url);
 });
 
+// The app was renamed from "Honk Downloader" to "Wasel Downloader", which
+// changes the userData folder. Bring the previous installation's data over
+// once, so settings and the installed yt-dlp/FFmpeg survive the rename.
+function migrateLegacyUserData() {
+  const legacyRoot = path.join(app.getPath('appData'), 'Honk Downloader');
+  const newRoot = app.getPath('userData');
+
+  if (!fs.existsSync(legacyRoot)) return;
+
+  try {
+    const legacySettings = path.join(legacyRoot, 'settings.json');
+    const newSettings = path.join(newRoot, 'settings.json');
+    if (fs.existsSync(legacySettings) && !fs.existsSync(newSettings)) {
+      fs.copyFileSync(legacySettings, newSettings);
+    }
+
+    const legacyBin = path.join(legacyRoot, 'bin');
+    const newBin = path.join(newRoot, 'bin');
+    if (fs.existsSync(legacyBin)) {
+      fs.mkdirSync(newBin, { recursive: true });
+      for (const name of fs.readdirSync(legacyBin)) {
+        const target = path.join(newBin, name);
+        if (!fs.existsSync(target)) {
+          fs.copyFileSync(path.join(legacyBin, name), target);
+        }
+      }
+    }
+  } catch {
+    /* migration is best-effort; the app works with defaults otherwise */
+  }
+}
+
 app.whenReady().then(async () => {
   if (!gotLock) return;
 
-  app.setAppUserModelId('app.honk.downloader');
+  app.setAppUserModelId('app.wasel.downloader');
+
+  migrateLegacyUserData();
 
   const userBinDir = path.join(app.getPath('userData'), 'bin');
   fs.mkdirSync(userBinDir, { recursive: true });
@@ -809,7 +843,7 @@ app.whenReady().then(async () => {
   installer.setBinDir(userBinDir);
 
   try {
-    app.setAsDefaultProtocolClient('honk');
+    app.setAsDefaultProtocolClient('wasel');
   } catch {
     /* protocol registration is optional */
   }

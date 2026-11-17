@@ -11,7 +11,7 @@ const binaries = require('./binaries');
 
 const DOWNLOAD_TIMEOUT_MS = 10 * 60 * 1000;
 const MAX_REDIRECTS = 8;
-const USER_AGENT = 'Honk-Downloader/1.0 (+https://github.com)';
+const USER_AGENT = 'Wasel-Downloader/2.0 (+https://github.com)';
 
 let binDir = binaries.getUserBinDir();
 
@@ -22,10 +22,11 @@ function setBinDir(dir) {
 }
 
 function getBinDir() {
-  if (!binDir) {
-    const fallback = path.join(os.homedir(), '.honk-downloader', 'bin');
-    setBinDir(fallback);
-  }
+  // Always honour the latest directory known to binaries.js — it may be set
+  // after this module loads (main.js sets <userData>/bin on startup).
+  const current = binaries.getUserBinDir();
+  if (current) binDir = current;
+  else if (!binDir) setBinDir(path.join(os.homedir(), '.wasel-downloader', 'bin'));
 
   fs.mkdirSync(binDir, { recursive: true });
   return binDir;
@@ -337,7 +338,7 @@ async function install(target, onProgress) {
   }
 
   const destination = getBinDir();
-  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'honk-install-'));
+  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'wasel-install-'));
   const assets = assetsFor(target);
   let lastError = null;
 

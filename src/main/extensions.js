@@ -34,11 +34,11 @@ function bundledDir() {
   const candidates = [];
 
   if (process.resourcesPath) {
-    candidates.push(path.join(process.resourcesPath, 'extensions', 'honk-media-grabber'));
-    candidates.push(path.join(process.resourcesPath, 'app.asar.unpacked', 'extensions', 'honk-media-grabber'));
+    candidates.push(path.join(process.resourcesPath, 'extensions', 'wasel-media-grabber'));
+    candidates.push(path.join(process.resourcesPath, 'app.asar.unpacked', 'extensions', 'wasel-media-grabber'));
   }
 
-  candidates.push(path.join(__dirname, '..', '..', 'extensions', 'honk-media-grabber'));
+  candidates.push(path.join(__dirname, '..', '..', 'extensions', 'wasel-media-grabber'));
 
   for (const candidate of candidates) {
     if (fs.existsSync(path.join(candidate, 'manifest.json'))) return candidate;

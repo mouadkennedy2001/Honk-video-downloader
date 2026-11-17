@@ -11,7 +11,7 @@ const RATE_LIMIT_MAX = 40;
 const CORS_HEADERS = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type, X-Honk-Client',
+  'Access-Control-Allow-Headers': 'Content-Type, X-Wasel-Client',
   'Access-Control-Allow-Private-Network': 'true',
   'Access-Control-Max-Age': '86400',
   'Cache-Control': 'no-store'
@@ -156,7 +156,7 @@ async function start(options = {}) {
     if (request.method === 'GET' && (pathname === '/ping' || pathname === '/status')) {
       sendJson(response, 200, {
         ok: true,
-        app: 'honk-downloader',
+        app: 'wasel-downloader',
         version,
         port: state.port,
         uptime: Math.floor((Date.now() - startedAt) / 1000)

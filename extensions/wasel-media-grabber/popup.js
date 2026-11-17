@@ -85,7 +85,7 @@
           cache: 'no-store',
           headers: {
             'Content-Type': 'application/json',
-            'X-Honk-Client': 'extension'
+            'X-Wasel-Client': 'extension'
           },
           body: JSON.stringify(payload)
         }, 5000);
@@ -104,7 +104,7 @@
 
     setStatus('جارٍ الإرسال…', false);
 
-    let result = await runtimeMessage({ type: 'honk:send-to-app', payload }, 7000);
+    let result = await runtimeMessage({ type: 'wasel:send-to-app', payload }, 7000);
 
     if (!result || !result.ok) {
       result = await directSend(payload);
@@ -201,14 +201,14 @@
 
     const seen = new Map();
 
-    const pageResult = await sendTabMessage(activeTab.id, { type: 'honk:scan' });
+    const pageResult = await sendTabMessage(activeTab.id, { type: 'wasel:scan' });
     if (pageResult && Array.isArray(pageResult.items)) {
       for (const item of pageResult.items) {
         if (item && item.url) seen.set(item.url, item);
       }
     }
 
-    const networkResult = await runtimeMessage({ type: 'honk:scan-tab', tabId: activeTab.id });
+    const networkResult = await runtimeMessage({ type: 'wasel:scan-tab', tabId: activeTab.id });
     if (networkResult && Array.isArray(networkResult.items)) {
       for (const item of networkResult.items) {
         if (item && item.url && !seen.has(item.url)) seen.set(item.url, item);
@@ -220,7 +220,7 @@
   }
 
   async function checkApp() {
-    const result = await runtimeMessage({ type: 'honk:open-app' }, 4000);
+    const result = await runtimeMessage({ type: 'wasel:open-app' }, 4000);
 
     if (result && result.ok) {
       setAppOnline(true, result.port);

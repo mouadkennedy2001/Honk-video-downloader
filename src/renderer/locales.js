@@ -41,4 +41,4 @@ const LANGUAGE_OPTIONS = [
   { value:'uk', label:'Українська — Ukrainian' },{ value:'el', label:'Ελληνικά — Greek' },
 ];
 function getTranslation(lang, key){ const t = TRANSLATIONS[lang] || TRANSLATIONS.ar; return t[key] || TRANSLATIONS.ar[key] || key; }
-window.HonkLocales = { TRANSLATIONS, LANGUAGE_OPTIONS, getTranslation };
+window.WaselLocales = { TRANSLATIONS, LANGUAGE_OPTIONS, getTranslation };

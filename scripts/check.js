@@ -19,9 +19,9 @@ const files = [
   'src/main/sites.js',
   'src/renderer/app.js',
   'src/renderer/locales.js',
-  'extensions/honk-media-grabber/background.js',
-  'extensions/honk-media-grabber/content.js',
-  'extensions/honk-media-grabber/popup.js',
+  'extensions/wasel-media-grabber/background.js',
+  'extensions/wasel-media-grabber/content.js',
+  'extensions/wasel-media-grabber/popup.js',
   'scripts/check.js'
 ];
 
@@ -124,7 +124,7 @@ if (missingIds.length) {
 
 /* ---------- Bundled extension ---------- */
 
-const extensionDir = 'extensions/honk-media-grabber';
+const extensionDir = 'extensions/wasel-media-grabber';
 const manifestPath = path.join(root, extensionDir, 'manifest.json');
 
 try {

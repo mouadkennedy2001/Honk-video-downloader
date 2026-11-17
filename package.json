@@ -1,13 +1,12 @@
 {
-  "name": "honk-downloader",
-  "productName": "Honk Downloader",
+  "name": "wasel-downloader",
+  "productName": "Wasel Downloader",
   "version": "2.0.0",
-  "description": "Premium Video Downloader for Windows and Linux — 300+ sites (198 detailed + 1000+ via yt-dlp), 24 languages, native system fonts, 183 site icons, history, favorites, pause/resume, batch, multi-format.",
+  "description": "Wasel Downloader — open-source premium video downloader, no ads, no revenue. Built with Electron + yt-dlp/FFmpeg.",
   "main": "src/main/main.js",
-  "homepage": "https://github.com/ahmednacer/honk-downloader",
+  "homepage": "https://github.com/ahmednacer/wasel-downloader",
   "author": {
-    "name": "Honk",
-    "email": "ahmed@example.com"
+    "name": "zerouki ahmed mouad (زروقي احمد معاذ)"
   },
   "license": "MIT",
   "scripts": {
@@ -26,8 +25,8 @@
     "electron-builder": "^26.18.0"
   },
   "build": {
-    "appId": "app.honk.downloader",
-    "productName": "Honk Downloader",
+    "appId": "app.wasel.downloader",
+    "productName": "Wasel Downloader",
     "directories": {
       "output": "dist",
       "buildResources": "build"
@@ -69,10 +68,10 @@
       "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
-      "shortcutName": "Honk Downloader",
+      "shortcutName": "Wasel Downloader",
       "installerIcon": "build/icon.ico",
       "uninstallerIcon": "build/icon.ico",
-      "artifactName": "Honk-Downloader-${version}-${arch}.exe",
+      "artifactName": "Wasel-Downloader-${version}-${arch}.exe",
       "deleteAppDataOnUninstall": false,
       "perMachine": false
     },
@@ -80,7 +79,7 @@
       "target": ["AppImage", "deb"],
       "category": "AudioVideo",
       "icon": "build/icon.png",
-      "maintainer": "Honk <ahmed@example.com>"
+      "maintainer": "zerouki ahmed mouad"
     },
     "mac": {
       "target": ["dmg"],

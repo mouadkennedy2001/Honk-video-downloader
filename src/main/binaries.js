@@ -6,7 +6,29 @@ const { execFileSync } = require('child_process');
 
 const isWindows = process.platform === 'win32';
 
-let userBinDir = process.env.HONK_BIN_DIR || null;
+let userBinDir = process.env.WASEL_BIN_DIR || process.env.HONK_BIN_DIR || null;
+
+// Safe default that works both inside Electron and in plain Node:
+// <userData>/bin when Electron is available; for plain Node testing the
+// fallback is ~/.wasel-downloader/bin (legacy ~/.honk-downloader still accepted).
+function defaultUserBinDir() {
+  try {
+    const { app } = require('electron');
+    if (app && typeof app.getPath === 'function') {
+      return path.join(app.getPath('userData'), 'bin');
+    }
+  } catch {
+    /* electron not available (CLI/testing) */
+  }
+  const os = require('os');
+  const home = os.homedir();
+  const legacy = path.join(home, '.honk-downloader', 'bin');
+  const next = path.join(home, '.wasel-downloader', 'bin');
+  try {
+    if (fs.existsSync(legacy) && !fs.existsSync(next)) return legacy;
+  } catch { /* ignore */ }
+  return next;
+}
 
 function setUserBinDir(dir) {
   userBinDir = dir ? path.resolve(dir) : null;
@@ -14,7 +36,7 @@ function setUserBinDir(dir) {
 }
 
 function getUserBinDir() {
-  return userBinDir;
+  return userBinDir || defaultUserBinDir();
 }
 
 function executableName(name) {
@@ -93,8 +115,7 @@ function bundledPath(name) {
 }
 
 function userBinPath(name) {
-  if (!userBinDir) return null;
-  const candidate = path.join(userBinDir, executableName(name));
+  const candidate = path.join(getUserBinDir(), executableName(name));
   return isFile(candidate) ? candidate : null;
 }
 
@@ -117,7 +138,7 @@ function status() {
     ytDlp,
     ffmpeg,
     ffprobe,
-    userBinDir,
+    userBinDir: getUserBinDir(),
     ok: Boolean(ytDlp),
     merge: Boolean(ffmpeg)
   };

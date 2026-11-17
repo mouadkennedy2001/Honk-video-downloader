@@ -193,7 +193,9 @@ function buildDownloadArgs(options, cookieArgs, hasFfmpeg) {
     '--concurrent-fragments', '6',
     '--buffer-size', options.bufferSize || '16K',
     '--trim-filenames', '180',
-    '-O', 'filename',
+    // NOTE: never pass `--print` / `-O` here — it implies --simulate and the
+    // file would never be written (the reported "download finished but the
+    // folder is empty" bug).
     '-c', // resume partial
     '-o', outputPath
   ];
@@ -282,25 +284,49 @@ function buildDownloadArgs(options, cookieArgs, hasFfmpeg) {
 function findNewestMedia(folder, startedAt) {
   let newest = null;
 
-  try {
-    for (const name of fs.readdirSync(folder)) {
-      const extension = path.extname(name).toLowerCase();
-      if (!MEDIA_EXTENSIONS.has(extension)) continue;
+  const visit = (directory, depth) => {
+    if (depth > 3) return;
 
-      const fullPath = path.join(folder, name);
-      const stat = fs.statSync(fullPath);
-      if (!stat.isFile()) continue;
-      if (stat.mtimeMs < startedAt - 5000) continue;
+    try {
+      for (const name of fs.readdirSync(directory, { withFileTypes: true })) {
+        const fullPath = path.join(directory, name.name);
 
-      if (!newest || stat.mtimeMs > newest.mtimeMs) {
-        newest = { fullPath, mtimeMs: stat.mtimeMs };
+        if (name.isDirectory()) {
+          visit(fullPath, depth + 1);
+          continue;
+        }
+
+        const extension = path.extname(name.name).toLowerCase();
+        if (!MEDIA_EXTENSIONS.has(extension)) continue;
+
+        const stat = fs.statSync(fullPath);
+        if (!stat.isFile()) continue;
+        // ignore incomplete fragments and leftover parts
+        if (/\.part$|\.f\d+\.|\.ytdl$/i.test(name.name)) continue;
+        if (stat.mtimeMs < startedAt - 5000) continue;
+
+        if (!newest || stat.mtimeMs > newest.mtimeMs) {
+          newest = { fullPath, mtimeMs: stat.mtimeMs };
+        }
       }
+    } catch {
+      /* ignore unreadable folders */
     }
-  } catch {
-    return null;
-  }
+  };
 
+  visit(folder, 0);
   return newest ? newest.fullPath : null;
+}
+
+// yt-dlp prints Merger/ExtractAudio destinations that may be relative to the
+// output folder; resolve them so the UI can always open the real file.
+function resolveMaybeRelative(candidate, folder) {
+  if (!candidate) return null;
+  const trimmed = String(candidate).replace(/^["']|["']$/g, '').trim();
+  if (!trimmed) return null;
+  if (path.isAbsolute(trimmed)) return fs.existsSync(trimmed) ? trimmed : trimmed;
+  const joined = path.join(folder, trimmed);
+  return fs.existsSync(joined) ? joined : joined;
 }
 
 function emitSafe(onEvent, payload) {
@@ -380,6 +406,7 @@ function handleProgressLine(job, rawLine, onEvent) {
   const percentMatch = line.match(/^\[download\]\s+([\d.]+)%/);
   if (percentMatch) {
     const now = Date.now();
+    job.lastPercent = Math.max(0, Math.min(100, Number.parseFloat(percentMatch[1])));
     if (now - job.lastProgressAt < 180) return;
     job.lastProgressAt = now;
 
@@ -390,7 +417,7 @@ function handleProgressLine(job, rawLine, onEvent) {
     emitSafe(onEvent, {
       type: 'progress',
       id: job.id,
-      percent: Math.max(0, Math.min(100, Number.parseFloat(percentMatch[1]))),
+      percent: job.lastPercent,
       phase: 'downloading',
       item: job.playlistItem || null,
       totalItems: job.playlistTotal || null,
@@ -574,9 +601,32 @@ function runJob(job) {
     child.on('close', (code) => {
       if (job.settled) return;
 
-      const finalPath = job.finalPath
-        || job.lastDestination
-        || findNewestMedia(job.folder, job.startedAt);
+      // On Windows "pause" kills the process to suspend the download; treat the
+      // close as a pause, keep the job alive and let resumeDownload restart it.
+      if (job.paused && !job.cancelled) {
+        job.child = null;
+        job.status = 'paused';
+        if (job.activeSlot) {
+          job.activeSlot = false;
+          activeCount = Math.max(0, activeCount - 1);
+          pump();
+        }
+        emitSafe(job.onEvent, {
+          type: 'progress',
+          id: job.id,
+          percent: job.lastPercent || 0,
+          phase: 'paused',
+          size: null,
+          speed: null,
+          eta: null
+        });
+        return;
+      }
+
+      const finalPath = resolveMaybeRelative(
+        job.finalPath || job.lastDestination,
+        job.folder
+      ) || findNewestMedia(job.folder, job.startedAt);
 
       if (job.cancelled) {
         job.status = 'cancelled';
@@ -621,31 +671,39 @@ function pauseDownload(id) {
   const job = jobs.get(String(id));
   if (!job || !job.child) return false;
   try {
+    // Suspending the process tree: Windows has no SIGSTOP, so we kill the
+    // process; the close handler keeps the job alive (paused) because
+    // yt-dlp resumes partial downloads with `-c`.
     if (process.platform === 'win32') {
-      // Windows: suspend via taskkill? Use SIGSTOP not available, emulate by killing and re-queue
       job.paused = true;
       killTree(job.child);
       return true;
-    } else {
-      job.child.kill('SIGSTOP');
-      job.paused = true;
-      return true;
     }
+    job.child.kill('SIGSTOP');
+    job.paused = true;
+    job.status = 'paused';
+    return true;
   } catch { return false; }
 }
 
 function resumeDownload(id) {
   const job = jobs.get(String(id));
   if (!job) return false;
+
+  if (process.platform !== 'win32' && job.child && job.paused) {
+    try { job.child.kill('SIGCONT'); job.paused = false; job.status = 'running'; return true; }
+    catch { /* fall through to restart */ }
+  }
+
+  // Restart the download; yt-dlp continues the partial file thanks to `-c`.
+  if (job.child) killTree(job.child);
   job.paused = false;
-  if (job.child && process.platform !== 'win32') {
-    try { job.child.kill('SIGCONT'); return true; } catch { return false; }
-  }
-  // Windows restart: re-run job (yt-dlp supports --continue)
-  if (job.child) {
-    try { job.child.kill('SIGTERM'); } catch {}
-  }
-  setTimeout(() => { if (job && !job.settled) runJob(job); }, 300);
+  job.settled = false;
+  job.child = null;
+  job.status = 'queued';
+  job.startedAt = Date.now() - 60 * 60 * 1000; // keep findNewestMedia valid for the old partial
+  pending.unshift(job);
+  pump();
   return true;
 }
 
@@ -659,6 +717,18 @@ function cancelDownload(id) {
     const index = pending.indexOf(job);
     if (index >= 0) pending.splice(index, 1);
 
+    job.status = 'cancelled';
+    emitSafe(job.onEvent, {
+      type: 'cancelled',
+      id: job.id,
+      message: 'تم إلغاء التحميل.'
+    });
+    settleJob(job);
+    return true;
+  }
+
+  if (!job.child) {
+    // paused job: nothing is running, settle immediately
     job.status = 'cancelled';
     emitSafe(job.onEvent, {
       type: 'cancelled',
