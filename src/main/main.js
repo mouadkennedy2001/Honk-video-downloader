@@ -2,7 +2,7 @@
 
 const path = require('path');
 const fs = require('fs');
-const { execFileSync } = require('child_process');
+const { execFile, execFileSync } = require('child_process');
 const {
   app,
   BrowserWindow,
@@ -10,7 +10,6 @@ const {
   dialog,
   shell,
   clipboard,
-  session,
   nativeTheme,
   Menu,
   Tray,
@@ -25,9 +24,9 @@ const downloader = require('./downloader');
 const extensions = require('./extensions');
 const bridge = require('./bridge');
 const { SITES } = require('./sites');
-const { BROWSER_PARTITION, exportCookies } = require('./cookies');
+const { getSession } = require('./extension-session');
 
-const BROWSER_COOKIE_SOURCES = new Set([
+const EXTERNAL_COOKIE_SOURCES = new Set([
   'chrome', 'chromium', 'firefox', 'brave', 'edge', 'opera', 'vivaldi', 'safari', 'whale'
 ]);
 
@@ -51,8 +50,8 @@ function sendToWindow(channel, payload) {
   return false;
 }
 
-function browserSession() {
-  return session.fromPartition(BROWSER_PARTITION);
+function extensionSession() {
+  return getSession();
 }
 
 function applyTheme() {
@@ -65,8 +64,8 @@ function isDarkTheme() {
   return current.theme === 'dark' || (current.theme === 'system' && nativeTheme.shouldUseDarkColors);
 }
 
-function hardenBrowserSession() {
-  const ses = browserSession();
+function hardenExtensionSession() {
+  const ses = extensionSession();
   const platformToken = process.platform === 'darwin'
     ? 'Macintosh; Intel Mac OS X 10_15_7'
     : process.platform === 'win32'
@@ -150,7 +149,6 @@ function createWindow() {
       contextIsolation: true,
       nodeIntegration: false,
       sandbox: false,
-      webviewTag: true,
       spellcheck: false
     }
   });
@@ -198,18 +196,6 @@ function createWindow() {
     }
   });
 
-  mainWindow.webContents.on('will-attach-webview', (event, webPreferences, params) => {
-    delete webPreferences.preload;
-    webPreferences.nodeIntegration = false;
-    webPreferences.nodeIntegrationInSubFrames = false;
-    webPreferences.contextIsolation = true;
-    webPreferences.sandbox = true;
-
-    if (!/^https?:\/\//i.test(params.src)) {
-      event.preventDefault();
-    }
-  });
-
   mainWindow.webContents.on('before-input-event', (event, input) => {
     const key = typeof input.key === 'string' ? input.key : '';
     const opensDevTools = key === 'F12'
@@ -236,23 +222,10 @@ function validateHttpUrl(value) {
   }
 }
 
-function cookieFile() {
-  return path.join(app.getPath('userData'), 'browser-cookies.txt');
-}
-
 async function resolveCookieArgs(source) {
   const value = String(source || 'none');
 
-  if (value === 'embedded') {
-    try {
-      const exported = await exportCookies(cookieFile());
-      return ['--cookies', exported.path];
-    } catch {
-      return [];
-    }
-  }
-
-  if (BROWSER_COOKIE_SOURCES.has(value)) {
+  if (EXTERNAL_COOKIE_SOURCES.has(value)) {
     return ['--cookies-from-browser', value];
   }
 
@@ -269,25 +242,33 @@ function isExistingPath(value) {
 }
 
 function commandVersion(binary, args) {
-  if (!binary) return null;
-  try {
-    const output = execFileSync(binary, args, {
+  if (!binary) return Promise.resolve(null);
+  return new Promise((resolve) => {
+    execFile(binary, args, {
       encoding: 'utf8',
       timeout: 7000,
-      windowsHide: true
+      windowsHide: true,
+      maxBuffer: 1024 * 1024
+    }, (error, stdout) => {
+      if (error) {
+        resolve(null);
+        return;
+      }
+      resolve(stdout.split(/\r?\n/).map((line) => line.trim()).find(Boolean) || null);
     });
-    return output.split(/\r?\n/).map((line) => line.trim()).find(Boolean) || null;
-  } catch {
-    return null;
-  }
+  });
 }
 
-function envStatus() {
+async function envStatus() {
   const status = binaries.status();
+  const [ytDlpVersion, ffmpegVersion] = await Promise.all([
+    commandVersion(status.ytDlp, ['--version']),
+    commandVersion(status.ffmpeg, ['-version'])
+  ]);
   return {
     ...status,
-    ytDlpVersion: commandVersion(status.ytDlp, ['--version']),
-    ffmpegVersion: commandVersion(status.ffmpeg, ['-version'])
+    ytDlpVersion,
+    ffmpegVersion
   };
 }
 
@@ -458,18 +439,13 @@ function registerIpc() {
     return r.canceled ? null : r.filePaths[0];
   });
 
-  ipcMain.handle('env:check', () => envStatus());
+  ipcMain.handle('env:check', async () => envStatus());
 
   ipcMain.handle('clipboard:read', () => clipboard.readText());
 
   ipcMain.handle('clipboard:write', (_event, value) => {
     clipboard.writeText(String(value || ''));
     return true;
-  });
-
-  ipcMain.handle('cookies:count', async () => {
-    const cookies = await browserSession().cookies.get({});
-    return cookies.length;
   });
 
   ipcMain.handle('shell:open-path', async (_event, target) => {
@@ -496,6 +472,14 @@ function registerIpc() {
 
     const cookieArgs = await resolveCookieArgs(cookieSource);
     return downloader.getInfo(url, cookieArgs);
+  });
+
+  ipcMain.handle('yt:preview-url', async (_event, rawUrl, cookieSource, mode) => {
+    const url = validateHttpUrl(rawUrl);
+    if (!url) throw new Error('الرابط غير صالح.');
+
+    const cookieArgs = await resolveCookieArgs(cookieSource);
+    return downloader.getPreviewUrl(url, cookieArgs, mode);
   });
 
   ipcMain.handle('yt:download', async (event, options = {}) => {
@@ -655,7 +639,7 @@ function registerIpc() {
       skipped: false,
       message: 'تم تثبيت المكتبات المطلوبة.',
       results,
-      env: envStatus()
+      env: await envStatus()
     };
   });
 
@@ -676,7 +660,7 @@ function registerIpc() {
       return {
         message: `تم تحديث yt-dlp${result.version ? ` إلى ${result.version}` : ''}.`,
         version: result.version,
-        env: envStatus()
+        env: await envStatus()
       };
     } finally {
       installLocks.delete('yt-dlp');
@@ -718,74 +702,6 @@ function testBridge() {
     });
   });
 }
-
-function buildWebviewContextMenu(contents, params) {
-  const candidate = validateHttpUrl(params.srcURL) || validateHttpUrl(params.linkURL);
-
-  if (!candidate) {
-    if (params.isEditable) {
-      Menu.buildFromTemplate([
-        { role: 'cut', label: 'قص' },
-        { role: 'copy', label: 'نسخ' },
-        { role: 'paste', label: 'لصق' },
-        { type: 'separator' },
-        { role: 'selectAll', label: 'تحديد الكل' }
-      ]).popup({ window: mainWindow });
-    }
-    return;
-  }
-
-  const menu = Menu.buildFromTemplate([
-    {
-      label: 'تحميل بواسطة Wasel',
-      click: () => {
-        const delivered = sendToWindow('extension:received', {
-          url: candidate,
-          title: params.mediaType === 'video' ? 'فيديو من الصفحة' : (params.linkText || null),
-          pageUrl: contents.getURL(),
-          mode: 'video',
-          source: 'context-menu',
-          receivedAt: Date.now(),
-          autoDownload: settings.load().autoDownloadFromExtension
-        });
-
-        if (delivered) focusWindow();
-      }
-    },
-    {
-      label: 'فتح في المتصفح',
-      click: () => { shell.openExternal(candidate); }
-    },
-    {
-      label: 'نسخ الرابط',
-      click: () => { clipboard.writeText(candidate); }
-    }
-  ]);
-
-  menu.popup({ window: mainWindow });
-}
-
-app.on('web-contents-created', (_event, contents) => {
-  if (contents.getType() !== 'webview') return;
-
-  contents.setWindowOpenHandler(({ url }) => {
-    if (/^https?:\/\//i.test(url)) {
-      sendToWindow('browser:open-url', url);
-    }
-    return { action: 'deny' };
-  });
-
-  contents.on('context-menu', (_menuEvent, params) => {
-    if (params.linkURL || params.srcURL) {
-      sendToWindow('browser:context-link', {
-        url: validateHttpUrl(params.srcURL) || validateHttpUrl(params.linkURL),
-        text: params.linkText || ''
-      });
-    }
-
-    buildWebviewContextMenu(contents, params);
-  });
-});
 
 app.on('second-instance', (_event, argv) => {
   const protocolUrl = protocolFromArgv(argv);
@@ -848,7 +764,7 @@ app.whenReady().then(async () => {
     /* protocol registration is optional */
   }
 
-  hardenBrowserSession();
+  hardenExtensionSession();
   registerIpc();
 
   await extensions.ensureInitialized();

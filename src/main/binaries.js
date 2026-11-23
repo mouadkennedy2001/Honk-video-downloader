@@ -2,7 +2,6 @@
 
 const fs = require('fs');
 const path = require('path');
-const { execFileSync } = require('child_process');
 
 const isWindows = process.platform === 'win32';
 
@@ -52,12 +51,9 @@ function isFile(candidate) {
 }
 
 function which(command) {
-  const cmd = isWindows && !command.endsWith('.exe') ? `${command}.exe` : command;
-  const candidates = [];
-  if (isWindows) {
-    candidates.push('where.exe', 'where');
-  }
-  candidates.push(isWindows ? 'where.exe' : 'which');
+  const fileName = isWindows && !command.toLowerCase().endsWith('.exe')
+    ? `${command}.exe`
+    : command;
   // Common Windows install locations
   const winCommon = [
     'C:\\Program Files\\ffmpeg\\bin',
@@ -68,28 +64,28 @@ function which(command) {
     process.env.HOME ? `${process.env.HOME}\\scoop\\shims` : null,
   ].filter(Boolean);
   if (isWindows && winCommon.length) {
-    const exe = `${command}.exe`;
     for (const dir of winCommon) {
-      try {
-        const p = require('path').join(dir, exe);
-        if (require('fs').existsSync(p)) return p;
-      } catch {}
+      const candidate = path.join(dir, fileName);
+      if (isFile(candidate)) return candidate;
     }
   }
-  for (const finder of candidates) {
+
+  const searchPath = String(process.env.PATH || '')
+    .split(path.delimiter)
+    .map((directory) => directory.trim().replace(/^"(.*)"$/, '$1'))
+    .filter(Boolean);
+
+  for (const directory of searchPath) {
+    const candidate = path.join(directory, fileName);
     try {
-      const output = execFileSync(finder, [isWindows ? cmd : command], {
-        encoding: 'utf8',
-        timeout: 5000,
-        windowsHide: true
-      });
-      const match = output
-        .split(/\r?\n/)
-        .map((line) => line.trim())
-        .find(Boolean);
-      if (match) return match;
-    } catch {}
+      if (!isFile(candidate)) continue;
+      if (!isWindows) fs.accessSync(candidate, fs.constants.X_OK);
+      return candidate;
+    } catch {
+      continue;
+    }
   }
+
   return null;
 }
 

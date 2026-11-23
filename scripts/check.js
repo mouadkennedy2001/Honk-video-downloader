@@ -13,12 +13,16 @@ const files = [
   'src/main/installer.js',
   'src/main/bridge.js',
   'src/main/settings.js',
-  'src/main/cookies.js',
+  'src/main/extension-session.js',
   'src/main/extensions.js',
   'src/main/downloader.js',
   'src/main/sites.js',
   'src/renderer/app.js',
   'src/renderer/locales.js',
+  'src/renderer/locales-1.js',
+  'src/renderer/locales-2.js',
+  'src/renderer/locales-3.js',
+  'src/renderer/locales-4.js',
   'extensions/wasel-media-grabber/background.js',
   'extensions/wasel-media-grabber/content.js',
   'extensions/wasel-media-grabber/popup.js',
@@ -60,7 +64,37 @@ for (const file of files) {
 
 const rendererDir = 'src/renderer';
 const html = read(`${rendererDir}/index.html`);
-const requiredAssets = ['styles.css', 'app.js', 'locales.js', 'assets/icon.png'];
+const removedBrowserUi = [
+  '<webview',
+  'data-tab="browser"',
+  'id="tab-browser"',
+  'browserHome',
+  'cookieEmbedded'
+];
+const remainingBrowserUi = removedBrowserUi.filter((marker) => html.includes(marker));
+
+if (remainingBrowserUi.length) {
+  fail(`embedded browser UI remains: ${remainingBrowserUi.join(', ')}`);
+} else {
+  pass('embedded browser UI removed');
+}
+
+if (!html.includes('data-tab="extensions"') || !html.includes('id="tab-extensions"')) {
+  fail('desktop extension management UI is missing');
+} else {
+  pass('desktop extension management retained');
+}
+
+const requiredAssets = [
+  'styles.css',
+  'app.js',
+  'locales.js',
+  'locales-1.js',
+  'locales-2.js',
+  'locales-3.js',
+  'locales-4.js',
+  'assets/icon.png'
+];
 
 for (const asset of requiredAssets) {
   const present = exists(`${rendererDir}/${asset}`);

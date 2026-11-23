@@ -179,6 +179,83 @@ function getInfo(url, cookieArgs) {
   });
 }
 
+function getPreviewUrl(url, cookieArgs, mode = 'video') {
+  const binary = binaries.resolve('yt-dlp');
+  if (!binary) {
+    return Promise.reject(new Error('لم يتم العثور على yt-dlp.'));
+  }
+
+  return new Promise((resolve, reject) => {
+    // Use -g to get direct URL, with format selection for preview
+    const formatSelector = mode === 'audio'
+      ? 'bestaudio[ext=m4a]/bestaudio/best'
+      : 'best[height<=720][ext=mp4]/best[height<=720]/best[ext=mp4]/best';
+
+    const args = [
+      '-g',
+      '--no-warnings',
+      '--color', 'no_color',
+      '-f', formatSelector,
+      '--socket-timeout', '15',
+      '--retries', '3',
+      '--', url
+    ];
+
+    if (Array.isArray(cookieArgs) && cookieArgs.length) {
+      args.unshift(...cookieArgs);
+    }
+
+    const child = spawn(binary, args, {
+      windowsHide: true,
+      env: { ...process.env, NO_COLOR: '1' }
+    });
+
+    let stdout = '';
+    let stderr = '';
+    let settled = false;
+
+    const timer = setTimeout(() => {
+      if (settled) return;
+      settled = true;
+      try { child.kill('SIGKILL'); } catch { /* ignore */ }
+      reject(new Error('انتهت مهلة الحصول على رابط المعاينة.'));
+    }, 20000);
+
+    child.stdout.on('data', (chunk) => {
+      stdout += chunk.toString('utf8');
+    });
+
+    child.stderr.on('data', (chunk) => {
+      stderr += chunk.toString('utf8');
+    });
+
+    child.on('error', (error) => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timer);
+      reject(new Error(`تعذّر تشغيل yt-dlp: ${error.message}`));
+    });
+
+    child.on('close', (code) => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timer);
+
+      if (code !== 0) {
+        reject(new Error(cleanError(stderr) || `فشل الحصول على رابط المعاينة (رمز الخروج ${code}).`));
+        return;
+      }
+
+      const urls = stdout.trim().split('\n').filter(u => u.trim());
+      if (urls.length > 0) {
+        resolve(urls[0].trim());
+      } else {
+        reject(new Error('لم يتم العثور على رابط قابل للتشغيل.'));
+      }
+    });
+  });
+}
+
 function buildDownloadArgs(options, cookieArgs, hasFfmpeg) {
   const template = options.filenameTemplate || '%(title).150s [%(id)s].%(ext)s';
   const outputPath = options.outputDir ? (options.outputSubfolder ? path.join(options.outputDir, '%(uploader)s', template) : path.join(options.outputDir, template)) : template;
@@ -748,5 +825,6 @@ module.exports = {
   startDownload,
   cancelDownload,
   pauseDownload,
-  resumeDownload
+  resumeDownload,
+  getPreviewUrl
 };

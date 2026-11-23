@@ -13,12 +13,15 @@
     "start": "electron .",
     "dev": "electron . --dev",
     "check": "node scripts/check.js",
+    "check:mobile": "node mobile/scripts/check-mobile.js",
     "gen-icons": "node scripts/gen-icons.js",
     "dist": "electron-builder --win",
     "dist:win": "electron-builder --win",
     "dist:win:portable": "electron-builder --win portable",
     "dist:linux": "electron-builder --linux",
-    "dist:mac": "electron-builder --mac"
+    "dist:mac": "electron-builder --mac",
+    "apk:prepare": "npm --prefix mobile run sync:web && npm --prefix mobile run android:sync && npm --prefix mobile run android:apply",
+    "apk:build": "npm run apk:prepare && cd mobile/android && gradlew.bat assembleDebug"
   },
   "devDependencies": {
     "electron": "^45.2.1",

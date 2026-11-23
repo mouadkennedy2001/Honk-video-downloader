@@ -3,25 +3,25 @@
 const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
-const { app, session, shell } = require('electron');
+const { app, shell } = require('electron');
 const AdmZip = require('adm-zip');
 const settings = require('./settings');
-const { BROWSER_PARTITION } = require('./cookies');
+const { getSession } = require('./extension-session');
 
 const MAX_ARCHIVE_ENTRIES = 5000;
 const MAX_EXTRACTED_BYTES = 200 * 1024 * 1024;
 
 const loadErrors = new Map();
 
-function browserSession() {
-  return session.fromPartition(BROWSER_PARTITION);
+function extensionSession() {
+  return getSession();
 }
 
 function extensionManager() {
-  const browser = browserSession();
-  return browser.extensions && typeof browser.extensions.loadExtension === 'function'
-    ? browser.extensions
-    : browser;
+  const ses = extensionSession();
+  return ses.extensions && typeof ses.extensions.loadExtension === 'function'
+    ? ses.extensions
+    : ses;
 }
 
 function rootDir() {

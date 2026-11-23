@@ -1,0 +1,16 @@
+{
+  "appId": "app.wasel.downloader",
+  "appName": "Wasel Downloader",
+  "webDir": "www",
+  "loggingBehavior": "debug",
+  "android": {
+    "allowMixedContent": true,
+    "captureInput": false
+  },
+  "plugins": {
+    "App": {
+      "addListener": true
+    },
+    "Share": {}
+  }
+}

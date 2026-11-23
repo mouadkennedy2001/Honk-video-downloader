@@ -7,7 +7,7 @@ const { app } = require('electron');
 const VIDEO_QUALITIES = ['best', '2160', '1440', '1080', '720', '480', '360'];
 const AUDIO_FORMATS = ['mp3', 'm4a', 'opus', 'wav', 'flac', 'best'];
 const COOKIE_SOURCES = [
-  'none', 'embedded', 'chrome', 'chromium', 'firefox', 'brave',
+  'none', 'chrome', 'chromium', 'firefox', 'brave',
   'edge', 'opera', 'vivaldi', 'safari', 'whale', 'file'
 ];
 const THEMES = ['system', 'light', 'dark'];
@@ -26,7 +26,6 @@ function defaults() {
     videoQuality: 'best',
     audioFormat: 'mp3',
     videoFormat: 'mp4',
-    browserHome: 'https://www.youtube.com',
     cookieSource: 'none',
     cookieFile: '',
     theme: 'system',
@@ -103,6 +102,7 @@ function sanitizeString(value, maxLength) {
 function normalize(value) {
   const base = defaults();
   const next = { ...base, ...(value && typeof value === 'object' ? value : {}) };
+  delete next.browserHome;
 
   if (typeof next.downloadDir !== 'string' || !next.downloadDir.trim()) {
     next.downloadDir = base.downloadDir;
@@ -113,7 +113,6 @@ function normalize(value) {
   if (!VIDEO_QUALITIES.includes(String(next.videoQuality))) next.videoQuality = base.videoQuality;
   if (!AUDIO_FORMATS.includes(String(next.audioFormat))) next.audioFormat = base.audioFormat;
   if (!VIDEO_FORMATS.includes(String(next.videoFormat))) next.videoFormat = base.videoFormat;
-  if (typeof next.browserHome !== 'string' || !/^https?:\/\//i.test(next.browserHome)) next.browserHome = base.browserHome;
   if (!COOKIE_SOURCES.includes(String(next.cookieSource))) next.cookieSource = base.cookieSource;
   next.cookieFile = sanitizeString(next.cookieFile, 1000);
   if (!THEMES.includes(String(next.theme))) next.theme = base.theme;

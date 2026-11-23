@@ -1,0 +1,24 @@
+{
+  "name": "wasel-downloader-mobile",
+  "version": "2.0.0",
+  "private": true,
+  "description": "Wasel Downloader — Android APK built with Capacitor + Chaquopy (yt-dlp), no server required.",
+  "scripts": {
+    "sync:web": "node scripts/sync-web.js",
+    "android:add": "cap add android",
+    "android:apply": "node scripts/apply-android.js",
+    "android:sync": "npm run sync:web && cap sync android",
+    "build:apk": "npm run android:sync && npm run android:apply && cd android && gradlew.bat assembleDebug",
+    "check": "node scripts/check-mobile.js"
+  },
+  "dependencies": {
+    "@capacitor/app": "^8.1.2",
+    "@capacitor/browser": "^8.0.2",
+    "@capacitor/core": "^8.6.2",
+    "@capacitor/share": "^8.0.3"
+  },
+  "devDependencies": {
+    "@capacitor/android": "^8.6.2",
+    "@capacitor/cli": "^8.6.2"
+  }
+}

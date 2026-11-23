@@ -18,12 +18,12 @@ contextBridge.exposeInMainWorld('wasel', {
 
   chooseFolder: () => ipcRenderer.invoke('dialog:choose-folder'),
   environment: () => ipcRenderer.invoke('env:check'),
-  cookieCount: () => ipcRenderer.invoke('cookies:count'),
 
   installTool: (target) => ipcRenderer.invoke('tools:install', target),
   updateYtDlp: () => ipcRenderer.invoke('tools:update-ytdlp'),
 
   fetchInfo: (url, cookieSource) => ipcRenderer.invoke('yt:info', url, cookieSource || 'none'),
+  getPreviewUrl: (url, cookieSource, mode) => ipcRenderer.invoke('yt:preview-url', url, cookieSource || 'none', mode),
   startDownload: (options) => ipcRenderer.invoke('yt:download', options),
   cancelDownload: (id) => ipcRenderer.invoke('yt:cancel', id),
 
@@ -51,9 +51,6 @@ contextBridge.exposeInMainWorld('wasel', {
   onCancelled: (callback) => subscribe('yt:cancelled', callback),
 
   onInstallProgress: (callback) => subscribe('tools:install-progress', callback),
-
-  onBrowserOpenUrl: (callback) => subscribe('browser:open-url', callback),
-  onBrowserLink: (callback) => subscribe('browser:context-link', callback),
 
   onExtensionReceived: (callback) => subscribe('extension:received', callback),
 

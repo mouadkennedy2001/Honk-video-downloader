@@ -6,3 +6,7 @@ bin/*
 *.log
 .DS_Store
 icons.zip
+error/
+mobile/www/
+mobile/android/
+mobile/android-template/**/__pycache__/

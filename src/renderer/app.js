@@ -5,6 +5,16 @@ const api = window.wasel;
 const $ = (selector, root = document) => root.querySelector(selector);
 const $$ = (selector, root = document) => Array.from(root.querySelectorAll(selector));
 
+function createIcon(name, className = 'icon') {
+  const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+  svg.setAttribute('class', className);
+  svg.setAttribute('aria-hidden', 'true');
+  const use = document.createElementNS('http://www.w3.org/2000/svg', 'use');
+  use.setAttribute('href', `#ic-${name}`);
+  svg.appendChild(use);
+  return svg;
+}
+
 const state = {
   settings: null,
   env: null,
@@ -16,7 +26,6 @@ const state = {
   busyInfo: false,
   incomingBusy: false,
   installing: new Set(),
-  browserUrl: 'https://www.youtube.com',
   pendingLink: null,
   toastTimer: null,
   extensions: [],
@@ -24,17 +33,23 @@ const state = {
   language: 'ar',
   history: [],
   favorites: [],
+  // Preview player
+  previewPlayerUrl: null,
 };
 
-const PHASE_LABEL = {
-  queued: 'بالانتظار',
-  playlist: 'قائمة التشغيل',
-  downloading: 'تنزيل',
-  merging: 'دمج',
-  converting: 'تحويل',
-  tagging: 'وسم',
-  done: 'مكتمل'
+const PHASE_KEYS = {
+  queued: 'queued',
+  playlist: 'playlist',
+  downloading: 'downloading',
+  merging: 'merging',
+  converting: 'converting',
+  tagging: 'tagging',
+  done: 'done'
 };
+
+function phaseLabel(phase) {
+  return t(PHASE_KEYS[phase] || 'processing');
+}
 
 function createElement(tag, className, text) {
   const element = document.createElement(tag);
@@ -47,7 +62,7 @@ function sanitizeError(error) {
   let message = error && error.message ? error.message : String(error || '');
   message = message.replace(/^Error invoking remote method '[^']+':\s*/i, '');
   message = message.replace(/^Error:\s*/i, '');
-  return message.trim() || 'حدث خطأ غير متوقع.';
+  return message.trim() || t('unexpectedError');
 }
 
 function showToast(message, kind) {
@@ -90,25 +105,6 @@ function normalizeDownloadUrl(input) {
   return null;
 }
 
-function toBrowserTarget(input) {
-  const raw = String(input || '').trim();
-  if (!raw) return null;
-
-  if (/^https?:\/\//i.test(raw)) {
-    try { return new URL(raw).toString(); } catch { return null; }
-  }
-
-  if (/^(localhost|127\.0\.0\.1|\[::1\])(:\d+)?(?:\/.*)?$/i.test(raw)) {
-    return `http://${raw}`;
-  }
-
-  if (/^(?:[\w-]+\.)+[a-z]{2,}(?::\d+)?(?:\/.*)?$/i.test(raw)) {
-    try { return new URL(`https://${raw}`).toString(); } catch { return null; }
-  }
-
-  return `https://www.google.com/search?q=${encodeURIComponent(raw)}`;
-}
-
 /* ---------- Theme ---------- */
 
 function systemTheme() {
@@ -123,35 +119,66 @@ function resolveTheme(theme) {
 }
 
 function applyTheme(theme) {
-  document.documentElement.dataset.theme = resolveTheme(theme);
+  const resolved = resolveTheme(theme);
+  document.documentElement.dataset.theme = resolved;
+  const themeIcon = $('#theme-icon');
+  if (themeIcon) themeIcon.setAttribute('href', resolved === 'dark' ? '#ic-moon' : '#ic-sun');
 }
 
 function appDisplayName() {
-  return state.language === 'ar' ? 'واصل محمل فيديوهات' : 'Wasel Downloader';
+  return t('appTitle');
 }
 
 function applyLanguage(lang) {
   const L = window.WaselLocales;
   if (!L) return;
+
   state.language = lang || 'ar';
   const tr = L.TRANSLATIONS[state.language] || L.TRANSLATIONS.ar;
   document.documentElement.lang = state.language;
   document.documentElement.dir = tr.dir || 'rtl';
-  $$('[data-i18n]').forEach(el => {
-    const key = el.dataset.i18n;
-    if (tr[key]) el.textContent = tr[key];
+
+  $$('[data-i18n]').forEach((el) => {
+    const value = t(el.dataset.i18n);
+    if (value !== undefined) el.textContent = value;
   });
-  // brand name follows the app language (واصل محمل فيديوهات in Arabic)
-  const brandName = $('#brand-name');
-  if (brandName) brandName.textContent = state.language === 'ar' ? 'واصل' : 'WASEL';
-  const brandTag = $('#brand-tag');
-  if (brandTag) brandTag.textContent = state.language === 'ar' ? 'محمّل فيديوهات' : 'DOWNLOADER';
+  $$('[data-i18n-title]').forEach((el) => {
+    const value = t(el.dataset.i18nTitle);
+    if (value !== undefined) el.title = value;
+  });
+  $$('[data-i18n-aria]').forEach((el) => {
+    const value = t(el.dataset.i18nAria);
+    if (value !== undefined) el.setAttribute('aria-label', value);
+  });
+  $$('[data-i18n-placeholder]').forEach((el) => {
+    const value = t(el.dataset.i18nPlaceholder);
+    if (value !== undefined) el.placeholder = value;
+  });
+
   document.title = appDisplayName();
-  // placeholders
-  const hint = $('#url-hint'); if (hint && tr.supportsHint) hint.textContent = tr.supportsHint;
-  const topLang = $('#top-language'); if (topLang) topLang.value = state.language;
-  const setLang = $('#settings-language'); if (setLang) setLang.value = state.language;
-  // engine pill text will be refreshed by refreshEnv
+
+  const hint = $('#url-hint');
+  if (hint) {
+    hint.textContent = t('urlHint');
+    hint.classList.remove('is-error');
+  }
+
+  const topLang = $('#top-language');
+  if (topLang) topLang.value = state.language;
+  const setLang = $('#settings-language');
+  if (setLang) setLang.value = state.language;
+
+  applyTheme(document.documentElement.dataset.theme);
+
+  // Re-render anything generated by JavaScript so it follows the new language.
+  if (state.info) renderPreview(state.info);
+  renderQueue();
+  renderHistory();
+  renderFavorites();
+  renderSites();
+  renderExtensions();
+  if (state.env) setEnginePill(state.env);
+  if (state.bridge) renderBridge(state.bridge);
 }
 
 function populateLanguages() {
@@ -162,7 +189,17 @@ function populateLanguages() {
   mk($('#settings-language'), L.LANGUAGE_OPTIONS);
 }
 
-function t(key){ return window.WaselLocales ? window.WaselLocales.getTranslation(state.language, key) : key; }
+function t(key, vars = {}) {
+  let value = window.WaselLocales
+    ? window.WaselLocales.getTranslation(state.language, key)
+    : key;
+  if (typeof value === 'string' && vars && Object.keys(vars).length) {
+    value = value.replace(/\{(\w+)\}/g, (match, name) => (
+      Object.prototype.hasOwnProperty.call(vars, name) ? String(vars[name]) : match
+    ));
+  }
+  return value;
+}
 
 function setTab(name) {
   $$('.tab').forEach((tab) => {
@@ -175,9 +212,7 @@ function setTab(name) {
     panel.classList.toggle('is-active', panel.id === `tab-${name}`);
   });
 
-  if (name === 'browser') {
-    setTimeout(updateBrowserNav, 0);
-  } else if (document.title.includes(' — ')) {
+  if (document.title.includes(' — ')) {
     document.title = appDisplayName();
   }
 
@@ -197,24 +232,31 @@ function iconUrlFor(site){
   return `../../icons/${encodeURIComponent(slug)}.svg`;
 }
 
+const CATEGORY_KEYS = {
+  'عام': 'general',
+  'صوت': 'audioCategory',
+  'تواصل اجتماعي': 'social',
+  'فيديو': 'videoCategory',
+  'صور وفيديو': 'photoVideo',
+  'رياضة': 'sports',
+  'أخبار': 'news',
+  'أرشيف': 'archive',
+  'تعليمي': 'education',
+  'ألعاب': 'gaming',
+  'محتوى مدفوع': 'paidContent',
+  'تخزين': 'storage',
+  'ترفيه': 'entertainment',
+  'محتوى': 'content'
+};
+
+function categoryLabel(category) {
+  return CATEGORY_KEYS[category] ? t(CATEGORY_KEYS[category]) : (category || '');
+}
+
 function setSiteIcon(image, site) {
-  const fallback = iconUrlFor(site);
-  image.onerror = () => {
-    image.onerror = null;
-    image.src = fallback;
-  };
-
-  try {
-    const page = new URL(site.url);
-    if (page.protocol === 'http:' || page.protocol === 'https:') {
-      image.src = new URL('/favicon.ico', page.origin).toString();
-      return;
-    }
-  } catch {
-    // Favorites from older settings files may contain invalid URLs.
-  }
-
-  image.src = fallback;
+  // Always prefer the bundled Adwaita-style SVG icons: consistent and offline.
+  image.onerror = null;
+  image.src = iconUrlFor(site);
 }
 
 function isFavorite(url){
@@ -230,7 +272,7 @@ async function toggleFavorite(site){
   try { state.settings = await api.saveSettings({ favorites: favs }); } catch {}
   renderSites();
   renderFavorites();
-  showToast(isFav ? 'أُزيل من المفضلة' : 'أُضيف للمفضلة', 'success');
+  showToast(isFav ? t('favoriteRemoved') : t('favoriteAdded'), 'success');
 }
 
 async function addHistory(entry){
@@ -247,6 +289,7 @@ function renderHistory(){
   const items = state.history || state.settings?.history || [];
   $('#history-count').textContent = String(items.length);
   $('#history-empty').classList.toggle('is-hidden', items.length>0);
+  renderStats();
   for (const h of items){
     const row = createElement('div','history-item');
     const copy = createElement('div'); copy.style.minWidth='0'; copy.style.flex='1';
@@ -256,10 +299,10 @@ function renderHistory(){
     const when = createElement('span', null, h.at ? new Date(h.at).toLocaleString(state.language||'ar', {dateStyle:'short',timeStyle:'short'}) : '');
     copy.append(b,url,when);
     const act = createElement('div'); act.style.display='flex'; act.style.gap='6px';
-    const btn = createElement('button','btn ghost compact','فتح');
+    const btn = createElement('button','btn ghost compact',t('open'));
     btn.type='button';
     btn.onclick=()=>{ $('#url').value=h.url; setTab('download'); analyze(h.url); };
-    const del = createElement('button','btn ghost compact','حذف');
+    const del = createElement('button','btn ghost compact',t('deleteAction'));
     del.type='button';
     del.onclick=async ()=>{
       const nh = (state.history||[]).filter(x=>x.url!==h.url);
@@ -270,6 +313,61 @@ function renderHistory(){
     act.append(btn,del);
     row.append(copy,act);
     list.appendChild(row);
+  }
+}
+
+function parseSizeToBytes(value) {
+  if (typeof value === 'number' && Number.isFinite(value)) return value;
+  const match = String(value || '').trim().match(/^([\d.,]+)\s*([KMGTPE]?i?B)$/i);
+  if (!match) return 0;
+  const amount = Number(match[1].replace(/,/g, ''));
+  const unit = match[2].toUpperCase();
+  const powers = { B: 0, KIB: 1, KB: 1, MIB: 2, MB: 2, GIB: 3, GB: 3, TIB: 4, TB: 4, PIB: 5, PB: 5, EIB: 6, EB: 6 };
+  return Number.isFinite(amount) ? amount * (1024 ** (powers[unit] || 0)) : 0;
+}
+
+function formatBytes(bytes) {
+  if (!bytes) return '0 B';
+  const units = ['B', 'KiB', 'MiB', 'GiB', 'TiB'];
+  const index = Math.min(units.length - 1, Math.floor(Math.log(bytes) / Math.log(1024)));
+  const value = bytes / (1024 ** index);
+  return `${value >= 10 || index === 0 ? Math.round(value) : value.toFixed(1)} ${units[index]}`;
+}
+
+function renderStats() {
+  const jobs = [...state.jobs.values()];
+  const done = jobs.filter((job) => job.status === 'done');
+  const failed = jobs.filter((job) => job.status === 'error' || job.status === 'cancelled');
+  const bytes = done.reduce((sum, job) => sum + parseSizeToBytes(job.size || job.bytes), 0);
+
+  const set = (id, value) => { const el = $(id); if (el) el.textContent = value; };
+  set('#stats-analyses', String((state.history || []).length));
+  set('#stats-done', String(done.length));
+  set('#stats-failed', String(failed.length));
+  set('#stats-bytes', formatBytes(bytes));
+}
+
+async function shareUrl(url) {
+  const clean = normalizeDownloadUrl(url);
+  if (!clean) {
+    showToast(t('invalidUrl'), 'error');
+    return;
+  }
+
+  try {
+    if (api.share) {
+      await api.share({ title: appDisplayName(), url: clean });
+      return;
+    }
+    if (navigator.share) {
+      await navigator.share({ title: appDisplayName(), url: clean });
+      return;
+    }
+    await api.writeClipboard(clean);
+    showToast(t('copied'), 'success');
+  } catch (error) {
+    if (error && error.name === 'AbortError') return;
+    showToast(sanitizeError(error), 'error');
   }
 }
 
@@ -285,9 +383,9 @@ function renderFavorites(){
     setSiteIcon(img, f);
     img.alt = f.name;
     const copy = createElement('div','site-copy');
-    copy.append(createElement('b',null,f.name), createElement('span',null,f.category||'عام'));
+    copy.append(createElement('b',null,f.name), createElement('span',null,categoryLabel(f.category)));
     const star = createElement('button','fav-btn is-fav','★');
-    star.type='button'; star.title='إزالة من المفضلة';
+    star.type='button'; star.title=t('removeFavorite');
     star.onclick=(e)=>{ e.stopPropagation(); toggleFavorite(f); };
     card.append(img,copy,star);
     card.style.cursor='pointer';
@@ -305,8 +403,24 @@ async function loadSites() {
     try {
       const cats = api.sitesCategories ? await api.sitesCategories() : [...new Set(state.sites.map(s=>s.category))].sort();
       const sel = $('#sites-category');
-      if (sel && sel.options.length <= 11) {
-        sel.innerHTML = '<option value="">كل الفئات</option>' + cats.map(c=>`<option value="${c}">${c}</option>`).join('');
+      if (sel) {
+        const current = sel.value;
+        sel.textContent = '';
+        const all = document.createElement('option');
+        all.value = '';
+        all.dataset.i18n = 'allCategories';
+        all.textContent = t('allCategories');
+        sel.appendChild(all);
+        for (const cat of cats) {
+          const option = document.createElement('option');
+          option.value = cat;
+          if (CATEGORY_KEYS[cat]) {
+            option.dataset.i18n = CATEGORY_KEYS[cat];
+          }
+          option.textContent = categoryLabel(cat);
+          sel.appendChild(option);
+        }
+        sel.value = cats.includes(current) ? current : '';
       }
     } catch {}
     renderSites();
@@ -335,9 +449,9 @@ function renderSites() {
       card.appendChild(img);
     }
     const copy = createElement('div','site-copy');
-    copy.append(createElement('b', null, s.name), createElement('span', null, `${s.category}`));
+    copy.append(createElement('b', null, s.name), createElement('span', null, categoryLabel(s.category)));
     const star = createElement('button','fav-btn' + (isFavorite(s.url)?' is-fav':''), isFavorite(s.url)?'★':'☆');
-    star.type='button'; star.title='مفضلة';
+    star.type='button'; star.title=t('favorite');
     star.addEventListener('click', (e)=>{ e.stopPropagation(); toggleFavorite(s); });
     card.append(copy, star);
     card.title = `${s.name} — ${s.url}`;
@@ -346,23 +460,42 @@ function renderSites() {
   }
 }
 
+function readBatchUrls() {
+  const txt = $('#batch-input')?.value || '';
+  return txt.split(/\r?\n/).map((line) => line.trim()).filter(Boolean).map((url) => normalizeDownloadUrl(url) || url);
+}
+
 function bindSites(){
   const search = $('#sites-search'); if(search) search.addEventListener('input', renderSites);
   const cat = $('#sites-category'); if(cat) cat.addEventListener('change', renderSites);
+
   const add = $('#batch-add');
-  if(add) add.addEventListener('click', async ()=>{
-    const txt = $('#batch-input').value || '';
-    const urls = txt.split(/\r?\n/).map(l=>l.trim()).filter(Boolean).map(u=>normalizeDownloadUrl(u)||u);
-    if(!urls.length){ showToast('الصق روابطًا أولًا'); return; }
+  if(add) add.addEventListener('click', ()=>{
+    const urls = readBatchUrls();
+    if(!urls.length){ showToast(t('noLinks')); return; }
     for(const url of urls){
-      // add as queued jobs without info? Create jobs directly
       const id = crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(16).slice(2)}`;
       const job = { id, url, title: url, thumbnail:null, mode: state.mode, quality: $('#quality-select')?.value || 'best', audioFormat: $('#audio-format-select')?.value || 'mp3', playlist:false, percent:0, phase:'queued', speed:null, eta:null, size:null, item:null, totalItems:null, status:'queued', error:null, finalPath:null, folder:null, el:null };
       state.jobs.set(id, job);
     }
     renderQueue();
-    showToast(`تمت إضافة ${urls.length} روابط`, 'success');
+    showToast(t('addedLinks', { count: urls.length }), 'success');
   });
+
+  const analyzeAll = $('#batch-analyze-all');
+  if(analyzeAll) analyzeAll.addEventListener('click', async ()=>{
+    const urls = readBatchUrls();
+    if(!urls.length){ showToast(t('noLinks')); return; }
+    setButtonBusy(analyzeAll, true, t('analyzing'));
+    let analyzed = 0;
+    for(const url of urls){
+      const info = await analyze(url);
+      if(info) analyzed += 1;
+    }
+    setButtonBusy(analyzeAll, false);
+    showToast(t('analyzeAllDone', { count: analyzed, total: urls.length }), 'success');
+  });
+
   const clearB = $('#batch-clear'); if(clearB) clearB.addEventListener('click', ()=>{ const el=$('#batch-input'); if(el) el.value=''; });
 }
 
@@ -376,14 +509,14 @@ function setButtonBusy(button, busy, label) {
   if (!button) return;
 
   if (busy) {
-    if (!button.dataset.originalLabel) button.dataset.originalLabel = button.textContent;
+    if (button.dataset.originalHtml === undefined) button.dataset.originalHtml = button.innerHTML;
     button.disabled = true;
-    button.textContent = label || 'جارٍ…';
+    button.replaceChildren(createIcon('spinner', 'icon spin'), document.createTextNode(label || t('busy')));
   } else {
     button.disabled = false;
-    if (button.dataset.originalLabel) {
-      button.textContent = button.dataset.originalLabel;
-      delete button.dataset.originalLabel;
+    if (button.dataset.originalHtml !== undefined) {
+      button.innerHTML = button.dataset.originalHtml;
+      delete button.dataset.originalHtml;
     }
   }
 }
@@ -401,21 +534,21 @@ async function analyze(urlOverride, preferredMode) {
 
   const url = normalizeDownloadUrl(urlOverride === undefined ? $('#url').value : urlOverride);
   if (!url) {
-    setUrlHint('أدخل رابطًا صالحًا يبدأ بـ http:// أو https://', true);
+    setUrlHint(t('validUrlRequired'), true);
     return null;
   }
 
   $('#url').value = url;
   state.busyInfo = true;
-  setButtonBusy($('#analyze-btn'), true, 'جارٍ التحليل…');
-  setUrlHint('جارٍ قراءة بيانات الفيديو…', false);
+  setButtonBusy($('#analyze-btn'), true, t('analyzing'));
+  setUrlHint(t('readingInfo'), false);
 
   try {
     const info = await api.fetchInfo(url, $('#cookie-source').value);
     state.info = info;
     state.mode = preferredMode === 'audio' ? 'audio' : 'video';
     renderPreview(info);
-    setUrlHint('تم التحليل بنجاح. اختر الجودة ثم اضغط «تحميل الآن».', false);
+    setUrlHint(t('analyzeSuccess'), false);
     // History
     if (state.settings?.enableHistory) {
       addHistory({ url, title: info.title || url, thumb: info.thumbnail || null, extractor: info.extractor || null, at: Date.now() });
@@ -443,7 +576,7 @@ function populateQualities(info) {
     select.appendChild(option);
   };
 
-  add('best', 'أفضل جودة');
+  add('best', t('bestQuality'));
 
   const heights = Array.isArray(info.heights) ? info.heights : [];
   const unique = [...new Set(heights.filter((height) => Number.isFinite(height) && height >= 144))];
@@ -464,14 +597,14 @@ function renderBadges(info) {
     container.appendChild(badge);
   };
 
-  if (info.isLive) add('بث مباشر', 'live');
-  if (info.isPlaylist) add(`قائمة تشغيل · ${info.playlistCount || ''}`.trim(), 'warn');
+  if (info.isLive) add(t('live'), 'live');
+  if (info.isPlaylist) add(`${t('playlist')} · ${info.playlistCount || ''}`.trim(), 'warn');
   if (info.extractor) add(info.extractor, 'info');
   if (Array.isArray(info.subtitleLangs) && info.subtitleLangs.length) {
-    add(`ترجمة · ${info.subtitleLangs.length}`, 'ok');
+    add(`${t('subtitleBadge')} · ${info.subtitleLangs.length}`, 'ok');
   }
-  if (info.hasVideo === false && info.hasAudio !== false) add('صوت فقط', 'info');
-  if (state.env && !state.env.merge) add('FFmpeg غير متوفر', 'warn');
+  if (info.hasVideo === false && info.hasAudio !== false) add(t('audioOnly'), 'info');
+  if (state.env && !state.env.merge) add(t('ffmpegBadge'), 'warn');
 }
 
 function renderPreview(info) {
@@ -492,14 +625,14 @@ function renderPreview(info) {
   durationEl.textContent = duration || '';
   durationEl.classList.toggle('is-hidden', !duration);
 
-  $('#preview-title').textContent = info.title || 'فيديو بدون عنوان';
+  $('#preview-title').textContent = info.title || t('untitled');
   $('#preview-title').title = info.title || '';
 
   const parts = [];
   if (info.uploader) parts.push(info.uploader);
   if (duration) parts.push(duration);
   if (info.extractor) parts.push(info.extractor);
-  if (info.isLive) parts.push('بث مباشر');
+  if (info.isLive) parts.push(t('live'));
   $('#preview-meta').textContent = parts.join(' • ') || '—';
 
   renderBadges(info);
@@ -520,11 +653,93 @@ function renderPreview(info) {
   $('#playlist-field').classList.toggle('is-hidden', !info.isPlaylist);
   if (!info.isPlaylist) $('#opt-playlist').checked = false;
 
+  // Load preview video if in video mode
+  if (state.mode === 'video') {
+    loadPreviewVideo(info);
+  } else {
+    hidePreviewPlayer();
+  }
+
   updateModeUi();
+}
+
+async function loadPreviewVideo(info) {
+  const playerWrap = $('#preview-player-wrap');
+  const player = $('#preview-player');
+  const overlay = $('#player-overlay');
+  const playBtn = $('#player-play-btn');
+
+  // Show loading state
+  playerWrap.classList.remove('is-hidden');
+  overlay.classList.remove('is-hidden');
+  player.classList.add('is-hidden');
+
+  // Remove old event listeners
+  playBtn.onclick = null;
+  player.onloadeddata = null;
+  player.onerror = null;
+
+  try {
+    // Use the webpage URL for preview
+    const url = info.webpageUrl || $('#url').value;
+    if (!url) {
+      hidePreviewPlayer();
+      return;
+    }
+
+    const previewUrl = await api.getPreviewUrl(url, $('#cookie-source').value, 'video');
+    state.previewPlayerUrl = previewUrl;
+
+    player.src = previewUrl;
+    player.load();
+
+    // Show player when loaded
+    player.onloadeddata = () => {
+      player.classList.remove('is-hidden');
+      overlay.classList.add('is-hidden');
+    };
+
+    player.onerror = (e) => {
+      console.warn('Preview player error:', e);
+      hidePreviewPlayer();
+    };
+
+    // Play button handler
+    playBtn.onclick = () => {
+      if (player.paused) {
+        player.play().catch(() => {});
+      } else {
+        player.pause();
+      }
+    };
+
+    // Sync overlay with player state
+    player.onplay = () => overlay.classList.add('is-hidden');
+    player.onpause = () => overlay.classList.remove('is-hidden');
+    player.onended = () => overlay.classList.remove('is-hidden');
+
+  } catch (error) {
+    console.warn('Could not load preview video:', error);
+    hidePreviewPlayer();
+  }
+}
+
+function hidePreviewPlayer() {
+  const playerWrap = $('#preview-player-wrap');
+  const player = $('#preview-player');
+  const overlay = $('#player-overlay');
+
+  player.pause();
+  player.removeAttribute('src');
+  player.load();
+  playerWrap.classList.add('is-hidden');
+  overlay.classList.remove('is-hidden');
+  state.previewPlayerUrl = null;
 }
 
 function hidePreview() {
   state.info = null;
+  hidePreviewPlayer();
   $('#preview').classList.add('is-hidden');
   $('#preview-empty').classList.remove('is-hidden');
 }
@@ -536,6 +751,13 @@ function updateModeUi() {
 
   $('#quality-field').classList.toggle('is-hidden', state.mode === 'audio');
   $('#audio-format-field').classList.toggle('is-hidden', state.mode !== 'audio');
+
+  // Handle preview player visibility based on mode
+  if (state.mode === 'video' && state.info) {
+    loadPreviewVideo(state.info);
+  } else {
+    hidePreviewPlayer();
+  }
 
   updateDownloadAvailability();
   updatePreviewNote();
@@ -552,18 +774,20 @@ function updatePreviewNote() {
   const notes = [];
   if (state.env && !state.env.merge) {
     if (state.mode === 'audio') {
-      notes.push('تحويل الصوت معطّل لأن FFmpeg غير متوفر. ثبّته من الإعدادات.');
+      notes.push(t('ffmpegAudioNote'));
     } else {
-      notes.push('FFmpeg غير متوفر؛ سيتم تنزيل أفضل صيغة مدمجة بدل دمج الفيديو والصوت.');
+      notes.push(t('ffmpegVideoNote'));
     }
   }
 
-  if (state.info.isLive) notes.push('هذا بث مباشر، وقد لا يكتمل التحميل.');
-  if (state.info.isPlaylist) notes.push('هذا رابط قائمة تشغيل؛ فعّل الخيار لتحميل كل العناصر.');
+  if (state.info.isLive) notes.push(t('liveNote'));
+  if (state.info.isPlaylist) notes.push(t('playlistNote'));
 
   const heights = Array.isArray(state.info.heights) ? state.info.heights : [];
   if (heights.length) {
-    notes.push(`الجودات المتاحة: ${heights.slice(0, 7).map((height) => `${height}p`).join('، ')}`);
+    notes.push(t('availableQualities', {
+      list: heights.slice(0, 7).map((height) => `${height}p`).join(', ')
+    }));
   }
 
   $('#preview-note').textContent = notes.join(' ');
@@ -571,14 +795,56 @@ function updatePreviewNote() {
 
 /* ---------- Downloads ---------- */
 
+function downloadOptionsFor(job) {
+  return {
+    id: job.id,
+    url: job.url,
+    mode: job.mode,
+    quality: job.quality,
+    audioFormat: job.audioFormat,
+    videoFormat: $('#settings-video-format')?.value || 'mp4',
+    playlist: job.playlist,
+    embedMetadata: $('#opt-metadata').checked,
+    downloadSubtitles: $('#opt-subtitles').checked,
+    subtitleLangs: $('#subtitle-lang').value,
+    cookieSource: $('#cookie-source').value,
+    speedLimit: $('#settings-speed')?.value || '',
+    proxy: $('#settings-proxy')?.value || '',
+    filenameTemplate: $('#settings-template')?.value || '%(title).150s [%(id)s].%(ext)s',
+    outputSubfolder: $('#opt-subfolder')?.checked || false,
+    downloadChapters: $('#opt-chapters')?.checked || false,
+    sponsorblock: $('#opt-sponsorblock')?.checked || false,
+    thumbnailOnly: $('#opt-thumb-only')?.checked || false,
+    playlistStart: Number($('#playlist-start')?.value || 1),
+    playlistEnd: Number($('#playlist-end')?.value || 0),
+  };
+}
+
+async function launchDownload(job) {
+  state.jobs.set(job.id, job);
+  renderQueue();
+
+  try {
+    const result = await api.startDownload(downloadOptionsFor(job));
+    if (result && result.folder) job.folder = result.folder;
+    if (job.status === 'queued') job.status = 'running';
+    updateJobCard(job);
+  } catch (error) {
+    job.status = 'error';
+    job.error = sanitizeError(error);
+    updateJobCard(job);
+    showToast(job.error, 'error');
+  }
+}
+
 async function startDownload() {
   if (!state.info) {
-    showToast('حلّل رابطًا أولًا.');
+    showToast(t('analyzeFirst'));
     return;
   }
 
   if (state.mode === 'audio' && state.env && !state.env.merge) {
-    showToast('تحويل الصوت يتطلب FFmpeg. ثبّته من الإعدادات.', 'error');
+    showToast(t('audioNeedsFfmpeg'), 'error');
     return;
   }
 
@@ -586,7 +852,7 @@ async function startDownload() {
     ? crypto.randomUUID()
     : `${Date.now()}-${Math.random().toString(16).slice(2)}`;
 
-  const job = {
+  await launchDownload({
     id,
     url: state.info.webpageUrl || $('#url').value,
     title: state.info.title || $('#url').value,
@@ -607,44 +873,25 @@ async function startDownload() {
     finalPath: null,
     folder: null,
     el: null
-  };
+  });
+}
 
-  state.jobs.set(id, job);
-  renderQueue();
-
-  try {
-    const result = await api.startDownload({
-      id,
-      url: job.url,
-      mode: job.mode,
-      quality: job.quality,
-      audioFormat: job.audioFormat,
-      videoFormat: $('#settings-video-format')?.value || 'mp4',
-      playlist: job.playlist,
-      embedMetadata: $('#opt-metadata').checked,
-      downloadSubtitles: $('#opt-subtitles').checked,
-      subtitleLangs: $('#subtitle-lang').value,
-      cookieSource: $('#cookie-source').value,
-      speedLimit: $('#settings-speed')?.value || '',
-      proxy: $('#settings-proxy')?.value || '',
-      filenameTemplate: $('#settings-template')?.value || '%(title).150s [%(id)s].%(ext)s',
-      outputSubfolder: $('#opt-subfolder')?.checked || false,
-      downloadChapters: $('#opt-chapters')?.checked || false,
-      sponsorblock: $('#opt-sponsorblock')?.checked || false,
-      thumbnailOnly: $('#opt-thumb-only')?.checked || false,
-      playlistStart: Number($('#playlist-start')?.value || 1),
-      playlistEnd: Number($('#playlist-end')?.value || 0),
-    });
-
-    if (result && result.folder) job.folder = result.folder;
-    if (job.status === 'queued') job.status = 'running';
-    updateJobCard(job);
-  } catch (error) {
-    job.status = 'error';
-    job.error = sanitizeError(error);
-    updateJobCard(job);
-    showToast(job.error, 'error');
-  }
+async function retryDownload(job) {
+  const id = crypto.randomUUID
+    ? crypto.randomUUID()
+    : `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+  state.jobs.delete(job.id);
+  await launchDownload({
+    ...job,
+    id,
+    status: 'queued',
+    error: null,
+    percent: 0,
+    phase: 'queued',
+    paused: false,
+    finalPath: null,
+    el: null
+  });
 }
 
 function createJobCard(job) {
@@ -675,7 +922,7 @@ function createJobCard(job) {
   const detail = createElement('span', 'queue-detail');
   const actions = createElement('div', 'queue-actions');
 
-  const openBtn = createElement('button', 'queue-action', 'فتح');
+  const openBtn = createElement('button', 'queue-action', t('open'));
   openBtn.type = 'button';
   openBtn.dataset.action = 'open';
   openBtn.classList.add('is-hidden');
@@ -683,26 +930,26 @@ function createJobCard(job) {
     if (job.finalPath) api.openPath(job.finalPath);
   });
 
-  const folderBtn = createElement('button', 'queue-action', 'المجلد');
+  const folderBtn = createElement('button', 'queue-action', t('folder'));
   folderBtn.type = 'button';
   folderBtn.dataset.action = 'folder';
   folderBtn.addEventListener('click', () => openJobFolder(job));
 
-  const pauseBtn = createElement('button', 'queue-action', '⏸ إيقاف');
+  const pauseBtn = createElement('button', 'queue-action', t('pause'));
   pauseBtn.type = 'button';
   pauseBtn.dataset.action = 'pause';
   pauseBtn.addEventListener('click', async () => {
-    if (job.status === 'running' && !job.paused) { await api.pauseDownload(job.id); job.paused = true; pauseBtn.textContent = '▶ استئناف'; job.status = 'paused'; updateJobCard(job); }
-    else if (job.paused) { await api.resumeDownload(job.id); job.paused = false; pauseBtn.textContent = '⏸ إيقاف'; job.status = 'running'; updateJobCard(job); }
+    if (job.status === 'running' && !job.paused) { await api.pauseDownload(job.id); job.paused = true; pauseBtn.textContent = t('resume'); job.status = 'paused'; updateJobCard(job); }
+    else if (job.paused) { await api.resumeDownload(job.id); job.paused = false; pauseBtn.textContent = t('pause'); job.status = 'running'; updateJobCard(job); }
   });
 
-  const retryBtn = createElement('button', 'queue-action', '↻ إعادة');
+  const retryBtn = createElement('button', 'queue-action', t('retry'));
   retryBtn.type = 'button';
   retryBtn.dataset.action = 'retry';
   retryBtn.classList.add('is-hidden');
-  retryBtn.addEventListener('click', () => startDownload());
+  retryBtn.addEventListener('click', () => retryDownload(job));
 
-  const cancelBtn = createElement('button', 'queue-action', 'إلغاء');
+  const cancelBtn = createElement('button', 'queue-action', t('cancel'));
   cancelBtn.type = 'button';
   cancelBtn.dataset.action = 'cancel';
   cancelBtn.addEventListener('click', () => api.cancelDownload(job.id));
@@ -737,11 +984,11 @@ function updateJobCard(job) {
   let indeterminate = false;
 
   if (job.status === 'queued') {
-    badgeText = 'بالانتظار';
-    refs.meta.textContent = 'في الانتظار…';
+    badgeText = t('queued');
+    refs.meta.textContent = t('waiting');
   } else if (job.status === 'running') {
     if (job.phase === 'merging' || job.phase === 'converting' || job.phase === 'tagging') {
-      badgeText = PHASE_LABEL[job.phase] || 'معالجة';
+      badgeText = phaseLabel(job.phase);
       indeterminate = true;
     } else if (job.phase === 'playlist' && job.totalItems) {
       badgeText = `${job.item || 1}/${job.totalItems}`;
@@ -753,22 +1000,22 @@ function updateJobCard(job) {
     if (job.percent > 0 && !indeterminate) metaParts.push(`${job.percent.toFixed(1)}%`);
     if (job.size) metaParts.push(job.size);
     if (job.speed) metaParts.push(job.speed);
-    if (job.eta) metaParts.push(`متبقي ${job.eta}`);
-    refs.meta.textContent = metaParts.join(' • ') || 'جارٍ التحميل…';
+    if (job.eta) metaParts.push(t('remaining', { time: job.eta }));
+    refs.meta.textContent = metaParts.join(' • ') || t('downloading');
   } else if (job.status === 'done') {
-    badgeText = 'مكتمل';
-    refs.meta.textContent = job.finalPath || 'تم حفظ الملف.';
+    badgeText = t('done');
+    refs.meta.textContent = job.finalPath || t('fileSaved');
     refs.meta.title = job.finalPath || '';
   } else if (job.status === 'cancelled') {
-    badgeText = 'ملغى';
-    refs.meta.textContent = 'تم إلغاء التحميل.';
+    badgeText = t('cancelled');
+    refs.meta.textContent = t('downloadCancelled');
   } else if (job.status === 'error') {
-    badgeText = 'خطأ';
-    refs.meta.textContent = job.error || 'فشل التحميل.';
+    badgeText = t('errorShort');
+    refs.meta.textContent = job.error || t('downloadFailed');
     refs.meta.title = job.error || '';
   } else if (job.status === 'paused') {
-    badgeText = 'متوقف';
-    refs.meta.textContent = 'إيقاف مؤقت — اضغط استئناف';
+    badgeText = t('paused');
+    refs.meta.textContent = t('pausedHint');
     refs.meta.title = '';
   }
 
@@ -780,11 +1027,11 @@ function updateJobCard(job) {
 
   const detailParts = [];
   if (job.status === 'running' && job.phase) {
-    detailParts.push(PHASE_LABEL[job.phase] || job.phase);
+    detailParts.push(phaseLabel(job.phase));
   }
-  if (job.playlist) detailParts.push('قائمة');
-  if (job.mode === 'audio') detailParts.push('صوت');
-  refs.detail.textContent = detailParts.join(' • ') || (job.status === 'queued' ? 'بانتظار الدور' : '');
+  if (job.playlist) detailParts.push(t('playlistShort'));
+  if (job.mode === 'audio') detailParts.push(t('audioShort'));
+  refs.detail.textContent = detailParts.join(' • ') || (job.status === 'queued' ? t('queueWaiting') : '');
   refs.detail.title = job.error || '';
 
   refs.openBtn.classList.toggle('is-hidden', job.status !== 'done' || !job.finalPath);
@@ -792,7 +1039,7 @@ function updateJobCard(job) {
   refs.cancelBtn.classList.toggle('is-hidden', job.status !== 'running' && job.status !== 'queued' && job.status !== 'paused');
   if (refs.pauseBtn) {
     refs.pauseBtn.classList.toggle('is-hidden', job.status !== 'running' && job.status !== 'paused');
-    refs.pauseBtn.textContent = job.paused ? '▶ استئناف' : '⏸ إيقاف';
+    refs.pauseBtn.textContent = job.paused ? t('resume') : t('pause');
   }
   if (refs.retryBtn) {
     refs.retryBtn.classList.toggle('is-hidden', job.status !== 'error' && job.status !== 'cancelled');
@@ -811,6 +1058,7 @@ function renderQueue() {
 
   $('#queue-empty').classList.toggle('is-hidden', state.jobs.size > 0);
   $('#queue-count').textContent = String(state.jobs.size);
+  renderStats();
 }
 
 function openJobFolder(job) {
@@ -858,7 +1106,8 @@ function handleDone(payload) {
   job.folder = payload.folder || job.folder;
 
   updateJobCard(job);
-  showToast(`اكتمل التحميل: ${job.title}`, 'success');
+  renderStats();
+  showToast(t('downloadComplete', { title: job.title }), 'success');
 }
 
 function handleError(payload) {
@@ -866,8 +1115,9 @@ function handleError(payload) {
   if (!job) return;
 
   job.status = 'error';
-  job.error = payload.message || 'فشل التحميل.';
+  job.error = payload.message || t('downloadFailed');
   updateJobCard(job);
+  renderStats();
   showToast(job.error, 'error');
 }
 
@@ -877,97 +1127,117 @@ function handleCancelled(payload) {
 
   job.status = 'cancelled';
   updateJobCard(job);
+  renderStats();
 }
 
-/* ---------- Browser ---------- */
-
-let browserView = null;
-
-function currentBrowserUrl() {
-  if (!browserView) return state.browserUrl;
-  try {
-    return browserView.getURL() || state.browserUrl;
-  } catch {
-    return state.browserUrl;
-  }
+function bindTabs() {
+  $$('.tab').forEach((tab) => {
+    tab.addEventListener('click', () => setTab(tab.dataset.tab));
+  });
 }
 
-function setAddress(url) {
-  state.browserUrl = url || state.browserUrl;
-  const address = $('#address');
-  if (document.activeElement !== address) address.value = state.browserUrl;
-}
+function bindTheme() {
+  $('#theme-toggle').addEventListener('click', async () => {
+    const next = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
+    applyTheme(next);
+    $('#settings-theme').value = next;
 
-function updateBrowserNav() {
-  if (!browserView) return;
-
-  try {
-    $('#nav-back').disabled = !browserView.canGoBack();
-    $('#nav-forward').disabled = !browserView.canGoForward();
-  } catch {
-    $('#nav-back').disabled = true;
-    $('#nav-forward').disabled = true;
-  }
-}
-
-function navigateBrowser(url) {
-  if (!browserView) return;
-
-  try {
-    if (browserView.getURL() === url) {
-      browserView.reload();
-      return;
+    try {
+      state.settings = await api.saveSettings({ theme: next });
+    } catch (error) {
+      showToast(sanitizeError(error), 'error');
     }
-  } catch {
-    /* webview not ready yet */
+  });
+
+  $('#settings-theme').addEventListener('change', () => {
+    applyTheme($('#settings-theme').value);
+  });
+}
+
+async function handleIncoming(payload) {
+  if (!payload || !payload.url || state.incomingBusy) return;
+
+  state.incomingBusy = true;
+  try {
+    $('#url').value = payload.url;
+    setTab('download');
+    const info = await analyze(payload.url, payload.mode === 'audio' ? 'audio' : 'video');
+    if (info && payload.autoDownload) await startDownload();
+  } finally {
+    state.incomingBusy = false;
   }
-
-  browserView.src = url;
 }
 
-function loadInBrowser(target) {
-  const url = toBrowserTarget(target);
-  if (!url) return;
+function bindDownloader() {
+  $('#analyze-btn').addEventListener('click', () => analyze());
+  $('#url').addEventListener('keydown', (event) => {
+    if (event.key === 'Enter') {
+      event.preventDefault();
+      analyze();
+    }
+  });
 
-  setTab('browser');
-  setAddress(url);
-  navigateBrowser(url);
+  $('#paste-btn').addEventListener('click', async () => {
+    try {
+      const text = (await api.readClipboard()).trim();
+      if (!text) {
+        showToast(t('clipboardEmpty'));
+        return;
+      }
+
+      $('#url').value = text;
+      const url = normalizeDownloadUrl(text);
+      if (url) analyze(url);
+      else setUrlHint(t('validUrlRequired'), true);
+    } catch (error) {
+      showToast(sanitizeError(error), 'error');
+    }
+  });
+
+  $('#mode-toggle').addEventListener('click', (event) => {
+    const button = event.target.closest('.seg');
+    if (!button) return;
+    state.mode = button.dataset.mode === 'audio' ? 'audio' : 'video';
+    updateModeUi();
+  });
+
+  $('#opt-subtitles').addEventListener('change', () => {
+    $('#subtitle-lang-field').classList.toggle('is-hidden', !$('#opt-subtitles').checked);
+  });
+  $('#download-btn').addEventListener('click', startDownload);
+
+  $('#preview-browse').addEventListener('click', () => {
+    const url = state.info && (state.info.webpageUrl || $('#url').value);
+    if (url) api.openExternal(url);
+  });
+  $('#preview-copy').addEventListener('click', () => {
+    const url = (state.info && state.info.webpageUrl) || $('#url').value;
+    if (url) api.writeClipboard(url).then(() => showToast(t('copied'), 'success'))
+      .catch((error) => showToast(sanitizeError(error), 'error'));
+  });
+  $('#preview-share').addEventListener('click', () => {
+    const url = (state.info && state.info.webpageUrl) || $('#url').value;
+    if (url) shareUrl(url);
+  });
+
+  $('#clear-completed').addEventListener('click', () => {
+    for (const [id, job] of state.jobs) {
+      if (job.status === 'done' || job.status === 'cancelled' || job.status === 'error') {
+        state.jobs.delete(id);
+      }
+    }
+    renderQueue();
+  });
+
+  api.onProgress(handleProgress);
+  api.onDone(handleDone);
+  api.onError(handleError);
+  api.onCancelled(handleCancelled);
+  if (api.onExtensionReceived) api.onExtensionReceived(handleIncoming);
 }
-
-function showLinkChip(link) {
-  if (!link || !link.url) return;
-  state.pendingLink = link;
-  $('#link-chip-title').textContent = link.text || 'رابط محدد';
-  $('#link-chip-url').textContent = link.url;
-  $('#link-chip-url').title = link.url;
-  $('#link-chip').classList.remove('is-hidden');
-}
-
-function hideLinkChip() {
-  state.pendingLink = null;
-  $('#link-chip').classList.add('is-hidden');
-}
-
-function startBrowserLoading() {
-  const bar = $('#browser-loading-bar');
-  bar.style.opacity = '1';
-  bar.style.width = '28%';
-}
-
-function finishBrowserLoading() {
-  const bar = $('#browser-loading-bar');
-  bar.style.width = '100%';
-  setTimeout(() => {
-    bar.style.opacity = '0';
-    setTimeout(() => {
-      bar.style.width = '0';
-    }, 220);
-  }, 180);
-}
-
-/* ---------- Extensions ---------- */
 
 async function loadExtensions() {
+  if (!$('#extensions-list')) return;
   try {
     const result = await api.listExtensions();
     state.extensions = result && Array.isArray(result.extensions) ? result.extensions : [];
@@ -979,42 +1249,34 @@ async function loadExtensions() {
 
 function renderExtensions() {
   const container = $('#extensions-list');
+  if (!container) return;
+
   container.textContent = '';
+  $('#extensions-count').textContent = String(state.extensions.length);
+  $('#extensions-empty').classList.toggle('is-hidden', state.extensions.length > 0);
 
-  const items = state.extensions;
-  $('#extensions-count').textContent = String(items.length);
-  $('#extensions-empty').classList.toggle('is-hidden', items.length > 0);
-
-  items.forEach((ext) => {
+  for (const extension of state.extensions) {
     const item = createElement('div', 'extension-item');
+    const icon = createIcon('puzzle', 'extension-icon');
     const copy = createElement('div', 'extension-copy');
-
-    const title = createElement('strong', null, ext.name || ext.folder || 'إضافة');
-    copy.appendChild(title);
-
-    const metaParts = [];
-    if (ext.version && ext.version !== '—') metaParts.push(`v${ext.version}`);
-    if (ext.id) metaParts.push(ext.id);
-    copy.appendChild(createElement('span', 'hint', metaParts.join(' • ') || '—'));
-
-    if (ext.folder) copy.appendChild(createElement('span', 'hint', ext.folder));
-    if (ext.error) copy.appendChild(createElement('span', 'hint is-error', ext.error));
+    const name = createElement('b', null, extension.name || t('extension'));
+    const details = createElement(
+      'span',
+      null,
+      `${extension.version || '—'} · ${t(extension.loaded ? 'loaded' : 'notLoaded')}`
+    );
+    if (extension.error) details.title = extension.error;
+    copy.append(name, details);
 
     const actions = createElement('div', 'extension-actions');
-    actions.appendChild(createElement(
-      'span',
-      `badge ${ext.loaded ? 'badge-ok' : 'badge-warn'}`,
-      ext.loaded ? 'مثبتة' : 'تعذّر التحميل'
-    ));
-
-    const reload = createElement('button', 'btn ghost compact', 'إعادة تحميل');
+    const reload = createElement('button', 'btn ghost compact', t('reload'));
     reload.type = 'button';
     reload.addEventListener('click', async () => {
-      setButtonBusy(reload, true, 'جارٍ…');
+      setButtonBusy(reload, true, t('busy'));
       try {
-        await api.reloadExtension({ id: ext.id, folder: ext.folder });
+        await api.reloadExtension({ id: extension.id, folder: extension.folder });
         await loadExtensions();
-        showToast('تمت إعادة تحميل الإضافة.', 'success');
+        showToast(t('extensionReloaded'), 'success');
       } catch (error) {
         showToast(sanitizeError(error), 'error');
       } finally {
@@ -1022,17 +1284,15 @@ function renderExtensions() {
       }
     });
 
-    const remove = createElement('button', 'btn ghost compact', 'إزالة');
+    const remove = createElement('button', 'btn ghost compact', t('remove'));
     remove.type = 'button';
     remove.addEventListener('click', async () => {
-      const label = ext.name || ext.folder || 'الإضافة';
-      if (!window.confirm(`إزالة «${label}»؟`)) return;
-
-      setButtonBusy(remove, true, 'جارٍ…');
+      if (!window.confirm(t('confirmRemove', { name: extension.name || t('extension') }))) return;
+      setButtonBusy(remove, true, t('busy'));
       try {
-        await api.removeExtension({ id: ext.id, folder: ext.folder });
+        await api.removeExtension({ id: extension.id, folder: extension.folder });
         await loadExtensions();
-        showToast('تمت إزالة الإضافة.', 'success');
+        showToast(t('extensionRemoved'), 'success');
       } catch (error) {
         showToast(sanitizeError(error), 'error');
       } finally {
@@ -1041,77 +1301,106 @@ function renderExtensions() {
     });
 
     actions.append(reload, remove);
-    item.append(copy, actions);
+    item.append(icon, copy, actions);
     container.appendChild(item);
-  });
+  }
 }
 
-/* ---------- Settings / env / bridge ---------- */
+function bindExtensions() {
+  if (!$('#extensions-list')) return;
+
+  const installers = [
+    ['#add-extension-folder', () => api.addExtensionFolder(), 'extensionInstalled'],
+    ['#add-extension-archive', () => api.addExtensionArchive(), 'extensionInstalled'],
+    ['#install-bundled-extension', () => api.installBundledExtension(), 'bundledInstalled']
+  ];
+
+  installers.forEach(([selector, task, successKey]) => {
+    const button = $(selector);
+    button.addEventListener('click', async () => {
+      setButtonBusy(button, true, t('installing'));
+      try {
+        const result = await task();
+        if (result === null || result === undefined) return;
+        await loadExtensions();
+        showToast(t(successKey), 'success');
+      } catch (error) {
+        showToast(sanitizeError(error), 'error');
+      } finally {
+        setButtonBusy(button, false);
+      }
+    });
+  });
+
+  $('#refresh-extensions').addEventListener('click', loadExtensions);
+  $('#open-extensions-folder').addEventListener('click', () => api.openExtensionsFolder());
+}
 
 function setCookieSource(source) {
   const value = source || 'none';
-
   [$('#cookie-source'), $('#settings-cookie-source')].forEach((select) => {
-    if (Array.from(select.options).some((option) => option.value === value)) {
+    if (select && Array.from(select.options).some((option) => option.value === value)) {
       select.value = value;
     }
   });
 }
 
 function applySettingsToForm(settings) {
-  $('#settings-dir').value = settings.downloadDir;
-  $('#settings-quality').value = settings.videoQuality;
-  $('#settings-audio').value = settings.audioFormat;
-  $('#settings-home').value = settings.browserHome;
+  $('#settings-dir').value = settings.downloadDir || '';
+  $('#settings-quality').value = settings.videoQuality || 'best';
+  $('#settings-audio').value = settings.audioFormat || 'mp3';
   $('#settings-theme').value = settings.theme || 'system';
   $('#settings-concurrent').value = String(settings.maxConcurrentDownloads || 2);
   $('#settings-metadata').checked = settings.embedMetadata !== false;
   $('#settings-subtitles').checked = Boolean(settings.downloadSubtitles);
   $('#settings-subtitle-lang').value = settings.subtitleLangs || 'ar,en';
-  $('#bridge-enabled').checked = settings.extensionBridge !== false;
-  $('#auto-download-extension').checked = Boolean(settings.autoDownloadFromExtension);
-  // new
-  const $id = (s)=>document.getElementById(s);
-  if ($id('settings-language')) $id('settings-language').value = settings.language || 'ar';
-  if ($id('settings-video-format')) $id('settings-video-format').value = settings.videoFormat || 'mp4';
-  if ($id('settings-speed')) $id('settings-speed').value = settings.speedLimit || '';
-  if ($id('settings-proxy')) $id('settings-proxy').value = settings.proxy || '';
-  if ($id('settings-template')) $id('settings-template').value = settings.filenameTemplate || '';
-  if ($id('playlist-start')) $id('playlist-start').value = settings.playlistStart || 1;
-  if ($id('playlist-end')) $id('playlist-end').value = settings.playlistEnd || 0;
-  if ($id('opt-chapters')) $id('opt-chapters').checked = Boolean(settings.downloadChapters);
-  if ($id('opt-sponsorblock')) $id('opt-sponsorblock').checked = Boolean(settings.sponsorblock);
-  if ($id('opt-subfolder')) $id('opt-subfolder').checked = Boolean(settings.outputSubfolder);
-  if ($id('opt-thumb-only')) $id('opt-thumb-only').checked = Boolean(settings.downloadThumbnail);
-  if ($id('minimize-tray')) $id('minimize-tray').checked = Boolean(settings.minimizeToTray);
-  if ($id('auto-start')) $id('auto-start').checked = Boolean(settings.autoStart);
+  const bridgeEnabled = $('#bridge-enabled');
+  const autoDownload = $('#auto-download-extension');
+  if (bridgeEnabled) bridgeEnabled.checked = settings.extensionBridge !== false;
+  if (autoDownload) autoDownload.checked = Boolean(settings.autoDownloadFromExtension);
+
+  const optionalValues = {
+    'settings-language': settings.language || 'ar',
+    'settings-video-format': settings.videoFormat || 'mp4',
+    'settings-speed': settings.speedLimit || '',
+    'settings-proxy': settings.proxy || '',
+    'settings-template': settings.filenameTemplate || '%(title).150s [%(id)s].%(ext)s',
+    'playlist-start': settings.playlistStart || 1,
+    'playlist-end': settings.playlistEnd || 0
+  };
+  for (const [id, value] of Object.entries(optionalValues)) {
+    const element = document.getElementById(id);
+    if (element) element.value = value;
+  }
+  const optionalChecks = {
+    'opt-chapters': settings.downloadChapters,
+    'opt-sponsorblock': settings.sponsorblock,
+    'opt-subfolder': settings.outputSubfolder,
+    'opt-thumb-only': settings.downloadThumbnail,
+    'minimize-tray': settings.minimizeToTray,
+    'auto-start': settings.autoStart
+  };
+  for (const [id, checked] of Object.entries(optionalChecks)) {
+    const element = document.getElementById(id);
+    if (element) element.checked = Boolean(checked);
+  }
+
+  state.history = Array.isArray(settings.history) ? settings.history : [];
+  state.favorites = Array.isArray(settings.favorites) ? settings.favorites : [];
+  $('#opt-metadata').checked = settings.embedMetadata !== false;
+  $('#opt-subtitles').checked = Boolean(settings.downloadSubtitles);
+  $('#subtitle-lang').value = settings.subtitleLangs || 'ar,en';
+  $('#subtitle-lang-field').classList.toggle('is-hidden', !settings.downloadSubtitles);
   applyLanguage(settings.language || 'ar');
   setCookieSource(settings.cookieSource);
-
-  if (!state.info) {
-    $('#opt-metadata').checked = settings.embedMetadata !== false;
-    $('#opt-subtitles').checked = Boolean(settings.downloadSubtitles);
-    $('#subtitle-lang').value = settings.subtitleLangs || 'ar,en';
-    $('#subtitle-lang-field').classList.toggle('is-hidden', !settings.downloadSubtitles);
-  }
-
-  if (state.info) {
-    const qualitySelect = $('#quality-select');
-    if (Array.from(qualitySelect.options).some((option) => option.value === settings.videoQuality)) {
-      qualitySelect.value = settings.videoQuality;
-    }
-
-    const audioSelect = $('#audio-format-select');
-    if (Array.from(audioSelect.options).some((option) => option.value === settings.audioFormat)) {
-      audioSelect.value = settings.audioFormat;
-    }
-  }
+  renderHistory();
+  renderFavorites();
 }
 
 async function loadSettings() {
   try {
     state.settings = await api.getSettings();
-    applyTheme(state.settings.theme);
+    applyTheme(state.settings.theme || 'system');
     applySettingsToForm(state.settings);
   } catch (error) {
     showToast(sanitizeError(error), 'error');
@@ -1156,40 +1445,23 @@ async function refreshEnv() {
   try {
     const env = await api.environment();
     state.env = env;
-
     setEnginePill(env);
     setBadge($('#env-ytdlp'), env.ok ? 'ok' : 'bad', env.ok ? 'متوفر' : 'غير متوفر');
     setBadge($('#env-ffmpeg'), env.merge ? 'ok' : 'bad', env.merge ? 'متوفر' : 'غير متوفر');
-
     $('#env-ytdlp-version').textContent = env.ytDlpVersion || (env.ytDlp ? 'متوفر' : 'غير متوفر');
     $('#env-ytdlp-version').title = env.ytDlp || '';
     $('#env-ffmpeg-version').textContent = ffmpegVersionLabel(env.ffmpegVersion);
     $('#env-ffmpeg-version').title = env.ffmpeg || '';
-
     updatePreviewNote();
     updateDownloadAvailability();
-
     if (state.info) renderBadges(state.info);
   } catch (error) {
+    state.env = null;
     setBadge($('#env-ytdlp'), 'bad', 'خطأ');
     setBadge($('#env-ffmpeg'), 'bad', 'خطأ');
     $('#engine-pill').className = 'engine-pill is-bad';
     $('#engine-pill-text').textContent = 'تعذّر فحص المحرّكات';
     showToast(sanitizeError(error), 'error');
-  }
-}
-
-async function refreshCookieCount() {
-  const badge = $('#env-cookies');
-  try {
-    const count = await api.cookieCount();
-    if (count > 0) {
-      setBadge(badge, 'ok', `${count} كوكي`);
-    } else {
-      setBadge(badge, null, 'لا توجد كوكيز');
-    }
-  } catch {
-    setBadge(badge, null, '—');
   }
 }
 
@@ -1209,81 +1481,53 @@ async function refreshAppInfo() {
 }
 
 function renderBridge(status) {
+  if (!$('#bridge-dot')) return;
   state.bridge = status;
-
-  const dot = $('#bridge-dot');
-  dot.dataset.online = status && status.running ? 'true' : 'false';
-
-  const label = $('#bridge-status');
-  const port = $('#bridge-port');
-
-  if (!status) {
-    label.textContent = 'تعذّر قراءة حالة الجسر.';
-  } else if (!status.enabled) {
-    label.textContent = 'جسر الإضافة معطّل من الإعدادات.';
-  } else if (status.running) {
-    label.textContent = `الجسر يعمل على 127.0.0.1:${status.port}`;
-  } else {
-    label.textContent = status.error || 'الجسر متوقف. اضغط «إعادة التشغيل».';
-  }
-
-  port.textContent = status && status.port ? String(status.port) : '—';
+  $('#bridge-dot').dataset.online = status && status.running ? 'true' : 'false';
+  $('#bridge-status').textContent = status && status.running
+    ? `يعمل على المنفذ ${status.port}`
+    : 'متوقف';
+  $('#bridge-port').textContent = status && status.port ? String(status.port) : '—';
 }
 
 async function refreshBridge() {
+  if (!$('#bridge-dot')) return;
   try {
-    const status = await api.bridgeStatus();
-    renderBridge(status);
+    renderBridge(await api.bridgeStatus());
   } catch (error) {
     renderBridge(null);
     showToast(sanitizeError(error), 'error');
   }
 }
 
-/* ---------- Installer ---------- */
-
 function setInstallUi(target, progress) {
   const fill = $(`#install-${target}-fill`);
   const text = $(`#install-${target}-text`);
   if (!fill || !text) return;
 
-  const phase = progress.phase;
   const percent = typeof progress.percent === 'number' ? progress.percent : null;
-
-  if (phase === 'done') {
+  if (progress.phase === 'done') {
     fill.classList.remove('is-indeterminate');
     fill.style.width = '100%';
     text.textContent = progress.message || 'تم التثبيت بنجاح.';
-    return;
-  }
-
-  if (phase === 'download' && percent !== null) {
+  } else if (progress.phase === 'download' && percent !== null) {
     fill.classList.remove('is-indeterminate');
     fill.style.width = `${Math.max(2, Math.min(100, percent))}%`;
-    text.textContent = progress.message
-      ? `${progress.message} ${Math.round(percent)}%`
-      : `جارٍ التنزيل… ${Math.round(percent)}%`;
-    return;
+    text.textContent = `${progress.message || 'جارٍ التنزيل…'} ${Math.round(percent)}%`;
+  } else {
+    fill.classList.add('is-indeterminate');
+    text.textContent = progress.message || 'جارٍ التجهيز…';
   }
-
-  fill.classList.add('is-indeterminate');
-  text.textContent = progress.message || 'جارٍ التجهيز…';
 }
 
 async function runInstaller(target, button) {
   if (state.installing.has(target)) return;
-
   state.installing.add(target);
   setButtonBusy(button, true, 'جارٍ التثبيت…');
 
   try {
     const result = await api.installTool(target);
-    if (result && result.skipped) {
-      showToast(result.message || 'كل المكتبات مثبّتة بالفعل.');
-    } else {
-      showToast('تم تثبيت المكتبات المطلوبة.', 'success');
-    }
-
+    showToast(result && result.message ? result.message : 'تم تثبيت المكتبات المطلوبة.', 'success');
     await refreshEnv();
     await refreshAppInfo();
   } catch (error) {
@@ -1302,13 +1546,11 @@ function bindInstaller() {
   $('#update-ytdlp').addEventListener('click', async () => {
     const button = $('#update-ytdlp');
     if (state.installing.has('yt-dlp')) return;
-
     state.installing.add('yt-dlp');
     setButtonBusy(button, true, 'جارٍ التحديث…');
-
     try {
       const result = await api.updateYtDlp();
-      showToast(result && result.message ? result.message : 'تم تحديث yt-dlp.', 'success');
+      showToast(result.message || 'تم تحديث yt-dlp.', 'success');
       await refreshEnv();
       await refreshAppInfo();
     } catch (error) {
@@ -1320,290 +1562,10 @@ function bindInstaller() {
   });
 
   api.onInstallProgress((progress) => {
-    const target = progress && progress.target;
-    if (target === 'yt-dlp' || target === 'ffmpeg') setInstallUi(target, progress);
-  });
-}
-
-/* ---------- Incoming extension payloads ---------- */
-
-async function handleIncoming(payload) {
-  if (!payload || !payload.url || state.incomingBusy) return;
-
-  state.incomingBusy = true;
-
-  try {
-    $('#url').value = payload.url;
-    setTab('download');
-    setUrlHint(
-      payload.title
-        ? `رابط مستلم من الإضافة: ${payload.title}`
-        : 'تم استلام رابط من الإضافة.',
-      false
-    );
-    showToast('تم استلام رابط من الإضافة.', 'success');
-
-    const info = await analyze(payload.url, payload.mode === 'audio' ? 'audio' : 'video');
-
-    if (info && payload.autoDownload) {
-      if (state.mode === 'audio' && state.env && !state.env.merge) {
-        showToast('الرابط صوتي وFFmpeg غير متوفر؛ لم يبدأ التحميل تلقائيًا.', 'error');
-      } else {
-        await startDownload();
-      }
-    }
-  } finally {
-    state.incomingBusy = false;
-  }
-}
-
-/* ---------- Binders ---------- */
-
-function bindTabs() {
-  $$('.tab').forEach((tab) => {
-    tab.addEventListener('click', () => setTab(tab.dataset.tab));
-  });
-}
-
-function bindTheme() {
-  $('#theme-toggle').addEventListener('click', async () => {
-    const next = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
-    applyTheme(next);
-    $('#settings-theme').value = next;
-
-    try {
-      state.settings = await api.saveSettings({ theme: next });
-    } catch (error) {
-      showToast(sanitizeError(error), 'error');
+    if (progress && (progress.target === 'yt-dlp' || progress.target === 'ffmpeg')) {
+      setInstallUi(progress.target, progress);
     }
   });
-
-  $('#settings-theme').addEventListener('change', () => {
-    applyTheme($('#settings-theme').value);
-  });
-
-  if (window.matchMedia) {
-    const media = window.matchMedia('(prefers-color-scheme: dark)');
-    const onChange = () => {
-      if (!state.settings || state.settings.theme === 'system') applyTheme('system');
-    };
-
-    if (media.addEventListener) media.addEventListener('change', onChange);
-    else if (media.addListener) media.addListener(onChange);
-  }
-}
-
-function bindDownloader() {
-  $('#analyze-btn').addEventListener('click', () => analyze());
-  $('#url').addEventListener('keydown', (event) => {
-    if (event.key === 'Enter') {
-      event.preventDefault();
-      analyze();
-    }
-  });
-
-  $('#paste-btn').addEventListener('click', async () => {
-    try {
-      const text = (await api.readClipboard()).trim();
-      if (!text) {
-        showToast('الحافظة فارغة.');
-        return;
-      }
-
-      $('#url').value = text;
-      const url = normalizeDownloadUrl(text);
-      if (url) analyze(url);
-      else setUrlHint('تم اللصق، لكن النص لا يبدو رابطًا صالحًا.', true);
-    } catch (error) {
-      showToast(sanitizeError(error), 'error');
-    }
-  });
-
-  $('#open-in-browser').addEventListener('click', () => {
-    const url = normalizeDownloadUrl($('#url').value);
-    if (!url) {
-      setUrlHint('أدخل رابطًا صالحًا أولًا.', true);
-      return;
-    }
-    loadInBrowser(url);
-  });
-
-  $('#mode-toggle').addEventListener('click', (event) => {
-    const button = event.target.closest('.seg');
-    if (!button) return;
-    state.mode = button.dataset.mode === 'audio' ? 'audio' : 'video';
-    updateModeUi();
-  });
-
-  $('#opt-subtitles').addEventListener('change', () => {
-    $('#subtitle-lang-field').classList.toggle('is-hidden', !$('#opt-subtitles').checked);
-  });
-
-  $('#download-btn').addEventListener('click', startDownload);
-
-  $('#preview-browse').addEventListener('click', () => {
-    if (!state.info) return;
-    loadInBrowser(state.info.webpageUrl || $('#url').value);
-  });
-
-  $('#preview-copy').addEventListener('click', async () => {
-    const target = (state.info && state.info.webpageUrl) || $('#url').value;
-    if (!target) return;
-
-    try {
-      await api.writeClipboard(target);
-      showToast('تم نسخ الرابط.', 'success');
-    } catch (error) {
-      showToast(sanitizeError(error), 'error');
-    }
-  });
-
-  $('#clear-completed').addEventListener('click', () => {
-    for (const [id, job] of state.jobs) {
-      if (job.status === 'done' || job.status === 'cancelled' || job.status === 'error') {
-        state.jobs.delete(id);
-      }
-    }
-    renderQueue();
-  });
-
-  api.onProgress(handleProgress);
-  api.onDone(handleDone);
-  api.onError(handleError);
-  api.onCancelled(handleCancelled);
-  api.onExtensionReceived(handleIncoming);
-}
-
-function bindBrowser() {
-  browserView = $('#browser-view');
-
-  $('#nav-back').addEventListener('click', () => {
-    try { browserView.goBack(); } catch { /* ignore */ }
-  });
-
-  $('#nav-forward').addEventListener('click', () => {
-    try { browserView.goForward(); } catch { /* ignore */ }
-  });
-
-  $('#nav-reload').addEventListener('click', () => {
-    try { browserView.reload(); } catch { /* ignore */ }
-  });
-
-  $('#nav-home').addEventListener('click', () => {
-    const home = state.settings ? state.settings.browserHome : 'https://www.youtube.com';
-    loadInBrowser(home);
-  });
-
-  $('#address-form').addEventListener('submit', (event) => {
-    event.preventDefault();
-    const target = toBrowserTarget($('#address').value);
-    if (!target) return;
-    setAddress(target);
-    navigateBrowser(target);
-  });
-
-  $('#address').addEventListener('focus', () => $('#address').select());
-
-  $('#page-download').addEventListener('click', () => {
-    const url = currentBrowserUrl();
-    if (!url || !/^https?:\/\//i.test(url)) {
-      showToast('لا توجد صفحة صالحة لتحميلها.', 'error');
-      return;
-    }
-
-    $('#url').value = url;
-    setTab('download');
-    analyze(url);
-  });
-
-  $('#browser-open-external').addEventListener('click', () => {
-    const url = currentBrowserUrl();
-    if (/^https?:\/\//i.test(url)) api.openExternal(url);
-  });
-
-  browserView.addEventListener('did-navigate', (event) => {
-    setAddress(event.url);
-    updateBrowserNav();
-  });
-
-  browserView.addEventListener('did-navigate-in-page', (event) => {
-    if (event.isMainFrame) setAddress(event.url);
-    updateBrowserNav();
-  });
-
-  browserView.addEventListener('dom-ready', () => {
-    setAddress(currentBrowserUrl());
-    updateBrowserNav();
-  });
-
-  browserView.addEventListener('did-start-loading', startBrowserLoading);
-  browserView.addEventListener('did-stop-loading', () => {
-    finishBrowserLoading();
-    updateBrowserNav();
-  });
-
-  browserView.addEventListener('page-title-updated', (event) => {
-    const browserActive = $('#tab-browser').classList.contains('is-active');
-    if (browserActive) {
-      document.title = event.title ? `${event.title} — ${appDisplayName()}` : appDisplayName();
-    }
-  });
-
-  browserView.addEventListener('did-fail-load', (event) => {
-    if (event.errorCode === -3 || event.isMainFrame === false) return;
-    finishBrowserLoading();
-    showToast(`تعذّر فتح الصفحة: ${event.errorDescription || event.errorCode}`, 'error');
-  });
-
-  $('#link-chip-download').addEventListener('click', () => {
-    if (!state.pendingLink) return;
-    const url = state.pendingLink.url;
-    hideLinkChip();
-    $('#url').value = url;
-    setTab('download');
-    analyze(url);
-  });
-
-  $('#link-chip-open').addEventListener('click', () => {
-    if (!state.pendingLink) return;
-    const url = state.pendingLink.url;
-    hideLinkChip();
-    loadInBrowser(url);
-  });
-
-  $('#link-chip-close').addEventListener('click', hideLinkChip);
-
-  api.onBrowserOpenUrl((url) => loadInBrowser(url));
-  api.onBrowserLink((link) => showLinkChip(link));
-}
-
-function bindExtensions() {
-  const installers = [
-    ['#add-extension-folder', () => api.addExtensionFolder(), 'تم تثبيت الإضافة.'],
-    ['#add-extension-archive', () => api.addExtensionArchive(), 'تم تثبيت الإضافة.'],
-    ['#install-bundled-extension', () => api.installBundledExtension(), 'تم تثبيت الإضافة المدمجة.']
-  ];
-
-  installers.forEach(([selector, task, successMessage]) => {
-    const button = $(selector);
-    button.addEventListener('click', async () => {
-      setButtonBusy(button, true, 'جارٍ التثبيت…');
-
-      try {
-        const result = await task();
-        if (result === null || result === undefined) return;
-        await loadExtensions();
-        showToast(successMessage, 'success');
-      } catch (error) {
-        showToast(sanitizeError(error), 'error');
-      } finally {
-        setButtonBusy(button, false);
-      }
-    });
-  });
-
-  $('#refresh-extensions').addEventListener('click', () => loadExtensions());
-  $('#open-extensions-folder').addEventListener('click', () => api.openExtensionsFolder());
 }
 
 function bindSettings() {
@@ -1618,15 +1580,20 @@ function bindSettings() {
 
   $('#save-settings').addEventListener('click', async () => {
     const button = $('#save-settings');
-    setButtonBusy(button, true, 'جارٍ الحفظ…');
+    setButtonBusy(button, true, t('saving'));
 
     try {
+      const bridgeSettings = $('#bridge-enabled')
+        ? {
+          extensionBridge: $('#bridge-enabled').checked,
+          autoDownloadFromExtension: $('#auto-download-extension').checked
+        }
+        : {};
       const saved = await api.saveSettings({
         downloadDir: $('#settings-dir').value.trim(),
         videoQuality: $('#settings-quality').value,
         audioFormat: $('#settings-audio').value,
         videoFormat: $('#settings-video-format')?.value || 'mp4',
-        browserHome: $('#settings-home').value.trim(),
         cookieSource: $('#settings-cookie-source').value,
         theme: $('#settings-theme').value,
         language: $('#settings-language')?.value || $('#top-language')?.value || 'ar',
@@ -1634,8 +1601,7 @@ function bindSettings() {
         embedMetadata: $('#settings-metadata').checked,
         downloadSubtitles: $('#settings-subtitles').checked,
         subtitleLangs: $('#settings-subtitle-lang').value,
-        extensionBridge: $('#bridge-enabled').checked,
-        autoDownloadFromExtension: $('#auto-download-extension').checked,
+        ...bridgeSettings,
         speedLimit: $('#settings-speed')?.value || '',
         proxy: $('#settings-proxy')?.value || '',
         filenameTemplate: $('#settings-template')?.value || '%(title).150s [%(id)s].%(ext)s',
@@ -1656,7 +1622,7 @@ function bindSettings() {
       updatePreviewNote();
       await refreshBridge();
       if (api.applyAutoStart) api.applyAutoStart();
-      showToast('تم حفظ الإعدادات.', 'success');
+      showToast(t('saved'), 'success');
     } catch (error) {
       showToast(sanitizeError(error), 'error');
     } finally {
@@ -1676,28 +1642,29 @@ function bindSettings() {
     try { state.settings = await api.saveSettings({ language: v }); } catch {}
   });
   $('#reset-settings').addEventListener('click', async () => {
-    if (!window.confirm('إعادة الإعدادات الافتراضية (سيُبقى مجلد التحميل الحالي)؟')) return;
+    if (!window.confirm(t('resetConfirm'))) return;
 
     try {
+      const bridgeSettings = $('#bridge-enabled')
+        ? { extensionBridge: true, autoDownloadFromExtension: false }
+        : {};
       const saved = await api.saveSettings({
         theme: 'system',
         videoQuality: 'best',
         audioFormat: 'mp3',
-        browserHome: 'https://www.youtube.com',
         cookieSource: 'none',
         maxConcurrentDownloads: 2,
         embedMetadata: true,
         downloadSubtitles: false,
         subtitleLangs: 'ar,en',
-        extensionBridge: true,
-        autoDownloadFromExtension: false
+        ...bridgeSettings
       });
 
       state.settings = saved;
       applyTheme(saved.theme);
       applySettingsToForm(saved);
       await refreshBridge();
-      showToast('تمت إعادة الإعدادات الافتراضية.', 'success');
+      showToast(t('resetDone'), 'success');
     } catch (error) {
       showToast(sanitizeError(error), 'error');
     }
@@ -1711,7 +1678,6 @@ function bindSettings() {
 
   $('#env-refresh').addEventListener('click', async () => {
     await refreshEnv();
-    await refreshCookieCount();
     await refreshAppInfo();
   });
 
@@ -1723,39 +1689,39 @@ function bindSettings() {
     if (state.appInfo && state.appInfo.binDir) api.openPath(state.appInfo.binDir);
   });
 
-  $('#bridge-enabled').addEventListener('change', async () => {
+  $('#bridge-enabled')?.addEventListener('change', async () => {
     try {
       state.settings = await api.saveSettings({
         extensionBridge: $('#bridge-enabled').checked
       });
       await refreshBridge();
-      showToast('تم تحديث حالة جسر الإضافة.', 'success');
+      showToast(t('bridgeUpdated'), 'success');
     } catch (error) {
       showToast(sanitizeError(error), 'error');
     }
   });
 
-  $('#auto-download-extension').addEventListener('change', async () => {
+  $('#auto-download-extension')?.addEventListener('change', async () => {
     try {
       state.settings = await api.saveSettings({
         autoDownloadFromExtension: $('#auto-download-extension').checked
       });
-      showToast('تم تحديث خيار التحميل التلقائي.', 'success');
+      showToast(t('autoDownloadUpdated'), 'success');
     } catch (error) {
       showToast(sanitizeError(error), 'error');
     }
   });
 
-  $('#bridge-test').addEventListener('click', async () => {
+  $('#bridge-test')?.addEventListener('click', async () => {
     const button = $('#bridge-test');
-    setButtonBusy(button, true, 'جارٍ…');
+    setButtonBusy(button, true, t('busy'));
 
     try {
       const result = await api.testBridge();
       if (result && result.ok) {
-        showToast('الجسر يعمل بشكل سليم.', 'success');
+        showToast(t('bridgeOk'), 'success');
       } else {
-        showToast((result && result.error) || 'تعذّر الاتصال بالجسر.', 'error');
+        showToast((result && result.error) || t('bridgeFail'), 'error');
       }
       await refreshBridge();
     } catch (error) {
@@ -1765,14 +1731,14 @@ function bindSettings() {
     }
   });
 
-  $('#bridge-restart').addEventListener('click', async () => {
+  $('#bridge-restart')?.addEventListener('click', async () => {
     const button = $('#bridge-restart');
-    setButtonBusy(button, true, 'جارٍ…');
+    setButtonBusy(button, true, t('busy'));
 
     try {
       await api.restartBridge();
       await refreshBridge();
-      showToast('تمت إعادة تشغيل الجسر.', 'success');
+      showToast(t('bridgeRestarted'), 'success');
     } catch (error) {
       showToast(sanitizeError(error), 'error');
     } finally {
@@ -1827,7 +1793,7 @@ function bindDropZone() {
     const url = normalizeDownloadUrl(first);
 
     if (!url) {
-      showToast('لم يُعثر على رابط صالح في العنصر المُسقط.', 'error');
+      showToast(t('invalidDrop'), 'error');
       return;
     }
 
@@ -1840,7 +1806,6 @@ function bindDropZone() {
 function bindGlobalShortcuts() {
   document.addEventListener('keydown', (event) => {
     if (event.key === 'Escape') {
-      hideLinkChip();
       $('#drop-overlay').classList.add('is-hidden');
       return;
     }
@@ -1850,10 +1815,10 @@ function bindGlobalShortcuts() {
 
     if (event.key.toLowerCase() === 'l') {
       event.preventDefault();
-      setTab('browser');
+      setTab('download');
       setTimeout(() => {
-        $('#address').focus();
-        $('#address').select();
+        $('#url').focus();
+        $('#url').select();
       }, 30);
     }
 
@@ -1864,15 +1829,25 @@ function bindGlobalShortcuts() {
 
     if (event.key === '2') {
       event.preventDefault();
-      setTab('browser');
+      setTab('sites');
     }
 
     if (event.key === '3') {
       event.preventDefault();
-      setTab('extensions');
+      setTab('batch');
     }
 
     if (event.key === '4') {
+      event.preventDefault();
+      setTab('history');
+    }
+
+    if (event.key === '5') {
+      event.preventDefault();
+      setTab('favorites');
+    }
+
+    if (event.key === '6') {
       event.preventDefault();
       setTab('settings');
     }
@@ -1884,7 +1859,6 @@ async function init() {
   bindTabs();
   bindTheme();
   bindDownloader();
-  bindBrowser();
   bindExtensions();
   bindSettings();
   bindDropZone();
@@ -1892,23 +1866,20 @@ async function init() {
   bindSites();
 
   await loadSettings();
+  await loadSites();
+  await loadExtensions();
   if (state.settings) {
     applyLanguage(state.settings.language || 'ar');
   }
 
   await Promise.all([
     refreshEnv(),
-    refreshCookieCount(),
     refreshAppInfo(),
     refreshBridge()
   ]);
 
   updateModeUi();
-  updateBrowserNav();
 
-  if (state.settings) {
-    setAddress(currentBrowserUrl());
-  }
 }
 
 document.addEventListener('DOMContentLoaded', init);

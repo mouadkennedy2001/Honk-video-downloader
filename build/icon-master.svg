@@ -16,8 +16,11 @@
   <circle cx="256" cy="256" r="248" fill="url(#sheen)"/>
   <!-- crisp Adwaita edge -->
   <circle cx="256" cy="256" r="248" fill="none" stroke="#1b5faf" stroke-opacity="0.45" stroke-width="4"/>
-  <!-- bold geometric W (stroked polyline, rounded joins) -->
+  <!-- W mark with a download arrow integrated into its center -->
   <path d="M126 172 L186 352 L256 224 L326 352 L386 172"
         fill="none" stroke="#ffffff" stroke-width="52"
+        stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M256 270 V326 M232 304 L256 328 L280 304"
+        fill="none" stroke="#ffffff" stroke-width="18"
         stroke-linecap="round" stroke-linejoin="round"/>
 </svg>
