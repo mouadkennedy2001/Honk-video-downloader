@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" data-page-title="titleFaq">
+<head>
+  <meta charset="UTF-8">
+  <script>document.documentElement.classList.add('js')</script>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#3584e4">
+  <meta name="description" content="إجابات عن الأسئلة الشائعة حول تثبيت واصل واستخدامه والتحقق من الملفات.">
+  <meta property="og:title" content="واصل | Wasel Downloader">
+  <meta property="og:description" content="إجابات عن الأسئلة الشائعة حول تثبيت واصل واستخدامه والتحقق من الملفات.">
+  <meta property="og:image" content="assets/app-screenshot.png">
+  <meta property="og:type" content="website">
+  <title>الأسئلة الشائعة | واصل</title>
+  <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+  <link rel="preload" href="assets/fonts/cairo-subset.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="styles.css">
+  <script src="app.js" defer></script>
+</head>
+<body>
+  <div class="bg-orbs" aria-hidden="true"><i></i><i></i><i></i></div>
+  <a class="skip-link" href="#main" data-i18n="skipLink">تخطَّ إلى المحتوى</a>
+
+  <header class="topbar" id="top">
+    <div class="topbar-inner shell">
+      <a class="brand" href="index.html" aria-label="Wasel">
+        <img class="brand-mark" src="assets/favicon.svg" alt="" width="38" height="38">
+        <span class="brand-text">
+          <strong data-i18n="brandName">واصل</strong>
+          <small data-i18n="brandTag">محمّل الفيديو</small>
+        </span>
+      </a>
+      <nav class="nav" id="mainNav" aria-label="Main navigation">
+        <a href="index.html" data-i18n="navHome">الرئيسية</a>
+        <a href="download.html" data-i18n="navDownload">التحميل</a>
+        <a href="features.html" data-i18n="navFeatures">المزايا</a>
+        <a href="platforms.html" data-i18n="navPlatforms">المنصات</a>
+        <a href="files.html" data-i18n="navFiles">الملفات</a>
+        <a href="releases.html" data-i18n="navReleases">الإصدارات</a>
+        <a href="faq.html" data-i18n="navFaq">الأسئلة</a>
+        <a href="developer.html" data-i18n="navDeveloper">المطوّر</a>
+      </nav>
+      <div class="topbar-actions">
+        <a class="icon-btn star-btn" href="https://github.com/mouadkennedy2001/Honk-video-downloader/stargazers" target="_blank" rel="noopener" data-i18n-title="starTitle" aria-label="GitHub stars">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 2.8 2.9 5.9 6.5.9-4.7 4.6 1.1 6.5-5.8-3.1-5.8 3.1 1.1-6.5L2.6 9.6l6.5-.9L12 2.8Z"/></svg>
+          <span id="starCount">1</span>
+        </a>
+        <button class="icon-btn lang-btn" id="langBtn" type="button" data-i18n-title="langTitle" aria-label="Switch language"><span id="langLabel">EN</span></button>
+        <button class="icon-btn theme-btn" id="themeBtn" type="button" data-i18n-title="themeTitle" aria-label="Change theme"></button>
+        <button class="icon-btn menu-btn" id="menuBtn" type="button" data-i18n-title="menuTitle" aria-label="Open menu" aria-expanded="false" aria-controls="mainNav">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main id="main">
+    <section class="section page-head shell">
+      <div class="section-head reveal">
+        <span class="kicker" data-i18n="faqKicker">faqKicker</span>
+        <h1 data-i18n="faqTitle">faqTitle</h1>
+        <p data-i18n="faqDesc">faqDesc</p>
+      </div>
+    </section>
+    <section class="shell">    <div class="faq-list reveal">
+      <details><summary data-i18n="faq1q">هل واصل مجاني تمامًا؟</summary><p data-i18n="faq1a">نعم. المشروع مفتوح المصدر برخصة MIT، بلا إعلانات وبلا اشتراكات أو طرق دفع.</p></details>
+      <details><summary data-i18n="faq2q">ما المواقع التي يدعمها؟</summary><p data-i18n="faq2a">يعتمد على yt-dlp، لذا يدعم أكثر من ألف موقع منها يوتيوب وإنستغرام وتيك توك وفيسبوك وX وفيميو وSoundCloud، كما يقبل الروابط المباشرة mp4 و m3u8.</p></details>
+      <details><summary data-i18n="faq3q">هل أحتاج لتثبيت yt-dlp و FFmpeg يدويًا؟</summary><p data-i18n="faq3a">لا. يمكنك تثبيتهما أو تحديثهما من الإعدادات ← المحرّكات والمكتبات ← تثبيت الناقص، ويبقى التثبيت اليدوي متاحًا.</p></details>
+      <details><summary data-i18n="faq4q">هل يمكن تحميل محتوى يتطلب تسجيل الدخول؟</summary><p data-i18n="faq4a">نعم، اختر متصفحك كمصدر للكوكيز من قائمة التحميل أو الإعدادات، بشرط أن يكون المتصفح يسمح بقراءة كوكيزه.</p></details>
+      <details><summary data-i18n="faq5q">كيف أثبّت نسخة أندرويد؟</summary><p data-i18n="faq5a">نزّل ملف app-debug.apk من صفحة التحميل، ثم افتحه على الهاتف واسمح بالتثبيت من مصادر غير معروفة لهذا الملف فقط. إنها نسخة تجريبية وليست موقّعة.</p></details>
+      <details><summary data-i18n="faq6q">كيف أتحقق من الملف الذي نزّلته؟</summary><p data-i18n="faq6a">في قسم الملفات تجد بصمة SHA-256 لكل ملف؛ انسخها وقارنها بعد التحميل بأداة مثل <code>certutil -hashfile FILE SHA256</code> على ويندوز أو <code>sha256sum FILE</code> على لينكس.</p></details>
+    </div></section>
+    <section class="cta-band">
+      <div class="shell cta-inner reveal">
+        <div>
+          <h2 data-i18n="ctaTitle">مشروع مفتوح المصدر</h2>
+          <p data-i18n="ctaDesc">أعجبك التطبيق؟ أضف نجمة للمشروع، أو ساهم بفكرة وإصلاح على GitHub.</p>
+        </div>
+        <a class="btn btn-light btn-lg" href="https://github.com/mouadkennedy2001/Honk-video-downloader" target="_blank" rel="noopener">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2C6.5 2 2 6.6 2 12.2c0 4.5 2.9 8.4 6.8 9.7.5.1.7-.2.7-.5v-1.9c-2.8.6-3.4-1.2-3.4-1.2-.4-1.2-1.1-1.5-1.1-1.5-.9-.6.1-.6.1-.6 1 .1 1.5 1 1.5 1 .9 1.6 2.4 1.1 2.9.9.1-.7.4-1.1.7-1.4-2.2-.3-4.6-1.1-4.6-5 0-1.1.4-2 1-2.7-.1-.3-.4-1.3.1-2.7 0 0 .8-.3 2.7 1a9.3 9.3 0 0 1 5 0c1.9-1.3 2.7-1 2.7-1 .5 1.4.2 2.4.1 2.7.6.7 1 1.6 1 2.7 0 3.9-2.4 4.7-4.6 5 .4.4.8 1.1.8 2.2v3.3c0 .3.2.6.7.5A10.2 10.2 0 0 0 22 12.2C22 6.6 17.5 2 12 2Z"/></svg>
+          <span data-i18n="ctaBtn">زيارة المستودع</span>
+        </a>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="shell footer-inner">
+      <div class="footer-brand">
+        <img src="assets/favicon.svg" alt="" width="32" height="32">
+        <span><strong data-i18n="brandName">واصل</strong> — <span data-i18n="footerDesc">حمّل بحرية، بأناقة.</span></span>
+      </div>
+      <div class="footer-links">
+        <a href="index.html" data-i18n="navHome">الرئيسية</a>
+        <a href="files.html" data-i18n="navFiles">الملفات</a>
+        <a href="releases.html" data-i18n="navReleases">الإصدارات</a>
+        <a href="faq.html" data-i18n="navFaq">الأسئلة</a>
+        <a href="developer.html" data-i18n="navDeveloper">المطوّر</a>
+      </div>
+      <p class="footer-note"><span data-i18n="footerBy">بالمطوّر</span> <b data-i18n="devName">زروقي احمد معاذ</b> · <span data-i18n="footerMade">صُمّم بأسلوب GNOME Adwaita</span> · <span data-i18n="license">رخصة MIT</span> · © <span id="year">2026</span></p>
+    </div>
+  </footer>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+</body>
+</html>

@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" data-page-title="titlePlatforms">
+<head>
+  <meta charset="UTF-8">
+  <script>document.documentElement.classList.add('js')</script>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#3584e4">
+  <meta name="description" content="واصل متاح لويندوز ولينكس وأندرويد، ويمكن بناؤه من المصدر على ماك.">
+  <meta property="og:title" content="واصل | Wasel Downloader">
+  <meta property="og:description" content="واصل متاح لويندوز ولينكس وأندرويد، ويمكن بناؤه من المصدر على ماك.">
+  <meta property="og:image" content="assets/app-screenshot.png">
+  <meta property="og:type" content="website">
+  <title>المنصات | واصل</title>
+  <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+  <link rel="preload" href="assets/fonts/cairo-subset.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="styles.css">
+  <script src="app.js" defer></script>
+</head>
+<body>
+  <div class="bg-orbs" aria-hidden="true"><i></i><i></i><i></i></div>
+  <a class="skip-link" href="#main" data-i18n="skipLink">تخطَّ إلى المحتوى</a>
+
+  <header class="topbar" id="top">
+    <div class="topbar-inner shell">
+      <a class="brand" href="index.html" aria-label="Wasel">
+        <img class="brand-mark" src="assets/favicon.svg" alt="" width="38" height="38">
+        <span class="brand-text">
+          <strong data-i18n="brandName">واصل</strong>
+          <small data-i18n="brandTag">محمّل الفيديو</small>
+        </span>
+      </a>
+      <nav class="nav" id="mainNav" aria-label="Main navigation">
+        <a href="index.html" data-i18n="navHome">الرئيسية</a>
+        <a href="download.html" data-i18n="navDownload">التحميل</a>
+        <a href="features.html" data-i18n="navFeatures">المزايا</a>
+        <a href="platforms.html" data-i18n="navPlatforms">المنصات</a>
+        <a href="files.html" data-i18n="navFiles">الملفات</a>
+        <a href="releases.html" data-i18n="navReleases">الإصدارات</a>
+        <a href="faq.html" data-i18n="navFaq">الأسئلة</a>
+        <a href="developer.html" data-i18n="navDeveloper">المطوّر</a>
+      </nav>
+      <div class="topbar-actions">
+        <a class="icon-btn star-btn" href="https://github.com/mouadkennedy2001/Honk-video-downloader/stargazers" target="_blank" rel="noopener" data-i18n-title="starTitle" aria-label="GitHub stars">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 2.8 2.9 5.9 6.5.9-4.7 4.6 1.1 6.5-5.8-3.1-5.8 3.1 1.1-6.5L2.6 9.6l6.5-.9L12 2.8Z"/></svg>
+          <span id="starCount">1</span>
+        </a>
+        <button class="icon-btn lang-btn" id="langBtn" type="button" data-i18n-title="langTitle" aria-label="Switch language"><span id="langLabel">EN</span></button>
+        <button class="icon-btn theme-btn" id="themeBtn" type="button" data-i18n-title="themeTitle" aria-label="Change theme"></button>
+        <button class="icon-btn menu-btn" id="menuBtn" type="button" data-i18n-title="menuTitle" aria-label="Open menu" aria-expanded="false" aria-controls="mainNav">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main id="main">
+    <section class="section page-head shell">
+      <div class="section-head reveal">
+        <span class="kicker" data-i18n="platformsKicker">platformsKicker</span>
+        <h1 data-i18n="platformsTitle">platformsTitle</h1>
+        <p data-i18n="platformsDesc">platformsDesc</p>
+      </div>
+    </section>
+    <section class="shell"><div class="platform-grid">        <article class="platform-card reveal">
+          <span class="platform-tag win" data-i18n="winTag">الأكثر استخدامًا</span>
+          <span class="platform-icon win"><svg viewBox="0 0 24 24"><path d="M3 5.5 11 4.4v7.1H3V5.5Zm9-1.2L21 3v8.5h-9V4.3ZM3 12.5h8v7.1L3 18.5v-6Zm9 0h9V21l-9-1.3v-7.2Z"/></svg></span>
+          <h3 data-i18n="winTitle">ويندوز</h3>
+          <p data-i18n="winDesc">مثبّت x64 أو نسخة محمولة من الإصدار المستقر 2.0.0.</p>
+          <div class="platform-meta"><span data-i18n="versionLabel">الإصدار</span> <b>v2.0.0</b><span data-i18n="sizeLabel">الحجم</span> <b>116 MB / 105 MB</b></div>
+          <div class="platform-actions">
+            <a class="btn btn-primary btn-sm" href="https://github.com/mouadkennedy2001/Honk-video-downloader/releases/download/v2.0.0/Wasel-Downloader-2.0.0-x64.exe" target="_blank" rel="noopener" data-i18n="downloadBtn">تحميل</a>
+            <a class="btn btn-ghost btn-sm" href="files.html" data-i18n="allFilesBtnShort">كل الملفات</a>
+          </div>
+        </article>
+        <article class="platform-card reveal">
+          <span class="platform-tag linux" data-i18n="linuxTag">لينكس</span>
+          <span class="platform-icon linux"><svg viewBox="0 0 24 24"><path d="M12 2c-3 0-4 3-4 6 0 2-1.5 3-2 5-.7 2.8.2 5 2 8h8c1.8-3 2.7-5.2 2-8-.5-2-2-3-2-5 0-3-1-6-4-6Z"/></svg></span>
+          <h3 data-i18n="linuxTitle">لينكس</h3>
+          <p data-i18n="linuxDesc">حزمة deb أو AppImage من أرشيف الإصدار 1.0.0.</p>
+          <div class="platform-meta"><span data-i18n="versionLabel">الإصدار</span> <b>v1.0.0</b><span data-i18n="sizeLabel">الحجم</span> <b>99 MB / 123 MB</b></div>
+          <div class="platform-actions">
+            <a class="btn btn-primary btn-sm" href="https://github.com/mouadkennedy2001/Honk-video-downloader/releases/download/v1.0.0/honk-downloader_1.0.0_amd64.deb" target="_blank" rel="noopener" data-i18n="downloadBtn">تحميل</a>
+            <a class="btn btn-ghost btn-sm" href="files.html" data-i18n="allFilesBtnShort">كل الملفات</a>
+          </div>
+        </article>
+        <article class="platform-card reveal">
+          <span class="platform-tag android" data-i18n="androidTag">جوال</span>
+          <span class="platform-icon android"><svg viewBox="0 0 24 24"><rect x="6" y="2.5" width="12" height="19" rx="2.5"/><path d="M10 18.6h4M9 6h6"/></svg></span>
+          <h3 data-i18n="androidTitle">أندرويد</h3>
+          <p data-i18n="androidDesc">ملف APK من بناء التطوير (debug) للتجربة على الهاتف.</p>
+          <div class="platform-meta"><span data-i18n="versionLabel">الإصدار</span> <b>v2.0.0</b><span data-i18n="sizeLabel">الحجم</span> <b>47 MB</b></div>
+          <div class="platform-actions">
+            <a class="btn btn-primary btn-sm" href="https://github.com/mouadkennedy2001/Honk-video-downloader/releases/download/v2.0.0/app-debug.apk" target="_blank" rel="noopener" data-i18n="downloadBtn">تحميل</a>
+            <a class="btn btn-ghost btn-sm" href="faq.html" data-i18n="howInstallBtn">طريقة التثبيت</a>
+          </div>
+        </article>
+        <article class="platform-card reveal">
+          <span class="platform-tag mac" data-i18n="macTag">من المصدر</span>
+          <span class="platform-icon mac"><svg viewBox="0 0 24 24"><path d="M16.5 3.2c.1 1.1-.4 2.2-1.1 3-.8.9-2 1.5-3.1 1.4-.1-1 .4-2.1 1.1-2.9.8-.8 2.1-1.4 3.1-1.5ZM20 16.4c-.5 1.2-.8 1.7-1.5 2.8-1 1.5-2.4 3.3-4.1 3.3-1.5 0-1.9-1-4-1s-2.6 1-4 1c-1.7 0-3-1.6-4-3.1-2.7-4.1-3-8.9-1.3-11.4 1.2-1.7 3-2.7 4.7-2.7 1.8 0 2.9 1 4 1 1 0 2.3-1.2 4.1-1 1.4.1 2.7.8 3.7 2-3.2 1.8-2.7 6.5.4 8.1Z"/></svg></span>
+          <h3 data-i18n="macTitle">ماك</h3>
+          <p data-i18n="macDesc">لا يوجد ملف dmg منشور بعد؛ يمكنك البناء من المصدر باستخدام npm.</p>
+          <div class="platform-meta"><span data-i18n="versionLabel">الإصدار</span> <b>main</b><span data-i18n="sizeLabel">الحجم</span> <b>— MB</b></div>
+          <div class="platform-actions">
+            <a class="btn btn-primary btn-sm" href="https://github.com/mouadkennedy2001/Honk-video-downloader/archive/refs/heads/main.zip" target="_blank" rel="noopener" data-i18n="sourceBtn">شفرة المصدر</a>
+            <a class="btn btn-ghost btn-sm" href="https://github.com/mouadkennedy2001/Honk-video-downloader#readme" target="_blank" rel="noopener" data-i18n="buildGuideBtn">دليل البناء</a>
+          </div>
+        </article></div></section>
+    <section class="cta-band">
+      <div class="shell cta-inner reveal">
+        <div>
+          <h2 data-i18n="ctaTitle">مشروع مفتوح المصدر</h2>
+          <p data-i18n="ctaDesc">أعجبك التطبيق؟ أضف نجمة للمشروع، أو ساهم بفكرة وإصلاح على GitHub.</p>
+        </div>
+        <a class="btn btn-light btn-lg" href="https://github.com/mouadkennedy2001/Honk-video-downloader" target="_blank" rel="noopener">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2C6.5 2 2 6.6 2 12.2c0 4.5 2.9 8.4 6.8 9.7.5.1.7-.2.7-.5v-1.9c-2.8.6-3.4-1.2-3.4-1.2-.4-1.2-1.1-1.5-1.1-1.5-.9-.6.1-.6.1-.6 1 .1 1.5 1 1.5 1 .9 1.6 2.4 1.1 2.9.9.1-.7.4-1.1.7-1.4-2.2-.3-4.6-1.1-4.6-5 0-1.1.4-2 1-2.7-.1-.3-.4-1.3.1-2.7 0 0 .8-.3 2.7 1a9.3 9.3 0 0 1 5 0c1.9-1.3 2.7-1 2.7-1 .5 1.4.2 2.4.1 2.7.6.7 1 1.6 1 2.7 0 3.9-2.4 4.7-4.6 5 .4.4.8 1.1.8 2.2v3.3c0 .3.2.6.7.5A10.2 10.2 0 0 0 22 12.2C22 6.6 17.5 2 12 2Z"/></svg>
+          <span data-i18n="ctaBtn">زيارة المستودع</span>
+        </a>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="shell footer-inner">
+      <div class="footer-brand">
+        <img src="assets/favicon.svg" alt="" width="32" height="32">
+        <span><strong data-i18n="brandName">واصل</strong> — <span data-i18n="footerDesc">حمّل بحرية، بأناقة.</span></span>
+      </div>
+      <div class="footer-links">
+        <a href="index.html" data-i18n="navHome">الرئيسية</a>
+        <a href="files.html" data-i18n="navFiles">الملفات</a>
+        <a href="releases.html" data-i18n="navReleases">الإصدارات</a>
+        <a href="faq.html" data-i18n="navFaq">الأسئلة</a>
+        <a href="developer.html" data-i18n="navDeveloper">المطوّر</a>
+      </div>
+      <p class="footer-note"><span data-i18n="footerBy">بالمطوّر</span> <b data-i18n="devName">زروقي احمد معاذ</b> · <span data-i18n="footerMade">صُمّم بأسلوب GNOME Adwaita</span> · <span data-i18n="license">رخصة MIT</span> · © <span id="year">2026</span></p>
+    </div>
+  </footer>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+</body>
+</html>

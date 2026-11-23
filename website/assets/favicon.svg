@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <!-- Adwaita-style depth: slightly lighter top, deeper bottom -->
+    <linearGradient id="disc" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#5294f2"/>
+      <stop offset="1" stop-color="#2a76d4"/>
+    </linearGradient>
+    <linearGradient id="sheen" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffffff" stop-opacity="0.18"/>
+      <stop offset="0.45" stop-color="#ffffff" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+  <!-- circular disc -->
+  <circle cx="256" cy="256" r="248" fill="url(#disc)"/>
+  <!-- subtle top sheen -->
+  <circle cx="256" cy="256" r="248" fill="url(#sheen)"/>
+  <!-- crisp Adwaita edge -->
+  <circle cx="256" cy="256" r="248" fill="none" stroke="#1b5faf" stroke-opacity="0.45" stroke-width="4"/>
+  <!-- W mark with a download arrow integrated into its center -->
+  <path d="M126 172 L186 352 L256 224 L326 352 L386 172"
+        fill="none" stroke="#ffffff" stroke-width="52"
+        stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M256 270 V326 M232 304 L256 328 L280 304"
+        fill="none" stroke="#ffffff" stroke-width="18"
+        stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
