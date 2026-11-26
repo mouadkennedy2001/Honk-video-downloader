@@ -5,6 +5,7 @@ const path = require('path');
 const readline = require('readline');
 const { spawn } = require('child_process');
 const binaries = require('./binaries');
+const spotify = require('./spotify');
 
 const MEDIA_EXTENSIONS = new Set([
   '.mp4', '.mkv', '.webm', '.mov', '.avi', '.flv', '.ts', '.m4v',
@@ -119,6 +120,13 @@ function buildInfoArgs(url, cookieArgs) {
 }
 
 function getInfo(url, cookieArgs) {
+  if (spotify.isSpotifyUrl(url)) {
+    if (!spotify.resolveCommand()) {
+      return Promise.reject(new Error('لم يتم العثور على spotdl. ثبّته من الإعدادات ← المحرّكات والمكتبات ثم أعد المحاولة.'));
+    }
+    return spotify.getInfo(url);
+  }
+
   const binary = binaries.resolve('yt-dlp');
   if (!binary) {
     return Promise.reject(new Error('لم يتم العثور على yt-dlp. استخدم زر التثبيت في الإعدادات ثم أعد المحاولة.'));
@@ -180,6 +188,10 @@ function getInfo(url, cookieArgs) {
 }
 
 function getPreviewUrl(url, cookieArgs, mode = 'video') {
+  if (spotify.isSpotifyUrl(url)) {
+    return Promise.reject(new Error('لا تتوفر معاينة فيديو لأغاني Spotify.'));
+  }
+
   const binary = binaries.resolve('yt-dlp');
   if (!binary) {
     return Promise.reject(new Error('لم يتم العثور على yt-dlp.'));
@@ -420,6 +432,11 @@ function handleProgressLine(job, rawLine, onEvent) {
 
   job.logTail = `${job.logTail}\n${line}`.slice(-12000);
 
+  if (job.backend === 'spotdl') {
+    handleSpotdlLine(job, line, onEvent);
+    return;
+  }
+
   let match = line.match(/^\[download\] Destination:\s*(.+)$/);
   if (match) {
     job.lastDestination = match[1].trim();
@@ -524,6 +541,89 @@ function handleProgressLine(job, rawLine, onEvent) {
   }
 }
 
+// spotdl's --simple-tui mode logs statuses instead of yt-dlp percentages:
+//   "Song: Searching for song" / "...: Downloading" / "2/10 complete".
+// Map those statuses onto the same progress payload the renderer already uses.
+const SPOTDL_PHASES = [
+  { pattern: /searching for song/i, fraction: 0.25, phase: 'searching' },
+  { pattern: /getting audio meta/i, fraction: 0.4, phase: 'converting' },
+  { pattern: /downloading/i, fraction: 0.7, phase: 'downloading' },
+  { pattern: /converting/i, fraction: 0.75, phase: 'converting' },
+  { pattern: /embedding metadata/i, fraction: 0.95, phase: 'tagging' },
+  { pattern: /^(done|skipped)$/i, fraction: 1, phase: 'downloading' }
+];
+
+function handleSpotdlLine(job, line, onEvent) {
+  if (!line) return;
+
+  const now = Date.now();
+  if (now - job.lastProgressAt < 180) return;
+
+  const completed = line.match(/^(\d+)\s*\/\s*(\d+)\s+complete\b/i);
+  if (completed) {
+    job.playlistItem = Number(completed[1]);
+    job.playlistTotal = Number(completed[2]);
+    job.lastPercent = job.playlistTotal
+      ? Math.min(100, (job.playlistItem / job.playlistTotal) * 100)
+      : 0;
+    job.lastProgressAt = now;
+
+    emitSafe(onEvent, {
+      type: 'progress',
+      id: job.id,
+      percent: job.lastPercent,
+      phase: 'playlist',
+      item: job.playlistItem,
+      totalItems: job.playlistTotal,
+      size: null,
+      speed: null,
+      eta: null
+    });
+    return;
+  }
+
+  if (/processing query/i.test(line)) {
+    job.lastPercent = 0;
+    job.lastProgressAt = now;
+    emitSafe(onEvent, {
+      type: 'progress',
+      id: job.id,
+      percent: 0,
+      phase: 'searching',
+      size: null,
+      speed: null,
+      eta: null
+    });
+    return;
+  }
+
+  const statusMatch = line.match(/:\s*([^:]+)$/);
+  if (!statusMatch) return;
+
+  const status = statusMatch[1].trim();
+  const rule = SPOTDL_PHASES.find((entry) => entry.pattern.test(status));
+  if (!rule) return;
+
+  const total = job.playlistTotal && job.playlistTotal > 0 ? job.playlistTotal : 1;
+  const done = job.playlistItem || 0;
+  const percent = Math.max(0, Math.min(100, ((done + rule.fraction) / total) * 100));
+  if (percent < job.lastPercent) return;
+
+  job.lastPercent = percent;
+  job.lastProgressAt = now;
+  emitSafe(onEvent, {
+    type: 'progress',
+    id: job.id,
+    percent,
+    phase: rule.phase,
+    item: job.playlistTotal ? done || null : null,
+    totalItems: job.playlistTotal || null,
+    size: null,
+    speed: null,
+    eta: null
+  });
+}
+
 function killTree(child) {
   if (!child || child.exitCode !== null) return;
 
@@ -543,8 +643,13 @@ function killTree(child) {
 }
 
 function startDownload(options, cookieArgs, onEvent) {
-  const binary = binaries.resolve('yt-dlp');
-  if (!binary) {
+  const spotdlJob = spotify.isSpotifyUrl(options.url);
+
+  if (spotdlJob) {
+    if (!spotify.resolveCommand()) {
+      throw new Error('لم يتم العثور على spotdl. ثبّته من الإعدادات ← المحرّكات والمكتبات ثم أعد المحاولة.');
+    }
+  } else if (!binaries.resolve('yt-dlp')) {
     throw new Error('لم يتم العثور على yt-dlp. استخدم زر التثبيت في الإعدادات ثم أعد المحاولة.');
   }
 
@@ -553,15 +658,22 @@ function startDownload(options, cookieArgs, onEvent) {
   const ffmpeg = binaries.resolve('ffmpeg');
   const hasFfmpeg = Boolean(ffmpeg);
 
-  if (options.mode === 'audio' && !hasFfmpeg) {
+  if (spotdlJob && !hasFfmpeg) {
+    throw new Error('تحميل أغاني Spotify يتطلب FFmpeg. استخدم زر التثبيت في الإعدادات ثم أعد المحاولة.');
+  }
+
+  if (!spotdlJob && options.mode === 'audio' && !hasFfmpeg) {
     throw new Error('تحويل الصوت يتطلب FFmpeg. استخدم زر التثبيت في الإعدادات ثم أعد المحاولة.');
   }
+
+  if (spotdlJob) options = { ...options, mode: 'audio', ffmpegPath: hasFfmpeg ? ffmpeg : null };
 
   const outputDir = path.resolve(String(options.outputDir));
   fs.mkdirSync(outputDir, { recursive: true });
 
   const job = {
     id: options.id,
+    backend: spotdlJob ? 'spotdl' : 'ytdlp',
     options: { ...options, outputDir },
     cookieArgs: Array.isArray(cookieArgs) ? cookieArgs : [],
     onEvent,
@@ -623,21 +735,42 @@ function settleJob(job) {
 }
 
 function runJob(job) {
-  const binary = binaries.resolve('yt-dlp');
   const hasFfmpeg = Boolean(binaries.resolve('ffmpeg'));
+  let binary = null;
+  let extraEnv = {};
+  let args = [];
 
-  if (!binary) {
-    job.status = 'error';
-    emitSafe(job.onEvent, {
-      type: 'error',
-      id: job.id,
-      message: 'لم يتم العثور على yt-dlp.'
-    });
-    settleJob(job);
-    return;
+  if (job.backend === 'spotdl') {
+    const command = spotify.resolveCommand();
+    if (!command) {
+      job.status = 'error';
+      emitSafe(job.onEvent, {
+        type: 'error',
+        id: job.id,
+        message: 'لم يتم العثور على spotdl.'
+      });
+      settleJob(job);
+      return;
+    }
+
+    binary = command.command;
+    extraEnv = command.env || {};
+    args = [...(command.prefixArgs || []), ...spotify.buildDownloadArgs(job.options)];
+  } else {
+    binary = binaries.resolve('yt-dlp');
+    if (!binary) {
+      job.status = 'error';
+      emitSafe(job.onEvent, {
+        type: 'error',
+        id: job.id,
+        message: 'لم يتم العثور على yt-dlp.'
+      });
+      settleJob(job);
+      return;
+    }
+
+    args = buildDownloadArgs(job.options, job.cookieArgs, hasFfmpeg);
   }
-
-  const args = buildDownloadArgs(job.options, job.cookieArgs, hasFfmpeg);
 
   setImmediate(() => {
     if (job.cancelled) {
@@ -653,7 +786,13 @@ function runJob(job) {
 
     const child = spawn(binary, args, {
       windowsHide: true,
-      env: { ...process.env, PYTHONIOENCODING: 'utf-8', NO_COLOR: '1' }
+      env: {
+        ...process.env,
+        ...extraEnv,
+        PYTHONIOENCODING: 'utf-8',
+        PYTHONUTF8: '1',
+        NO_COLOR: '1'
+      }
     });
 
     job.child = child;
@@ -670,7 +809,7 @@ function runJob(job) {
       emitSafe(job.onEvent, {
         type: 'error',
         id: job.id,
-        message: `تعذّر تشغيل yt-dlp: ${error.message}`
+        message: `تعذّر تشغيل ${job.backend === 'spotdl' ? 'spotdl' : 'yt-dlp'}: ${error.message}`
       });
       settleJob(job);
     });

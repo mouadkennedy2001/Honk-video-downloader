@@ -5,9 +5,10 @@ const os = require('os');
 const path = require('path');
 const http = require('http');
 const https = require('https');
-const { spawnSync, execFileSync } = require('child_process');
+const { spawn, spawnSync, execFileSync } = require('child_process');
 const AdmZip = require('adm-zip');
 const binaries = require('./binaries');
+const spotify = require('./spotify');
 
 const DOWNLOAD_TIMEOUT_MS = 10 * 60 * 1000;
 const MAX_REDIRECTS = 8;
@@ -106,10 +107,13 @@ function ffmpegAssets() {
 function assetsFor(target) {
   if (target === 'yt-dlp') return ytDlpAssets();
   if (target === 'ffmpeg') return ffmpegAssets();
+  // spotdl is installed through pip, not by downloading a release asset.
+  if (target === 'spotdl') return [];
   throw new Error(`أداة غير معروفة: ${target}`);
 }
 
 function describeAssets(target) {
+  if (target === 'spotdl') return ['python -m pip install --upgrade spotdl'];
   return assetsFor(target).map((asset) => asset.url);
 }
 
@@ -332,7 +336,172 @@ function verifyBinary(file, args) {
   }
 }
 
+function pipFailure(tail) {
+  const lines = String(tail || '')
+    .replace(/\x1b\[[0-9;]*m/g, '')
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter(Boolean);
+
+  const errorLine = [...lines].reverse().find((line) => /error|failed|could not/i.test(line));
+  const message = errorLine || lines[lines.length - 1] || 'خطأ غير معروف.';
+  return message.length > 400 ? `${message.slice(0, 400)}…` : message;
+}
+
+function ensurePip(python, env) {
+  const options = {
+    encoding: 'utf8',
+    timeout: 20000,
+    windowsHide: true,
+    env
+  };
+
+  const check = spawnSync(python.command, [...python.prefixArgs, '-m', 'pip', '--version'], options);
+  if (check.status === 0) return;
+
+  const bootstrap = spawnSync(
+    python.command,
+    [...python.prefixArgs, '-m', 'ensurepip', '--upgrade'],
+    options
+  );
+
+  if (bootstrap.status !== 0) {
+    throw new Error('Python مثبّت لكن pip غير متاح. ثبّت pip ثم أعد المحاولة.');
+  }
+}
+
+async function installSpotdl(onProgress) {
+  const python = spotify.findPython();
+  if (!python) {
+    throw new Error('لم يتم العثور على Python. ثبّت Python 3.9 أو أحدث من python.org ثم أعد المحاولة.');
+  }
+
+  const libDir = path.join(getBinDir(), 'spotdl-lib');
+  fs.mkdirSync(libDir, { recursive: true });
+
+  const env = spotify.withPythonPath(process.env, libDir);
+  env.PYTHONIOENCODING = 'utf-8';
+  env.PYTHONUTF8 = '1';
+  env.PIP_DISABLE_PIP_VERSION_CHECK = '1';
+
+  safeProgress(onProgress, {
+    phase: 'start',
+    percent: 0,
+    target: 'spotdl',
+    message: 'جارٍ تجهيز تثبيت spotdl…'
+  });
+
+  ensurePip(python, env);
+
+  const args = [
+    ...python.prefixArgs,
+    '-m', 'pip', 'install', '--upgrade',
+    // Never wait for an interactive prompt — that leaves the UI stuck on
+    // "جارٍ التثبيت" forever when pip hits a conflict.
+    '--no-input', '--disable-pip-version-check',
+    '--target', libDir,
+    'spotdl'
+  ];
+
+  const result = await new Promise((resolve, reject) => {
+    let child;
+    try {
+      child = spawn(python.command, args, { windowsHide: true, env, stdio: ['ignore', 'pipe', 'pipe'] });
+    } catch (error) {
+      reject(error);
+      return;
+    }
+
+    let tail = '';
+    let lastPercent = null;
+    let timedOut = false;
+    // A stalled network must not leave the installer busy indefinitely.
+    const watchdog = setTimeout(() => {
+      timedOut = true;
+      try { child.kill(); } catch { /* already exited */ }
+    }, DOWNLOAD_TIMEOUT_MS);
+
+    const consume = (chunk) => {
+      const text = chunk.toString('utf8');
+      tail = `${tail}${text}`.slice(-12000);
+
+      for (const rawLine of text.split(/\r?\n/)) {
+        const line = rawLine.trim();
+        if (!line) continue;
+
+        const percentMatch = line.match(/(\d{1,3})\s*%/);
+        if (percentMatch) lastPercent = Number(percentMatch[1]);
+
+        if (/^Collecting\b/i.test(line)) {
+          safeProgress(onProgress, {
+            phase: 'download',
+            percent: lastPercent,
+            target: 'spotdl',
+            message: line.slice(0, 120)
+          });
+        } else if (/^Downloading\b/i.test(line)) {
+          safeProgress(onProgress, {
+            phase: 'download',
+            percent: lastPercent,
+            target: 'spotdl',
+            message: line.slice(0, 120)
+          });
+        } else if (/Installing collected packages/i.test(line)) {
+          safeProgress(onProgress, {
+            phase: 'extract',
+            percent: 100,
+            target: 'spotdl',
+            message: 'جارٍ تثبيت الحزم…'
+          });
+        }
+      }
+    };
+
+    child.stdout.on('data', consume);
+    child.stderr.on('data', consume);
+    child.on('error', (error) => {
+      clearTimeout(watchdog);
+      reject(error);
+    });
+    child.on('close', (code) => {
+      clearTimeout(watchdog);
+      resolve({ code, tail, lastPercent, timedOut });
+    });
+  });
+
+  if (result.timedOut) {
+    throw new Error('انتهت مهلة تثبيت spotdl. تحقق من الاتصال بالإنترنت ثم أعد المحاولة.');
+  }
+
+  if (result.code !== 0) {
+    throw new Error(`تعذّر تثبيت spotdl: ${pipFailure(result.tail)}`);
+  }
+
+  spotify.clearCache();
+  const command = spotify.resolveCommand(true);
+  if (!command) {
+    throw new Error('تم تنزيل spotdl لكن تعذّر تشغيله. جرّب إعادة التثبيت.');
+  }
+
+  safeProgress(onProgress, {
+    phase: 'done',
+    percent: 100,
+    target: 'spotdl',
+    message: 'تم تثبيت spotdl بنجاح.',
+    version: command.version
+  });
+
+  return {
+    target: 'spotdl',
+    path: command.command,
+    version: command.version,
+    installed: true
+  };
+}
+
 async function install(target, onProgress) {
+  if (target === 'spotdl') return installSpotdl(onProgress);
+
   if (target !== 'yt-dlp' && target !== 'ffmpeg') {
     throw new Error('الأداة المطلوبة غير مدعومة.');
   }

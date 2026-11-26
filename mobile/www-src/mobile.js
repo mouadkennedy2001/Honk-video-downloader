@@ -119,10 +119,13 @@
     environment: function () {
       return Promise.resolve({
         ok: true,
+        // The APK uses a progressive yt-dlp format; no FFmpeg is bundled.
         merge: true,
         ytDlp: 'yt-dlp (مدمج)',
-        ffmpeg: 'FFmpegKit',
-        ffprobe: 'متاح'
+        ytDlpVersion: ' bundled',
+        ffmpeg: null,
+        ffprobe: null,
+        spotdl: null
       });
     },
     appInfo: function () {
@@ -194,12 +197,26 @@
       }
     },
 
-    /* ---------- Desktop-only features ---------- */
+    /* ---------- Desktop-only features ----------
+     * The shared renderer still calls these methods even though the related
+     * panels are stripped from the APK. Safe stubs keep init() from throwing.
+     */
     installTool: function () { return Promise.resolve({ ok: false, message: 'المحرّك مدمج في APK.' }); },
     updateYtDlp: function () { return Promise.resolve({ ok: false, message: 'حدّث التطبيق للحصول على إصدار جديد.' }); },
     applyAutoStart: function () {},
+    onInstallProgress: function () {},
 
-    onInstallProgress: function () {}
+    listExtensions: function () { return Promise.resolve({ extensions: [] }); },
+    addExtensionFolder: function () { return Promise.resolve(null); },
+    addExtensionArchive: function () { return Promise.resolve(null); },
+    installBundledExtension: function () { return Promise.resolve(null); },
+    reloadExtension: function () { return Promise.resolve({ ok: false }); },
+    removeExtension: function () { return Promise.resolve({ ok: false }); },
+    openExtensionsFolder: function () { return Promise.resolve(); },
+    onExtensionReceived: function () {},
+    bridgeStatus: function () { return Promise.resolve({ running: false }); },
+    testBridge: function () { return Promise.resolve({ ok: false, error: 'الجسر غير متاح في APK.' }); },
+    restartBridge: function () { return Promise.resolve({ ok: false }); }
   };
 
   document.documentElement.dataset.platform = 'mobile';

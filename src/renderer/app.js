@@ -94,6 +94,11 @@ function normalizeDownloadUrl(input) {
   const raw = String(input || '').trim();
   if (!raw) return null;
 
+  const spotifyUri = raw.match(/^spotify:(track|album|playlist|artist|episode|show):([A-Za-z0-9]+)$/i);
+  if (spotifyUri) {
+    return `https://open.spotify.com/${spotifyUri[1].toLowerCase()}/${spotifyUri[2]}`;
+  }
+
   if (/^https?:\/\//i.test(raw)) {
     try { return new URL(raw).toString(); } catch { return null; }
   }
@@ -455,7 +460,16 @@ function renderSites() {
     star.addEventListener('click', (e)=>{ e.stopPropagation(); toggleFavorite(s); });
     card.append(copy, star);
     card.title = `${s.name} — ${s.url}`;
-    card.addEventListener('click', ()=>{ $('#url').value = s.url; setTab('download'); analyze(s.url); });
+    card.addEventListener('click', ()=>{
+      $('#url').value = s.url;
+      setTab('download');
+      // Spotify's home page has no track to analyze; let the user paste a link.
+      if (/spotify/i.test(s.name || '')) {
+        setUrlHint(t('spotifyPasteHint'), false);
+      } else {
+        analyze(s.url);
+      }
+    });
     grid.appendChild(card);
   }
 }
@@ -546,9 +560,10 @@ async function analyze(urlOverride, preferredMode) {
   try {
     const info = await api.fetchInfo(url, $('#cookie-source').value);
     state.info = info;
-    state.mode = preferredMode === 'audio' ? 'audio' : 'video';
+    // Spotify only provides audio; spotdl always writes an audio file.
+    state.mode = preferredMode === 'audio' || info.backend === 'spotdl' ? 'audio' : 'video';
     renderPreview(info);
-    setUrlHint(t('analyzeSuccess'), false);
+    setUrlHint(info.backend === 'spotdl' ? t('spotifyAnalyzeSuccess') : t('analyzeSuccess'), false);
     // History
     if (state.settings?.enableHistory) {
       addHistory({ url, title: info.title || url, thumb: info.thumbnail || null, extractor: info.extractor || null, at: Date.now() });
@@ -600,6 +615,7 @@ function renderBadges(info) {
   if (info.isLive) add(t('live'), 'live');
   if (info.isPlaylist) add(`${t('playlist')} · ${info.playlistCount || ''}`.trim(), 'warn');
   if (info.extractor) add(info.extractor, 'info');
+  if (info.backend === 'spotdl') add('spotdl', 'ok');
   if (Array.isArray(info.subtitleLangs) && info.subtitleLangs.length) {
     add(`${t('subtitleBadge')} · ${info.subtitleLangs.length}`, 'ok');
   }
@@ -780,6 +796,8 @@ function updatePreviewNote() {
     }
   }
 
+  if (state.info.backend === 'spotdl') notes.push(t('spotifyNote'));
+  if (state.info.infoDegraded) notes.push(t('spotifyInfoNote'));
   if (state.info.isLive) notes.push(t('liveNote'));
   if (state.info.isPlaylist) notes.push(t('playlistNote'));
 
@@ -1234,6 +1252,8 @@ function bindDownloader() {
   api.onError(handleError);
   api.onCancelled(handleCancelled);
   if (api.onExtensionReceived) api.onExtensionReceived(handleIncoming);
+  // Android share / "open with" intents arrive through the mobile bridge.
+  if (api.onSharedLink) api.onSharedLink((url) => handleIncoming({ url }));
 }
 
 async function loadExtensions() {
@@ -1432,15 +1452,18 @@ function setEnginePill(env) {
   pill.title = [
     `yt-dlp: ${env.ytDlp || 'غير متوفر'}`,
     `FFmpeg: ${env.ffmpeg || 'غير متوفر'}`,
-    `ffprobe: ${env.ffprobe || 'غير متوفر'}`
+    `ffprobe: ${env.ffprobe || 'غير متوفر'}`,
+    `spotdl: ${env.spotdl || 'غير متوفر'}`
   ].join('\n');
 }
 
 async function refreshEnv() {
   setBadge($('#env-ytdlp'), 'warn', 'جارٍ الفحص…');
   setBadge($('#env-ffmpeg'), 'warn', 'جارٍ الفحص…');
+  setBadge($('#env-spotdl'), 'warn', 'جارٍ الفحص…');
   $('#env-ytdlp-version').textContent = '—';
   $('#env-ffmpeg-version').textContent = '—';
+  $('#env-spotdl-version').textContent = '—';
 
   try {
     const env = await api.environment();
@@ -1452,6 +1475,14 @@ async function refreshEnv() {
     $('#env-ytdlp-version').title = env.ytDlp || '';
     $('#env-ffmpeg-version').textContent = ffmpegVersionLabel(env.ffmpegVersion);
     $('#env-ffmpeg-version').title = env.ffmpeg || '';
+    setBadge($('#env-spotdl'), env.spotdl ? 'ok' : 'warn', env.spotdl ? t('available') : t('spotifyMissing'));
+    $('#env-spotdl-version').textContent = env.spotdlVersion || (env.spotdl ? t('available') : '—');
+    $('#env-spotdl-version').title = env.spotdl || '';
+    // The HTML starts with an "installing" hint; always replace it with the
+    // real state so the settings panel never looks stuck on "جارٍ التثبيت".
+    resetInstallUi('yt-dlp', env.ok ? t('toolReady') : t('toolMissing'));
+    resetInstallUi('ffmpeg', env.merge ? t('toolReady') : t('toolMissing'));
+    resetInstallUi('spotdl', env.spotdl ? t('toolReady') : t('toolMissing'));
     updatePreviewNote();
     updateDownloadAvailability();
     if (state.info) renderBadges(state.info);
@@ -1459,8 +1490,12 @@ async function refreshEnv() {
     state.env = null;
     setBadge($('#env-ytdlp'), 'bad', 'خطأ');
     setBadge($('#env-ffmpeg'), 'bad', 'خطأ');
+    setBadge($('#env-spotdl'), 'bad', 'خطأ');
     $('#engine-pill').className = 'engine-pill is-bad';
     $('#engine-pill-text').textContent = 'تعذّر فحص المحرّكات';
+    resetInstallUi('yt-dlp', t('errorShort'));
+    resetInstallUi('ffmpeg', t('errorShort'));
+    resetInstallUi('spotdl', t('errorShort'));
     showToast(sanitizeError(error), 'error');
   }
 }
@@ -1500,13 +1535,27 @@ async function refreshBridge() {
   }
 }
 
+function resetInstallUi(target, message) {
+  const fill = $(`#install-${target}-fill`);
+  const text = $(`#install-${target}-text`);
+  if (!fill || !text) return;
+
+  fill.classList.remove('is-indeterminate');
+  fill.style.width = '0%';
+  if (message) text.textContent = message;
+}
+
 function setInstallUi(target, progress) {
   const fill = $(`#install-${target}-fill`);
   const text = $(`#install-${target}-text`);
   if (!fill || !text) return;
 
   const percent = typeof progress.percent === 'number' ? progress.percent : null;
-  if (progress.phase === 'done') {
+  if (progress.phase === 'error') {
+    fill.classList.remove('is-indeterminate');
+    fill.style.width = '0%';
+    text.textContent = progress.message || t('installFailed');
+  } else if (progress.phase === 'done') {
     fill.classList.remove('is-indeterminate');
     fill.style.width = '100%';
     text.textContent = progress.message || 'تم التثبيت بنجاح.';
@@ -1527,20 +1576,30 @@ async function runInstaller(target, button) {
 
   try {
     const result = await api.installTool(target);
-    showToast(result && result.message ? result.message : 'تم تثبيت المكتبات المطلوبة.', 'success');
-    await refreshEnv();
-    await refreshAppInfo();
+    if (result && result.ok === false) {
+      showToast(result.message || t('installFailed'), 'error');
+    } else {
+      showToast(result && result.message ? result.message : t('installDoneText'), 'success');
+      await refreshEnv();
+      await refreshAppInfo();
+    }
   } catch (error) {
-    showToast(sanitizeError(error), 'error');
+    const message = sanitizeError(error);
+    showToast(message, 'error');
+    const hint = $(`#install-${target}-text`);
+    if (hint) hint.textContent = `${t('installFailed')} ${message}`.slice(0, 180);
   } finally {
     state.installing.delete(target);
     setButtonBusy(button, false);
+    const fill = $(`#install-${target}-fill`);
+    if (fill) fill.classList.remove('is-indeterminate');
   }
 }
 
 function bindInstaller() {
   $('#install-ytdlp').addEventListener('click', () => runInstaller('yt-dlp', $('#install-ytdlp')));
   $('#install-ffmpeg').addEventListener('click', () => runInstaller('ffmpeg', $('#install-ffmpeg')));
+  $('#install-spotdl').addEventListener('click', () => runInstaller('spotdl', $('#install-spotdl')));
   $('#install-all').addEventListener('click', () => runInstaller('all', $('#install-all')));
 
   $('#update-ytdlp').addEventListener('click', async () => {
@@ -1562,7 +1621,7 @@ function bindInstaller() {
   });
 
   api.onInstallProgress((progress) => {
-    if (progress && (progress.target === 'yt-dlp' || progress.target === 'ffmpeg')) {
+    if (progress && (progress.target === 'yt-dlp' || progress.target === 'ffmpeg' || progress.target === 'spotdl')) {
       setInstallUi(progress.target, progress);
     }
   });

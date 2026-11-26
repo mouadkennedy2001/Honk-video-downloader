@@ -16,6 +16,7 @@ const files = [
   'src/main/extension-session.js',
   'src/main/extensions.js',
   'src/main/downloader.js',
+  'src/main/spotify.js',
   'src/main/sites.js',
   'src/renderer/app.js',
   'src/renderer/locales.js',
@@ -228,9 +229,12 @@ try {
   const status = binaries.status();
 
   console.log('');
+  const spotifyStatus = require('../src/main/spotify').status();
+
   console.log(`yt-dlp: ${status.ytDlp || 'NOT FOUND'}`);
   console.log(`ffmpeg: ${status.ffmpeg || 'NOT FOUND'}`);
   console.log(`ffprobe: ${status.ffprobe || 'NOT FOUND'}`);
+  console.log(`spotdl: ${spotifyStatus.command || 'NOT FOUND'}${spotifyStatus.version ? ` (${spotifyStatus.version})` : ''}`);
   console.log('');
 
   if (!status.ok) {
@@ -239,6 +243,10 @@ try {
 
   if (!status.merge) {
     console.warn('⚠ ffmpeg is required for merging video+audio and audio conversion.');
+  }
+
+  if (!spotifyStatus.available) {
+    console.warn('⚠ spotdl is optional and only needed for Spotify links.');
   }
 } catch (error) {
   fail(`environment check failed: ${error.message}`);

@@ -47,6 +47,15 @@ function copyDir(from, to) {
   }
 }
 
+function copyWebAssets() {
+  const www = path.join(mobileDir, 'www');
+  const assets = path.join(androidDir, 'app', 'src', 'main', 'assets', 'public');
+  if (!fs.existsSync(www)) fail(`web assets not found: ${www}. Run: npm run sync:web`);
+  // Keep the Android project self-contained even when assembleDebug is run
+  // directly instead of through `npm run build:apk`.
+  copyDir(www, assets);
+}
+
 function copyTemplate() {
   const main = path.join(androidDir, 'app', 'src', 'main');
   const tpl = path.join(templateDir, 'app', 'src', 'main');
@@ -182,11 +191,13 @@ function main() {
     fail('mobile/android not found. Run: cd mobile && npm install && npx cap add android');
   }
 
+  copyWebAssets();
   copyTemplate();
   const root = patchRootGradle();
   const app = patchAppGradle();
   patchSettings();
 
+  console.log('✓ Web assets copied into Android project');
   console.log('✓ Android native layer copied');
   console.log(`✓ Patched ${path.relative(mobileDir, root)}`);
   console.log(`✓ Patched ${path.relative(mobileDir, app)}`);

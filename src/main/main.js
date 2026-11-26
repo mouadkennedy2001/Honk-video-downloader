@@ -21,6 +21,7 @@ const binaries = require('./binaries');
 const installer = require('./installer');
 const settings = require('./settings');
 const downloader = require('./downloader');
+const spotify = require('./spotify');
 const extensions = require('./extensions');
 const bridge = require('./bridge');
 const { SITES } = require('./sites');
@@ -213,6 +214,12 @@ function validateHttpUrl(value) {
   const trimmed = value.trim();
   if (!trimmed || trimmed.length > 4096) return null;
 
+  // Accept Spotify URIs everywhere (field, extension bridge, protocol handler).
+  const spotifyUri = trimmed.match(/^spotify:(track|album|playlist|artist|episode|show):([A-Za-z0-9]+)$/i);
+  if (spotifyUri) {
+    return `https://open.spotify.com/${spotifyUri[1].toLowerCase()}/${spotifyUri[2]}`;
+  }
+
   try {
     const parsed = new URL(trimmed);
     if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') return null;
@@ -261,12 +268,15 @@ function commandVersion(binary, args) {
 
 async function envStatus() {
   const status = binaries.status();
+  const spotifyStatus = spotify.status();
   const [ytDlpVersion, ffmpegVersion] = await Promise.all([
     commandVersion(status.ytDlp, ['--version']),
     commandVersion(status.ffmpeg, ['-version'])
   ]);
   return {
     ...status,
+    spotdl: spotifyStatus.command,
+    spotdlVersion: spotifyStatus.version,
     ytDlpVersion,
     ffmpegVersion
   };
@@ -599,16 +609,22 @@ function registerIpc() {
 
     if (requested === 'all') {
       targets = ['yt-dlp', 'ffmpeg'].filter((target) => !binaries.resolve(target));
-    } else if (requested === 'yt-dlp' || requested === 'ffmpeg') {
+      if (!spotify.resolveCommand()) targets.push('spotdl');
+    } else if (requested === 'yt-dlp' || requested === 'ffmpeg' || requested === 'spotdl') {
       targets = [requested];
     } else {
       throw new Error('أداة غير معروفة.');
     }
 
+    const busy = targets.filter((target) => installLocks.has(target));
+    targets = targets.filter((target) => !installLocks.has(target));
+
     if (!targets.length) {
       return {
         skipped: true,
-        message: 'كل المكتبات المطلوبة مثبّتة بالفعل.',
+        message: busy.length
+          ? 'هناك عملية تثبيت جارية بالفعل. انتظر حتى تنتهي.'
+          : 'كل المكتبات المطلوبة مثبّتة بالفعل.',
         results: []
       };
     }
@@ -617,10 +633,7 @@ function registerIpc() {
     const results = [];
 
     for (const target of targets) {
-      if (installLocks.has(target)) {
-        throw new Error('هناك عملية تثبيت جارية بالفعل لهذه الأداة.');
-      }
-
+      if (installLocks.has(target)) continue;
       installLocks.add(target);
 
       try {

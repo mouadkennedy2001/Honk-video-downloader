@@ -28,8 +28,28 @@ _LOCK = threading.RLock()
 _DEFAULT_DIR = os.path.join(os.path.expanduser("~"), "WaselDownloads")
 
 
+_SPOTIFY_ERROR = (
+    "تحميل أغاني Spotify غير متاح داخل نسخة الهاتف. "
+    "استخدم نسخة الكمبيوتر لتحميلها عبر spotdl."
+)
+
+
 def _json(obj: object) -> str:
     return json.dumps(obj, ensure_ascii=False, separators=(",", ":"))
+
+
+def _is_spotify(url: str) -> bool:
+    """Spotify needs spotdl + FFmpeg, which are not bundled inside the APK."""
+    try:
+        from urllib.parse import urlparse
+        host = (urlparse(url).hostname or "").lower()
+        return (
+            host == "spotify.com"
+            or host == "spotify.link"
+            or host.endswith(".spotify.com")
+        )
+    except Exception:
+        return False
 
 
 def _emit(event_type: str, payload: dict) -> None:
@@ -114,6 +134,8 @@ def info(url: str) -> str:
     """Return the same summarized metadata object used by the desktop app."""
     if not url or not url.strip():
         return _json({"error": "missing_url"})
+    if _is_spotify(url):
+        return _json({"error": _SPOTIFY_ERROR})
     try:
         opts = {
             "quiet": True,
@@ -138,6 +160,8 @@ def preview_url(url: str, mode: str = "video") -> str:
     """Resolve a direct media URL for the in-app <video>/<audio> player."""
     if not url or not url.strip():
         return _json({"error": "missing_url"})
+    if _is_spotify(url):
+        return _json({"error": _SPOTIFY_ERROR})
     try:
         opts = {
             "quiet": True,
@@ -237,6 +261,8 @@ def download(options_json: str, output_dir: str) -> str:
     url = str(options.get("url") or "").strip()
     if not url:
         return _json({"error": "missing_url"})
+    if _is_spotify(url):
+        return _json({"error": _SPOTIFY_ERROR})
 
     callback_id = str(options.get("id") or "").strip() or str(time.time_ns())
     target_dir = output_dir or _DEFAULT_DIR
