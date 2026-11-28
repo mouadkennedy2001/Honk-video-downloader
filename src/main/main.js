@@ -26,6 +26,8 @@ const extensions = require('./extensions');
 const bridge = require('./bridge');
 const { SITES } = require('./sites');
 const { getSession } = require('./extension-session');
+const { friendlyError } = require('./errors');
+const library = require('./library');
 
 const EXTERNAL_COOKIE_SOURCES = new Set([
   'chrome', 'chromium', 'firefox', 'brave', 'edge', 'opera', 'vivaldi', 'safari', 'whale'
@@ -35,7 +37,13 @@ let mainWindow = null;
 let bridgeHandle = null;
 let bridgeError = null;
 let pendingProtocolUrl = null;
+let quitting = false;
 
+// Latest state of the first-run tool preparation; the renderer reads it on
+// startup so a progress event emitted before its listeners attach is not lost.
+let autoSetupState = { phase: 'idle', percent: 0, message: '' };
+
+const AUTO_SETUP_RETRY_MS = 24 * 60 * 60 * 1000;
 const installLocks = new Set();
 
 const gotLock = app.requestSingleInstanceLock();
@@ -149,7 +157,7 @@ function createWindow() {
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,
       nodeIntegration: false,
-      sandbox: false,
+      sandbox: true,
       spellcheck: false
     }
   });
@@ -399,6 +407,68 @@ function protocolFromArgv(argv) {
   return (Array.isArray(argv) ? argv : []).find((arg) => /^wasel:\/\//i.test(String(arg || '')));
 }
 
+function publishAutoSetup(progress) {
+  autoSetupState = { ...autoSetupState, ...progress };
+  sendToWindow('tools:auto-progress', autoSetupState);
+}
+
+// First run: quietly download yt-dlp and FFmpeg into <userData>/bin while the
+// user browses the app. A failed attempt is retried on a later launch (once per
+// day), never in a blocking modal and never with terminal output in the UI.
+async function autoPrepareTools() {
+  const current = settings.load();
+  if (current.autoToolsPrepared) return;
+
+  const lastAttempt = Number(current.autoToolsAttemptedAt || 0);
+  if (lastAttempt && Date.now() - lastAttempt < AUTO_SETUP_RETRY_MS) return;
+
+  settings.save({ autoToolsAttemptedAt: Date.now() });
+
+  const missing = ['yt-dlp', 'ffmpeg'].filter((target) => !binaries.resolve(target));
+  if (!missing.length) {
+    settings.save({ autoToolsPrepared: true });
+    return;
+  }
+
+  publishAutoSetup({
+    phase: 'start',
+    percent: 0,
+    target: missing[0],
+    message: 'جارٍ تجهيز محرك التحميل…'
+  });
+
+  for (const target of missing) {
+    if (binaries.resolve(target)) continue;
+
+    try {
+      await installer.install(target, (progress) => {
+        publishAutoSetup({
+          ...progress,
+          target,
+          message: progress.message || 'جارٍ تجهيز محرك التحميل…'
+        });
+      });
+    } catch (error) {
+      publishAutoSetup({
+        phase: 'error',
+        percent: 0,
+        target,
+        message: friendlyError(error, 'install')
+      });
+    }
+  }
+
+  const ready = Boolean(binaries.resolve('yt-dlp') && binaries.resolve('ffmpeg'));
+  settings.save({ autoToolsPrepared: ready });
+  publishAutoSetup({
+    phase: ready ? 'done' : 'error',
+    percent: ready ? 100 : 0,
+    message: ready
+      ? 'المحرّكات جاهزة للاستخدام.'
+      : 'تعذّر تجهيز الأدوات تلقائياً. يمكنك تثبيتها من الإعدادات ← المحرّكات والمكتبات.'
+  });
+}
+
 function registerIpc() {
   ipcMain.handle('settings:get', () => settings.load());
 
@@ -450,6 +520,10 @@ function registerIpc() {
   });
 
   ipcMain.handle('env:check', async () => envStatus());
+  ipcMain.handle('tools:auto-status', () => autoSetupState);
+  ipcMain.handle('library:scan', (_event, entries) => {
+    return library.scanLibrary(entries, settings.load().downloadDir);
+  });
 
   ipcMain.handle('clipboard:read', () => clipboard.readText());
 
@@ -643,6 +717,8 @@ function registerIpc() {
         });
 
         results.push(result);
+      } catch (error) {
+        throw new Error(friendlyError(error, 'install'));
       } finally {
         installLocks.delete(target);
       }
@@ -675,6 +751,8 @@ function registerIpc() {
         version: result.version,
         env: await envStatus()
       };
+    } catch (error) {
+      throw new Error(friendlyError(error, 'install'));
     } finally {
       installLocks.delete('yt-dlp');
     }
@@ -727,14 +805,17 @@ app.on('open-url', (event, url) => {
   handleProtocolUrl(url);
 });
 
-// The app was renamed from "Honk Downloader" to "Wasel Downloader", which
-// changes the userData folder. Bring the previous installation's data over
-// once, so settings and the installed yt-dlp/FFmpeg survive the rename.
+// Legacy identity only: the old "Honk Downloader" installation wrote its data
+// under a different userData folder. Copy it into the current "Wasel Downloader"
+// folder once so settings and tools survive the rename. Nothing is ever copied
+// in the reverse direction.
+const LEGACY_APP_DATA_NAME = 'Honk Downloader';
+
 function migrateLegacyUserData() {
-  const legacyRoot = path.join(app.getPath('appData'), 'Honk Downloader');
+  const legacyRoot = path.join(app.getPath('appData'), LEGACY_APP_DATA_NAME);
   const newRoot = app.getPath('userData');
 
-  if (!fs.existsSync(legacyRoot)) return;
+  if (legacyRoot === newRoot || !fs.existsSync(legacyRoot)) return;
 
   try {
     const legacySettings = path.join(legacyRoot, 'settings.json');
@@ -785,6 +866,10 @@ app.whenReady().then(async () => {
 
   createWindow();
 
+  // Non-blocking first-run setup; the UI shows a small progress bar while this
+  // runs and users can keep using the app normally.
+  autoPrepareTools().catch(() => {});
+
   await startBridge();
 
   const protocolUrl = protocolFromArgv(process.argv);
@@ -801,6 +886,11 @@ app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') app.quit();
 });
 
-app.on('before-quit', () => {
-  stopBridge();
+app.on('before-quit', (event) => {
+  if (quitting) return;
+
+  // Close the local HTTP bridge before exit so its port is always released.
+  quitting = true;
+  event.preventDefault();
+  stopBridge().finally(() => app.quit());
 });

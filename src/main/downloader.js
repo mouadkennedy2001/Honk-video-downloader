@@ -6,6 +6,7 @@ const readline = require('readline');
 const { spawn } = require('child_process');
 const binaries = require('./binaries');
 const spotify = require('./spotify');
+const { friendlyError } = require('./errors');
 
 const MEDIA_EXTENSIONS = new Set([
   '.mp4', '.mkv', '.webm', '.mov', '.avi', '.flv', '.ts', '.m4v',
@@ -26,19 +27,17 @@ function stripAnsi(value) {
     .replace(/\r/g, '');
 }
 
-function cleanError(text) {
+// Keep only the last meaningful line, then translate it into a message a
+// non-technical user can act on. Raw stdout/stderr never reaches the UI.
+function cleanError(text, context) {
   const lines = stripAnsi(text)
     .split('\n')
     .map((line) => line.trim())
     .filter(Boolean);
 
-  const errorLine = [...lines].reverse().find((line) => /error/i.test(line));
-  let message = errorLine || lines[lines.length - 1] || '';
-
-  message = message.replace(/^ERROR:\s*/i, '').trim();
-
-  if (message.length > 500) message = `${message.slice(0, 500)}…`;
-  return message;
+  const errorLine = [...lines].reverse().find((line) => /error|failed|invalid|unavailable/i.test(line));
+  const message = errorLine || lines[lines.length - 1] || '';
+  return friendlyError(message, context);
 }
 
 function summarize(data) {
@@ -122,14 +121,14 @@ function buildInfoArgs(url, cookieArgs) {
 function getInfo(url, cookieArgs) {
   if (spotify.isSpotifyUrl(url)) {
     if (!spotify.resolveCommand()) {
-      return Promise.reject(new Error('لم يتم العثور على spotdl. ثبّته من الإعدادات ← المحرّكات والمكتبات ثم أعد المحاولة.'));
+      return Promise.reject(new Error('جارٍ تجهيز محرك التحميل… إذا استمرت المشكلة، ثبّت spotdl من الإعدادات.'));
     }
     return spotify.getInfo(url);
   }
 
   const binary = binaries.resolve('yt-dlp');
   if (!binary) {
-    return Promise.reject(new Error('لم يتم العثور على yt-dlp. استخدم زر التثبيت في الإعدادات ثم أعد المحاولة.'));
+    return Promise.reject(new Error('جارٍ تجهيز محرك التحميل… إذا استمرت المشكلة، ثبّت yt-dlp من الإعدادات.'));
   }
 
   return new Promise((resolve, reject) => {
@@ -164,7 +163,7 @@ function getInfo(url, cookieArgs) {
       if (settled) return;
       settled = true;
       clearTimeout(timer);
-      reject(new Error(`تعذّر تشغيل yt-dlp: ${error.message}`));
+      reject(new Error(friendlyError(error, 'info')));
     });
 
     child.on('close', (code) => {
@@ -173,7 +172,7 @@ function getInfo(url, cookieArgs) {
       clearTimeout(timer);
 
       if (code !== 0) {
-        reject(new Error(cleanError(stderr) || `فشل تحليل الرابط (رمز الخروج ${code}).`));
+        reject(new Error(cleanError(stderr, 'info')));
         return;
       }
 
@@ -245,7 +244,7 @@ function getPreviewUrl(url, cookieArgs, mode = 'video') {
       if (settled) return;
       settled = true;
       clearTimeout(timer);
-      reject(new Error(`تعذّر تشغيل yt-dlp: ${error.message}`));
+      reject(new Error(friendlyError(error, 'info')));
     });
 
     child.on('close', (code) => {
@@ -254,7 +253,7 @@ function getPreviewUrl(url, cookieArgs, mode = 'video') {
       clearTimeout(timer);
 
       if (code !== 0) {
-        reject(new Error(cleanError(stderr) || `فشل الحصول على رابط المعاينة (رمز الخروج ${code}).`));
+        reject(new Error(cleanError(stderr, 'preview')));
         return;
       }
 
@@ -647,10 +646,10 @@ function startDownload(options, cookieArgs, onEvent) {
 
   if (spotdlJob) {
     if (!spotify.resolveCommand()) {
-      throw new Error('لم يتم العثور على spotdl. ثبّته من الإعدادات ← المحرّكات والمكتبات ثم أعد المحاولة.');
+      throw new Error('جارٍ تجهيز محرك التحميل… إذا استمرت المشكلة، ثبّت spotdl من الإعدادات.');
     }
   } else if (!binaries.resolve('yt-dlp')) {
-    throw new Error('لم يتم العثور على yt-dlp. استخدم زر التثبيت في الإعدادات ثم أعد المحاولة.');
+    throw new Error('جارٍ تجهيز محرك التحميل… إذا استمرت المشكلة، ثبّت yt-dlp من الإعدادات.');
   }
 
   if (!options.outputDir) throw new Error('لم يتم تحديد مجلد التحميل.');
@@ -659,11 +658,11 @@ function startDownload(options, cookieArgs, onEvent) {
   const hasFfmpeg = Boolean(ffmpeg);
 
   if (spotdlJob && !hasFfmpeg) {
-    throw new Error('تحميل أغاني Spotify يتطلب FFmpeg. استخدم زر التثبيت في الإعدادات ثم أعد المحاولة.');
+    throw new Error('جارٍ تثبيت أدوات المعالجة المطلوبة… أعد بدء التحميل بعد اكتمال التثبيت.');
   }
 
   if (!spotdlJob && options.mode === 'audio' && !hasFfmpeg) {
-    throw new Error('تحويل الصوت يتطلب FFmpeg. استخدم زر التثبيت في الإعدادات ثم أعد المحاولة.');
+    throw new Error('جارٍ تثبيت أدوات المعالجة المطلوبة… أعد بدء التحميل بعد اكتمال التثبيت.');
   }
 
   if (spotdlJob) options = { ...options, mode: 'audio', ffmpegPath: hasFfmpeg ? ffmpeg : null };
@@ -736,18 +735,19 @@ function settleJob(job) {
 
 function runJob(job) {
   const hasFfmpeg = Boolean(binaries.resolve('ffmpeg'));
+  let command = null;
   let binary = null;
   let extraEnv = {};
   let args = [];
 
   if (job.backend === 'spotdl') {
-    const command = spotify.resolveCommand();
+    command = spotify.resolveCommand();
     if (!command) {
       job.status = 'error';
       emitSafe(job.onEvent, {
         type: 'error',
         id: job.id,
-        message: 'لم يتم العثور على spotdl.'
+        message: 'جارٍ تجهيز محرك التحميل… أعد المحاولة بعد اكتمال التثبيت.'
       });
       settleJob(job);
       return;
@@ -755,7 +755,7 @@ function runJob(job) {
 
     binary = command.command;
     extraEnv = command.env || {};
-    args = [...(command.prefixArgs || []), ...spotify.buildDownloadArgs(job.options)];
+    args = [...(command.prefixArgs || []), ...spotify.buildDownloadArgs(job.options, 0)];
   } else {
     binary = binaries.resolve('yt-dlp');
     if (!binary) {
@@ -763,7 +763,7 @@ function runJob(job) {
       emitSafe(job.onEvent, {
         type: 'error',
         id: job.id,
-        message: 'لم يتم العثور على yt-dlp.'
+        message: 'جارٍ تجهيز محرك التحميل… أعد المحاولة بعد اكتمال التثبيت.'
       });
       settleJob(job);
       return;
@@ -771,6 +771,15 @@ function runJob(job) {
 
     args = buildDownloadArgs(job.options, job.cookieArgs, hasFfmpeg);
   }
+
+  spawnAttempt(job, { binary, args, extraEnv, command, attempt: 0 });
+}
+
+// A single attempt of a queued job. Spotify attempts are retried once with a
+// different provider order/bitrate so a source failure stays invisible to the
+// user whenever an automatic fallback succeeds.
+function spawnAttempt(job, plan) {
+  const { binary, args, extraEnv, command, attempt } = plan;
 
   setImmediate(() => {
     if (job.cancelled) {
@@ -784,18 +793,46 @@ function runJob(job) {
       return;
     }
 
-    const child = spawn(binary, args, {
-      windowsHide: true,
-      env: {
-        ...process.env,
-        ...extraEnv,
-        PYTHONIOENCODING: 'utf-8',
-        PYTHONUTF8: '1',
-        NO_COLOR: '1'
-      }
-    });
+    let child;
+    try {
+      child = spawn(binary, args, {
+        windowsHide: true,
+        env: {
+          ...process.env,
+          ...extraEnv,
+          PYTHONIOENCODING: 'utf-8',
+          PYTHONUTF8: '1',
+          NO_COLOR: '1'
+        }
+      });
+    } catch (error) {
+      job.status = 'error';
+      emitSafe(job.onEvent, {
+        type: 'error',
+        id: job.id,
+        message: friendlyError(error, 'download')
+      });
+      settleJob(job);
+      return;
+    }
 
     job.child = child;
+
+    if (attempt > 0) {
+      // Discard the failed attempt's terminal output and show a calm status.
+      job.logTail = '';
+      job.finalPath = null;
+      job.lastDestination = null;
+      emitSafe(job.onEvent, {
+        type: 'progress',
+        id: job.id,
+        percent: job.lastPercent || 0,
+        phase: 'retrying',
+        size: null,
+        speed: null,
+        eta: null
+      });
+    }
 
     const stdout = readline.createInterface({ input: child.stdout });
     const stderr = readline.createInterface({ input: child.stderr });
@@ -809,7 +846,7 @@ function runJob(job) {
       emitSafe(job.onEvent, {
         type: 'error',
         id: job.id,
-        message: `تعذّر تشغيل ${job.backend === 'spotdl' ? 'spotdl' : 'yt-dlp'}: ${error.message}`
+        message: friendlyError(error, 'download')
       });
       settleJob(job);
     });
@@ -869,14 +906,23 @@ function runJob(job) {
         return;
       }
 
-      job.status = 'error';
-      const message = cleanError(job.logTail)
-        || `فشل التحميل (رمز الخروج ${code}).`;
+      // Silent fallback: try a different set of audio sources before surfacing
+      // any error to the user (spotify.js rotates provider order per attempt).
+      if (job.backend === 'spotdl' && attempt === 0 && command) {
+        job.child = null;
+        spawnAttempt(job, {
+          ...plan,
+          args: [...(command.prefixArgs || []), ...spotify.buildDownloadArgs(job.options, 1)],
+          attempt: 1
+        });
+        return;
+      }
 
+      job.status = 'error';
       emitSafe(job.onEvent, {
         type: 'error',
         id: job.id,
-        message
+        message: cleanError(job.logTail, 'download')
       });
       settleJob(job);
     });

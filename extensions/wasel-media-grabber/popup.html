@@ -9,7 +9,7 @@
 <body>
   <header class="head">
     <div class="brand">
-      <span class="brand-mark">H</span>
+      <span class="brand-mark">W</span>
       <div class="brand-copy">
         <strong>Wasel Media Grabber</strong>
         <span id="app-status" class="app-status">جارٍ فحص التطبيق…</span>
@@ -24,11 +24,20 @@
     <button id="refresh" class="btn icon" type="button" title="تحديث">⟳</button>
   </div>
 
+  <section id="queue-panel" class="queue-panel">
+    <div class="queue-head"><strong>الروابط المعلّقة</strong><span id="queue-count" class="queue-count">0</span></div>
+    <div id="queue-list" class="queue-list"></div>
+    <div class="queue-actions">
+      <button id="queue-flush" class="btn primary" type="button">إرسال المعلّق</button>
+      <button id="queue-clear" class="btn" type="button">مسح المعلّق</button>
+    </div>
+  </section>
+
   <main id="list" class="list"></main>
 
   <footer class="foot">
     <span id="status" class="status"></span>
-    <span class="hint">Alt+Shift+H</span>
+    <span class="hint">Alt+Shift+W</span>
   </footer>
 
   <script src="popup.js"></script>

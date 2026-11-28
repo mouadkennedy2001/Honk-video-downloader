@@ -1,13 +1,15 @@
 'use strict';
 
 (() => {
-  const BRIDGE_PORTS = [47821, 47822, 47823, 47824, 47825];
+  const BRIDGE_PORTS = [47821, 47822, 47823, 47824, 47825, 47826, 47827, 47828, 47829, 47830];
   const TYPE_LABEL = { video: 'فيديو', audio: 'صوت', stream: 'بث' };
 
   const list = document.getElementById('list');
   const badge = document.getElementById('badge');
   const appStatus = document.getElementById('app-status');
   const status = document.getElementById('status');
+  const queueList = document.getElementById('queue-list');
+  const queueCount = document.getElementById('queue-count');
   let activeTab = null;
   let items = [];
   let statusTimer = null;
@@ -99,12 +101,37 @@
     return { ok: false };
   }
 
+  async function loadQueue() {
+    if (!queueList || !queueCount) return;
+
+    const result = await runtimeMessage({ type: 'wasel:queue-list' }, 4000);
+    const items = result && Array.isArray(result.items) ? result.items : [];
+    queueCount.textContent = String(items.length);
+    queueList.textContent = '';
+
+    for (const item of items.slice(-20).reverse()) {
+      const row = document.createElement('div');
+      row.textContent = item.url;
+      row.title = item.queuedAt
+        ? new Date(item.queuedAt).toLocaleString()
+        : item.url;
+      queueList.appendChild(row);
+    }
+  }
+
   async function sendToApp(payload) {
     if (!payload || !payload.url) return;
 
     setStatus('جارٍ الإرسال…', false);
 
     let result = await runtimeMessage({ type: 'wasel:send-to-app', payload }, 7000);
+
+    if (result && result.queued) {
+      setStatus('التطبيق غير مشغّل — حُفظ الرابط للإرسال لاحقًا.', false);
+      setAppOnline(false);
+      await loadQueue();
+      return;
+    }
 
     if (!result || !result.ok) {
       result = await directSend(payload);
@@ -113,10 +140,21 @@
     if (result && result.ok) {
       setStatus('تم الإرسال إلى التطبيق.', false);
       setAppOnline(true, result.port);
-    } else {
-      setStatus('التطبيق غير مشغّل. افتحه أولًا.', true);
-      setAppOnline(false);
+      await loadQueue();
+      return;
     }
+
+    // The background queue may be unavailable in this context; try once more
+    // through an explicit message before falling back to an offline notice.
+    const saved = await runtimeMessage({ type: 'wasel:queue-add', payload }, 4000);
+    setStatus(
+      saved && saved.ok
+        ? 'التطبيق غير مشغّل — حُفظ الرابط للإرسال لاحقًا.'
+        : 'التطبيق غير مشغّل. افتحه أولًا.',
+      !saved || !saved.ok
+    );
+    setAppOnline(false);
+    await loadQueue();
   }
 
   function setAppOnline(online, port) {
@@ -249,5 +287,22 @@
     setStatus('جارٍ فتح التطبيق…', false);
   });
 
-  scan().then(checkApp);
+  document.getElementById('queue-flush').addEventListener('click', async () => {
+    const result = await runtimeMessage({ type: 'wasel:queue-flush' }, 20000);
+    const sent = result && Number(result.sent) > 0 ? Number(result.sent) : 0;
+    setStatus(sent ? `تم إرسال ${sent} رابطًا إلى واصل.` : 'لا توجد روابط قابلة للإرسال الآن.', !sent);
+    await loadQueue();
+    await checkApp();
+  });
+
+  document.getElementById('queue-clear').addEventListener('click', async () => {
+    await runtimeMessage({ type: 'wasel:queue-clear' }, 4000);
+    setStatus('تم مسح الروابط المعلّقة.', false);
+    await loadQueue();
+  });
+
+  scan().then(async () => {
+    await checkApp();
+    await loadQueue();
+  });
 })();

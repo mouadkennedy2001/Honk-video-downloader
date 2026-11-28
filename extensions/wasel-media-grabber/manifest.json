@@ -7,6 +7,7 @@
     "128": "icon128.png"
   },
   "permissions": [
+    "alarms",
     "clipboardWrite",
     "storage",
     "tabs",
@@ -30,7 +31,7 @@
   "commands": {
     "toggle-panel": {
       "suggested_key": {
-        "default": "Alt+Shift+H"
+        "default": "Alt+Shift+W"
       },
       "description": "فتح أو إغلاق لوحة روابط الوسائط"
     }

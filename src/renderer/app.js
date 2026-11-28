@@ -33,6 +33,9 @@ const state = {
   language: 'ar',
   history: [],
   favorites: [],
+  siteProfile: null,
+  incomingQueue: [],
+  libraryTimer: null,
   // Preview player
   previewPlayerUrl: null,
 };
@@ -44,6 +47,10 @@ const PHASE_KEYS = {
   merging: 'merging',
   converting: 'converting',
   tagging: 'tagging',
+  retrying: 'retrying',
+  searching: 'searching',
+  playlist: 'playlist',
+  paused: 'paused',
   done: 'done'
 };
 
@@ -60,9 +67,20 @@ function createElement(tag, className, text) {
 
 function sanitizeError(error) {
   let message = error && error.message ? error.message : String(error || '');
-  message = message.replace(/^Error invoking remote method '[^']+':\s*/i, '');
-  message = message.replace(/^Error:\s*/i, '');
-  return message.trim() || t('unexpectedError');
+  message = message.replace(/^Error invoking remote method ['"][^'"]+['"]:\s*/i, '');
+  message = message.replace(/^(?:ERROR|Error|FATAL):\s*/i, '');
+  message = message.replace(/\s*\(?(?:رمز الخروج|exit code)\s*\d+\)?/gi, '').trim();
+
+  // Last line of defence: never show terminal paths, stack traces or bare exit
+  // codes in the UI, even if an untranslated error crosses the bridge.
+  if (!message
+    || /^(?:error|failed|failure|undefined|null|\d{1,4})$/i.test(message)
+    || /^(?:[A-Za-z]:\\|\/|\.{1,2}\/)/.test(message)
+    || /^(?:Traceback|at\s+\S+\s+\()/i.test(message)) {
+    return t('unexpectedError');
+  }
+
+  return message.length > 260 ? `${message.slice(0, 260)}…` : message;
 }
 
 function showToast(message, kind) {
@@ -108,6 +126,77 @@ function normalizeDownloadUrl(input) {
   }
 
   return null;
+}
+
+/* ---------- Local library & site memory helpers ---------- */
+
+function siteKeyFor(rawUrl) {
+  const url = normalizeDownloadUrl(rawUrl);
+  if (!url) return '';
+
+  try {
+    const host = new URL(url).hostname.toLowerCase().replace(/^www\./, '');
+    const aliases = {
+      'youtu.be': 'youtube.com',
+      'm.youtube.com': 'youtube.com',
+      'music.youtube.com': 'youtube.com',
+      'open.spotify.com': 'spotify.com'
+    };
+    return aliases[host] || host;
+  } catch {
+    return '';
+  }
+}
+
+function getSiteProfile(rawUrl) {
+  const key = siteKeyFor(rawUrl);
+  const profile = key && state.settings && state.settings.siteProfiles
+    ? state.settings.siteProfiles[key]
+    : null;
+  return profile ? { key, ...profile } : null;
+}
+
+async function saveSiteProfile(rawUrl) {
+  const key = siteKeyFor(rawUrl);
+  if (!key) return null;
+
+  const existing = (state.settings && state.settings.siteProfiles) || {};
+  const profile = {
+    ...(existing[key] || {}),
+    mode: state.mode === 'audio' ? 'audio' : 'video',
+    quality: $('#quality-select').value || 'best',
+    audioFormat: $('#audio-format-select').value || 'mp3',
+    cookieSource: $('#cookie-source').value || 'none',
+    at: Date.now()
+  };
+
+  try {
+    state.settings = await api.saveSettings({
+      siteProfiles: { ...existing, [key]: profile }
+    });
+    state.siteProfile = { key, ...profile };
+  } catch {
+    /* Profile saving is a convenience; never block the download. */
+  }
+  return state.siteProfile;
+}
+
+function cleanSuggestedName(title) {
+  return String(title || '')
+    .replace(/\s*\[[^\]]{6,}\]\s*$/, '')
+    .replace(/\s*[-–—|]\s*(?:YouTube|Spotify|Facebook|Instagram|TikTok)\s*$/i, '')
+    .replace(/\s*\((?:official(?:\s+video)?|lyrics?|HD|HQ|4K|1080p|720p)\)\s*/gi, ' ')
+    .replace(/[<>:"\\/|?*]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .slice(0, 120);
+}
+
+function titleKeyForDuplicate(title) {
+  return cleanSuggestedName(title)
+    .toLowerCase()
+    .replace(/[^a-z0-9\u0600-\u06ff]+/g, ' ')
+    .trim();
 }
 
 /* ---------- Theme ---------- */
@@ -223,7 +312,10 @@ function setTab(name) {
 
   if (name === 'extensions') loadExtensions();
   if (name === 'sites') loadSites();
-  if (name === 'history') renderHistory();
+  if (name === 'history') {
+    renderHistory();
+    refreshLibrary();
+  }
   if (name === 'favorites') renderFavorites();
   if (name === 'settings') {
     refreshEnv();
@@ -292,9 +384,7 @@ function renderHistory(){
   const list = $('#history-list'); if(!list) return;
   list.textContent='';
   const items = state.history || state.settings?.history || [];
-  $('#history-count').textContent = String(items.length);
   $('#history-empty').classList.toggle('is-hidden', items.length>0);
-  renderStats();
   for (const h of items){
     const row = createElement('div','history-item');
     const copy = createElement('div'); copy.style.minWidth='0'; copy.style.flex='1';
@@ -321,6 +411,139 @@ function renderHistory(){
   }
 }
 
+function fileStamp(entry) {
+  const at = Number(entry.completedAt || entry.at) || 0;
+  return at
+    ? new Date(at).toLocaleString(state.language || 'ar', { dateStyle: 'short', timeStyle: 'short' })
+    : '';
+}
+
+function fileCopy(entry, extra) {
+  const copy = createElement('div');
+  copy.style.minWidth = '0';
+  copy.style.flex = '1';
+
+  const title = createElement('b', null, entry.title || entry.url);
+  title.title = entry.title || entry.url;
+  const path = createElement('span', null, entry.path || entry.url);
+  path.title = entry.path || '';
+  const meta = createElement('span', null, [
+    formatBytes(entry.size),
+    fileStamp(entry),
+    extra
+  ].filter(Boolean).join(' • '));
+  copy.append(title, path, meta);
+  return copy;
+}
+
+async function recordDownloadFile(job, payload) {
+  const target = payload.finalPath || job.finalPath;
+  if (!target) return;
+
+  const url = job.url || state.info?.webpageUrl || $('#url').value;
+  const record = {
+    url,
+    title: job.title || state.info?.title || url,
+    path: target,
+    size: parseSizeToBytes(job.size || payload.size),
+    completedAt: Date.now(),
+    thumb: job.thumbnail || payload.thumbnail || state.info?.thumbnail || null,
+    mode: job.mode || state.mode
+  };
+
+  try {
+    const files = [record, ...(state.settings?.downloadFiles || []).filter((f) => f.path !== target)]
+      .slice(0, state.settings?.maxHistory || 500);
+    state.settings = await api.saveSettings({ downloadFiles: files });
+    if ($('#tab-history')?.classList.contains('is-active')) refreshLibrary();
+  } catch {
+    /* A failed record must not turn a completed download into an error. */
+  }
+}
+
+async function dismissMissingFile(entry) {
+  const target = entry.path;
+  const files = (state.settings?.downloadFiles || [])
+    .map((f) => (f.path === target ? { ...f, path: '' } : f));
+  try {
+    state.settings = await api.saveSettings({ downloadFiles: files });
+    await refreshLibrary();
+  } catch (error) {
+    showToast(sanitizeError(error), 'error');
+  }
+}
+
+function renderMissingFiles(missing) {
+  const list = $('#missing-list');
+  if (!list) return;
+  list.textContent = '';
+  $('#missing-empty').classList.toggle('is-hidden', missing.length > 0);
+
+  for (const entry of missing) {
+    const row = createElement('div', 'history-item');
+    const actions = createElement('div');
+    actions.style.display = 'flex';
+    actions.style.gap = '6px';
+
+    const again = createElement('button', 'btn ghost compact', t('reDownload'));
+    again.type = 'button';
+    again.addEventListener('click', () => handleIncoming({ url: entry.url, autoDownload: true }));
+
+    const dismiss = createElement('button', 'btn ghost compact', t('dismiss'));
+    dismiss.type = 'button';
+    dismiss.addEventListener('click', () => dismissMissingFile(entry));
+
+    actions.append(again, dismiss);
+    row.append(
+      fileCopy(entry),
+      createElement('span', 'badge badge-bad', t('missingFiles')),
+      actions
+    );
+    list.appendChild(row);
+  }
+}
+
+function renderLibraryFiles(present) {
+  const list = $('#library-list');
+  if (!list) return;
+  list.textContent = '';
+  $('#library-empty').classList.toggle('is-hidden', present.length > 0);
+
+  const counts = new Map();
+  for (const entry of present) {
+    const key = titleKeyForDuplicate(entry.title);
+    if (key) counts.set(key, (counts.get(key) || 0) + 1);
+  }
+
+  for (const entry of present) {
+    const row = createElement('div', 'history-item');
+    const suggestion = cleanSuggestedName(entry.title);
+    const isDuplicate = counts.get(titleKeyForDuplicate(entry.title)) > 1;
+
+    const open = createElement('button', 'btn ghost compact', t('open'));
+    open.type = 'button';
+    open.addEventListener('click', () => api.showItem(entry.path));
+
+    row.append(fileCopy(entry, `${t('suggestedName')}: ${suggestion}`));
+    if (isDuplicate) row.appendChild(createElement('span', 'badge badge-warn', t('duplicate')));
+    row.appendChild(open);
+    list.appendChild(row);
+  }
+}
+
+async function refreshLibrary() {
+  if (!api.scanLibrary || !$('#missing-list') || !$('#library-list')) return;
+
+  try {
+    const result = await api.scanLibrary(state.settings?.downloadFiles || []);
+    renderMissingFiles(Array.isArray(result?.missing) ? result.missing : []);
+    renderLibraryFiles(Array.isArray(result?.present) ? result.present : []);
+  } catch {
+    renderMissingFiles([]);
+    renderLibraryFiles([]);
+  }
+}
+
 function parseSizeToBytes(value) {
   if (typeof value === 'number' && Number.isFinite(value)) return value;
   const match = String(value || '').trim().match(/^([\d.,]+)\s*([KMGTPE]?i?B)$/i);
@@ -337,19 +560,6 @@ function formatBytes(bytes) {
   const index = Math.min(units.length - 1, Math.floor(Math.log(bytes) / Math.log(1024)));
   const value = bytes / (1024 ** index);
   return `${value >= 10 || index === 0 ? Math.round(value) : value.toFixed(1)} ${units[index]}`;
-}
-
-function renderStats() {
-  const jobs = [...state.jobs.values()];
-  const done = jobs.filter((job) => job.status === 'done');
-  const failed = jobs.filter((job) => job.status === 'error' || job.status === 'cancelled');
-  const bytes = done.reduce((sum, job) => sum + parseSizeToBytes(job.size || job.bytes), 0);
-
-  const set = (id, value) => { const el = $(id); if (el) el.textContent = value; };
-  set('#stats-analyses', String((state.history || []).length));
-  set('#stats-done', String(done.length));
-  set('#stats-failed', String(failed.length));
-  set('#stats-bytes', formatBytes(bytes));
 }
 
 async function shareUrl(url) {
@@ -553,17 +763,28 @@ async function analyze(urlOverride, preferredMode) {
   }
 
   $('#url').value = url;
+  state.siteProfile = null;
   state.busyInfo = true;
   setButtonBusy($('#analyze-btn'), true, t('analyzing'));
   setUrlHint(t('readingInfo'), false);
 
   try {
+    state.siteProfile = getSiteProfile(url);
+    if (state.siteProfile?.cookieSource) setCookieSource(state.siteProfile.cookieSource);
+
     const info = await api.fetchInfo(url, $('#cookie-source').value);
     state.info = info;
     // Spotify only provides audio; spotdl always writes an audio file.
-    state.mode = preferredMode === 'audio' || info.backend === 'spotdl' ? 'audio' : 'video';
+    // A saved per-site preference wins over the generic default; an explicit
+    // request from the extension still wins over the saved preference.
+    state.mode = info.backend === 'spotdl'
+      ? 'audio'
+      : (preferredMode || state.siteProfile?.mode || 'video');
     renderPreview(info);
-    setUrlHint(info.backend === 'spotdl' ? t('spotifyAnalyzeSuccess') : t('analyzeSuccess'), false);
+    const success = state.siteProfile
+      ? t('siteProfileApplied')
+      : (info.backend === 'spotdl' ? t('spotifyAnalyzeSuccess') : t('analyzeSuccess'));
+    setUrlHint(success, false);
     // History
     if (state.settings?.enableHistory) {
       addHistory({ url, title: info.title || url, thumb: info.thumbnail || null, extractor: info.extractor || null, at: Date.now() });
@@ -571,6 +792,7 @@ async function analyze(urlOverride, preferredMode) {
     return info;
   } catch (error) {
     state.info = null;
+    state.siteProfile = null;
     hidePreview();
     setUrlHint(sanitizeError(error), true);
     return null;
@@ -621,6 +843,7 @@ function renderBadges(info) {
   }
   if (info.hasVideo === false && info.hasAudio !== false) add(t('audioOnly'), 'info');
   if (state.env && !state.env.merge) add(t('ffmpegBadge'), 'warn');
+  if (state.siteProfile) add(t('siteProfileBadge'), 'info');
 }
 
 function renderPreview(info) {
@@ -654,13 +877,15 @@ function renderPreview(info) {
   renderBadges(info);
   populateQualities(info);
 
-  const defaultQuality = state.settings ? state.settings.videoQuality : 'best';
+  const defaultQuality = state.siteProfile?.quality
+    || (state.settings ? state.settings.videoQuality : 'best');
   const qualitySelect = $('#quality-select');
   if (Array.from(qualitySelect.options).some((option) => option.value === defaultQuality)) {
     qualitySelect.value = defaultQuality;
   }
 
-  const defaultAudio = state.settings ? state.settings.audioFormat : 'mp3';
+  const defaultAudio = state.siteProfile?.audioFormat
+    || (state.settings ? state.settings.audioFormat : 'mp3');
   const audioSelect = $('#audio-format-select');
   if (Array.from(audioSelect.options).some((option) => option.value === defaultAudio)) {
     audioSelect.value = defaultAudio;
@@ -870,6 +1095,10 @@ async function startDownload() {
     ? crypto.randomUUID()
     : `${Date.now()}-${Math.random().toString(16).slice(2)}`;
 
+  // Remember the exact choices used for this site so the next link from the
+  // same site starts with the same mode, quality, format and cookie source.
+  await saveSiteProfile(state.info.webpageUrl || $('#url').value);
+
   await launchDownload({
     id,
     url: state.info.webpageUrl || $('#url').value,
@@ -1000,12 +1229,17 @@ function updateJobCard(job) {
 
   let badgeText = '—';
   let indeterminate = false;
+  let processing = false;
 
   if (job.status === 'queued') {
     badgeText = t('queued');
     refs.meta.textContent = t('waiting');
   } else if (job.status === 'running') {
     if (job.phase === 'merging' || job.phase === 'converting' || job.phase === 'tagging') {
+      badgeText = phaseLabel(job.phase);
+      indeterminate = true;
+      processing = true;
+    } else if (job.phase === 'retrying') {
       badgeText = phaseLabel(job.phase);
       indeterminate = true;
     } else if (job.phase === 'playlist' && job.totalItems) {
@@ -1019,7 +1253,11 @@ function updateJobCard(job) {
     if (job.size) metaParts.push(job.size);
     if (job.speed) metaParts.push(job.speed);
     if (job.eta) metaParts.push(t('remaining', { time: job.eta }));
-    refs.meta.textContent = metaParts.join(' • ') || t('downloading');
+    // Post-processing (merging/converting) can take a while after the last
+    // percentage update; say what is happening instead of freezing at 99%.
+    refs.meta.textContent = processing
+      ? t('processingFile')
+      : (metaParts.join(' • ') || t('downloading'));
   } else if (job.status === 'done') {
     badgeText = t('done');
     refs.meta.textContent = job.finalPath || t('fileSaved');
@@ -1076,7 +1314,6 @@ function renderQueue() {
 
   $('#queue-empty').classList.toggle('is-hidden', state.jobs.size > 0);
   $('#queue-count').textContent = String(state.jobs.size);
-  renderStats();
 }
 
 function openJobFolder(job) {
@@ -1124,7 +1361,7 @@ function handleDone(payload) {
   job.folder = payload.folder || job.folder;
 
   updateJobCard(job);
-  renderStats();
+  recordDownloadFile(job, payload);
   showToast(t('downloadComplete', { title: job.title }), 'success');
 }
 
@@ -1135,7 +1372,6 @@ function handleError(payload) {
   job.status = 'error';
   job.error = payload.message || t('downloadFailed');
   updateJobCard(job);
-  renderStats();
   showToast(job.error, 'error');
 }
 
@@ -1145,7 +1381,6 @@ function handleCancelled(payload) {
 
   job.status = 'cancelled';
   updateJobCard(job);
-  renderStats();
 }
 
 function bindTabs() {
@@ -1172,10 +1407,11 @@ function bindTheme() {
   });
 }
 
-async function handleIncoming(payload) {
-  if (!payload || !payload.url || state.incomingBusy) return;
+async function processIncomingQueue() {
+  if (state.incomingBusy || !state.incomingQueue.length) return;
 
   state.incomingBusy = true;
+  const payload = state.incomingQueue.shift();
   try {
     $('#url').value = payload.url;
     setTab('download');
@@ -1183,7 +1419,21 @@ async function handleIncoming(payload) {
     if (info && payload.autoDownload) await startDownload();
   } finally {
     state.incomingBusy = false;
+    if (state.incomingQueue.length) setTimeout(processIncomingQueue, 0);
   }
+}
+
+function handleIncoming(payload) {
+  if (!payload || !payload.url) return;
+
+  const url = normalizeDownloadUrl(payload.url);
+  if (!url) return;
+
+  // The extension can fire several /send calls in one burst. Queue them here
+  // instead of dropping links while analyze() is busy.
+  state.incomingQueue.push({ ...payload, url });
+  if (state.incomingQueue.length > 50) state.incomingQueue.shift();
+  processIncomingQueue();
 }
 
 function bindDownloader() {
@@ -1245,6 +1495,14 @@ function bindDownloader() {
       }
     }
     renderQueue();
+  });
+
+  $('#clear-history')?.addEventListener('click', async () => {
+    state.history = [];
+    try {
+      state.settings = await api.saveSettings({ history: [] });
+    } catch { /* keep the local list cleared even if saving fails */ }
+    renderHistory();
   });
 
   api.onProgress(handleProgress);
@@ -1627,6 +1885,56 @@ function bindInstaller() {
   });
 }
 
+function applyAutoSetup(progress) {
+  const banner = $('#engine-setup');
+  if (!banner || !progress) return;
+
+  const phase = String(progress.phase || '');
+  const text = $('#engine-setup-text');
+  const fill = $('#engine-setup-fill');
+  const running = ['start', 'download', 'extract', 'install', 'searching'].includes(phase);
+
+  if (running) {
+    banner.classList.remove('is-hidden');
+    banner.dataset.phase = phase;
+    if (text) text.textContent = progress.message || t('preparingEngine');
+
+    const percent = typeof progress.percent === 'number' ? Math.round(progress.percent) : null;
+    if (phase === 'download' && percent !== null && percent > 0) {
+      fill.classList.remove('is-indeterminate');
+      fill.style.width = `${Math.max(2, Math.min(100, percent))}%`;
+    } else {
+      fill.classList.add('is-indeterminate');
+      fill.style.width = '';
+    }
+    return;
+  }
+
+  if (phase === 'done' || phase === 'error') {
+    banner.dataset.phase = phase;
+    if (text) {
+      text.textContent = phase === 'done' ? t('engineSetupDone') : (progress.message || t('engineSetupFailed'));
+    }
+    fill.classList.remove('is-indeterminate');
+    fill.style.width = phase === 'done' ? '100%' : '0%';
+    setTimeout(() => banner.classList.add('is-hidden'), phase === 'done' ? 2600 : 6000);
+    refreshEnv();
+  }
+}
+
+async function bindAutoSetup() {
+  if (!api.onAutoSetupProgress) return;
+  api.onAutoSetupProgress(applyAutoSetup);
+
+  // The main process may have started installing before this listener existed.
+  try {
+    const status = await api.autoSetupStatus();
+    if (status && status.phase && status.phase !== 'idle') applyAutoSetup(status);
+  } catch {
+    /* optional feature */
+  }
+}
+
 function bindSettings() {
   $('#choose-dir').addEventListener('click', async () => {
     try {
@@ -1923,6 +2231,7 @@ async function init() {
   bindDropZone();
   bindGlobalShortcuts();
   bindSites();
+  bindAutoSetup();
 
   await loadSettings();
   await loadSites();
@@ -1939,6 +2248,12 @@ async function init() {
 
   updateModeUi();
 
+  // Missing-file detection is local and cheap, but it must not block startup.
+  refreshLibrary();
+  state.libraryTimer = setInterval(() => {
+    if ($('#tab-history')?.classList.contains('is-active')) refreshLibrary();
+  }, 30000);
+  window.addEventListener('beforeunload', () => clearInterval(state.libraryTimer));
 }
 
 document.addEventListener('DOMContentLoaded', init);

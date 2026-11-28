@@ -16,6 +16,8 @@ const files = [
   'src/main/extension-session.js',
   'src/main/extensions.js',
   'src/main/downloader.js',
+  'src/main/errors.js',
+  'src/main/library.js',
   'src/main/spotify.js',
   'src/main/sites.js',
   'src/renderer/app.js',

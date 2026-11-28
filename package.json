@@ -4,7 +4,7 @@
   "version": "2.0.0",
   "description": "Wasel Downloader — open-source premium video and Spotify audio downloader, no ads, no revenue. Built with Electron + yt-dlp/FFmpeg/spotdl.",
   "main": "src/main/main.js",
-  "homepage": "https://github.com/ahmednacer/wasel-downloader",
+  "homepage": "https://github.com/mouadkennedy2001/Honk-video-downloader",
   "author": {
     "name": "zerouki ahmed mouad (زروقي احمد معاذ)"
   },
@@ -24,8 +24,8 @@
     "apk:build": "npm run apk:prepare && cd mobile/android && gradlew.bat assembleDebug"
   },
   "devDependencies": {
-    "electron": "^45.2.1",
-    "electron-builder": "^26.18.0"
+    "electron": "^34.0.0",
+    "electron-builder": "^25.0.0"
   },
   "build": {
     "appId": "app.wasel.downloader",
@@ -38,7 +38,10 @@
       "src/**/*",
       "icons/**/*",
       "node_modules/**/*",
-      "package.json"
+      "package.json",
+      "!**/.git",
+      "!**/tests",
+      "!**/*.md"
     ],
     "extraResources": [
       {

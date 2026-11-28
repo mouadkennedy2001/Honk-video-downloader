@@ -15,12 +15,14 @@ contextBridge.exposeInMainWorld('wasel', {
   getSettings: () => ipcRenderer.invoke('settings:get'),
   saveSettings: (patch) => ipcRenderer.invoke('settings:set', patch),
   appInfo: () => ipcRenderer.invoke('app:info'),
+  scanLibrary: (entries) => ipcRenderer.invoke('library:scan', entries),
 
   chooseFolder: () => ipcRenderer.invoke('dialog:choose-folder'),
   environment: () => ipcRenderer.invoke('env:check'),
 
   installTool: (target) => ipcRenderer.invoke('tools:install', target),
   updateYtDlp: () => ipcRenderer.invoke('tools:update-ytdlp'),
+  autoSetupStatus: () => ipcRenderer.invoke('tools:auto-status'),
 
   fetchInfo: (url, cookieSource) => ipcRenderer.invoke('yt:info', url, cookieSource || 'none'),
   getPreviewUrl: (url, cookieSource, mode) => ipcRenderer.invoke('yt:preview-url', url, cookieSource || 'none', mode),
@@ -51,6 +53,7 @@ contextBridge.exposeInMainWorld('wasel', {
   onCancelled: (callback) => subscribe('yt:cancelled', callback),
 
   onInstallProgress: (callback) => subscribe('tools:install-progress', callback),
+  onAutoSetupProgress: (callback) => subscribe('tools:auto-progress', callback),
 
   onExtensionReceived: (callback) => subscribe('extension:received', callback),
 

@@ -228,6 +228,59 @@ body {
   color: #187a3d;
 }
 
+.queue-panel {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border);
+  background: var(--soft);
+}
+
+.queue-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 12px;
+}
+
+.queue-count {
+  display: inline-grid;
+  place-items: center;
+  min-width: 22px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: var(--blue);
+  color: #ffffff;
+  font: 800 10px/1 system-ui, sans-serif;
+}
+
+.queue-list {
+  margin: 6px 0;
+  max-height: 72px;
+  overflow-y: auto;
+  direction: ltr;
+  font: 600 10px/1.4 ui-monospace, "SFMono-Regular", Consolas, monospace;
+  color: var(--muted);
+}
+
+.queue-list:empty::after {
+  content: "لا توجد روابط معلّقة.";
+  direction: rtl;
+  display: block;
+  font-family: system-ui, sans-serif;
+}
+
+.queue-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.queue-actions .btn {
+  flex: 1 1 auto;
+  padding: 6px 9px;
+  font-size: 10px;
+}
+
 @media (prefers-color-scheme: dark) {
   :root {
     --ink: #eaf1f8;

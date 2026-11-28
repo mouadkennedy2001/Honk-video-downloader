@@ -91,6 +91,15 @@
       </div>
     </header>
 
+    <!-- First-run engine preparation: quiet, non-blocking, no terminal output. -->
+    <div id="engine-setup" class="engine-setup is-hidden" role="status" aria-live="polite">
+      <div class="engine-setup-head">
+        <svg class="icon icon-sm" aria-hidden="true"><use href="#ic-spinner"></use></svg>
+        <span id="engine-setup-text" data-i18n="preparingEngine">جارٍ تجهيز محرك التحميل…</span>
+      </div>
+      <div class="engine-setup-track"><span id="engine-setup-fill" class="is-indeterminate"></span></div>
+    </div>
+
     <main class="stage">
       <section id="tab-download" class="tab-panel is-active" role="tabpanel">
         <div class="columns">
@@ -288,15 +297,21 @@
         <div class="settings-wrap">
           <span class="eyebrow" data-i18n="history">السجل</span>
           <h1 class="display display-small" data-i18n="history">السجل</h1>
-          <p class="lead" data-i18n="historyLead">سجل آخر التحليلات والتنزيلات — يمكنك إعادة التحميل أو إلغاء التثبيت.</p>
-          <div id="stats-grid" class="stats-grid" aria-label="إحصائيات">
-            <div class="stat-card"><span id="stats-analyses" class="stat-value">0</span><span class="stat-label" data-i18n="statAnalyses">تحليلات</span></div>
-            <div class="stat-card tone-ok"><span id="stats-done" class="stat-value">0</span><span class="stat-label" data-i18n="statCompleted">مكتملة</span></div>
-            <div class="stat-card tone-bad"><span id="stats-failed" class="stat-value">0</span><span class="stat-label" data-i18n="statFailed">فاشلة</span></div>
-            <div class="stat-card"><span id="stats-bytes" class="stat-value">0 B</span><span class="stat-label" data-i18n="statBytes">حجم مُحمّل</span></div>
+          <p class="lead" data-i18n="historyLead">ملفاتك المفقودة ومكتبتك المحلية — بدون أرقام أو عدّادات نجاح وفشل.</p>
+          <div class="panel settings-panel" id="missing-panel">
+            <div class="env-head"><h3 data-i18n="missingFiles">ما فاتك</h3></div>
+            <p class="hint" data-i18n="missingFilesLead">ملفات اكتمل تحميلها ثم اختفت من مجلد التحميل. يمكنك إعادتها أو تجاهلها.</p>
+            <div id="missing-list" class="history-list"></div>
+            <p id="missing-empty" class="hint" data-i18n="missingEmpty">لا توجد ملفات مفقودة.</p>
+          </div>
+          <div class="panel settings-panel" id="library-panel">
+            <div class="env-head"><h3 data-i18n="libraryTitle">مكتبة واصل</h3></div>
+            <p class="hint" data-i18n="libraryLead">ملفاتك الموجودة مع اسم مقترح أنظف وتنبيه للمكررات المتشابهة.</p>
+            <div id="library-list" class="history-list"></div>
+            <p id="library-empty" class="hint" data-i18n="libraryEmpty">لا توجد ملفات في المكتبة بعد.</p>
           </div>
           <div class="panel settings-panel">
-            <div class="env-head"><h3 data-i18n="history">السجل</h3><div class="history-head-actions"><span id="history-count" class="count-pill">0</span><button id="clear-history" class="btn ghost compact" type="button"><svg class="icon icon-sm" aria-hidden="true"><use href="#ic-trash"></use></svg><span data-i18n="clearHistory">مسح السجل</span></button></div></div>
+            <div class="env-head"><h3 data-i18n="historyLinks">الروابط</h3><div class="history-head-actions"><button id="clear-history" class="btn ghost compact" type="button"><svg class="icon icon-sm" aria-hidden="true"><use href="#ic-trash"></use></svg><span data-i18n="clearHistory">مسح السجل</span></button></div></div>
             <div id="history-list" class="history-list"></div>
             <p id="history-empty" class="hint" data-i18n="historyEmpty">لا يوجد سجل بعد.</p>
           </div>

@@ -5,6 +5,7 @@ const path = require('path');
 
 const isWindows = process.platform === 'win32';
 
+// HONK_BIN_DIR is read only for users upgrading from the pre-rename build.
 let userBinDir = process.env.WASEL_BIN_DIR || process.env.HONK_BIN_DIR || null;
 
 // Safe default that works both inside Electron and in plain Node:

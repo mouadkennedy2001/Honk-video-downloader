@@ -4,7 +4,7 @@
   if (window.top !== window) return;
   if (document.getElementById('wasel-media-grabber-root')) return;
 
-  const BRIDGE_PORTS = [47821, 47822, 47823, 47824, 47825];
+  const BRIDGE_PORTS = [47821, 47822, 47823, 47824, 47825, 47826, 47827, 47828, 47829, 47830];
   const MEDIA_PATTERN = /\.(mp4|m4v|webm|mkv|mov|avi|flv|wmv|ts|m3u8|mpd|mp3|m4a|aac|ogg|oga|opus|wav|flac)(?:[?#]|$)/i;
   const META_KEYS = new Set([
     'og:video',
@@ -288,8 +288,20 @@
       return;
     }
 
-    await copyText(item.url);
-    setStatus('التطبيق غير مشغّل — نُسخ الرابط إلى الحافظة.', true);
+    if (result && result.queued) {
+      setStatus('التطبيق غير مشغّل — حُفظ الرابط للإرسال لاحقًا.', false);
+      await findAppPort(true);
+      updateAppStatus();
+      return;
+    }
+
+    const saved = await runtimeMessage({ type: 'wasel:queue-add', payload }, 4000);
+    if (saved && saved.ok) {
+      setStatus('التطبيق غير مشغّل — حُفظ الرابط للإرسال لاحقًا.', false);
+    } else {
+      await copyText(item.url);
+      setStatus('التطبيق غير مشغّل — نُسخ الرابط إلى الحافظة.', true);
+    }
     await findAppPort(true);
     updateAppStatus();
   }
@@ -888,7 +900,7 @@
     status.dataset.error = 'false';
 
     const hint = document.createElement('span');
-    hint.textContent = 'Alt+Shift+H';
+    hint.textContent = 'Alt+Shift+W';
 
     foot.append(status, hint);
 

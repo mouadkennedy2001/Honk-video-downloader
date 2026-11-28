@@ -61,6 +61,9 @@ function defaults() {
     extractorArgs: '',
     batchFile: '',
     autoUpdateYtdlp: true,
+    // One-time background preparation of yt-dlp/FFmpeg on first launch.
+    autoToolsPrepared: false,
+    autoToolsAttemptedAt: 0,
     minimizeToTray: false,
     autoStart: false,
     showNotifications: true,
@@ -72,7 +75,11 @@ function defaults() {
     bufferSize: '16K',
     // New premium features
     history: [], // {url,title,at,thumb}
+    // Completed files are kept separately so clearing links never erases the library.
+    downloadFiles: [], // {url,title,path,size,completedAt,thumb,mode}
     favorites: [], // {url,name,icon,color,at}
+    // Per-site download memory: { "youtube.com": { mode, quality, audioFormat, cookieSource } }
+    siteProfiles: {},
     enableHistory: true,
     enableFavorites: true,
     uiScale: '100',
@@ -127,17 +134,44 @@ function normalize(value) {
 
   next.maxConcurrentDownloads = clampNumber(next.maxConcurrentDownloads, 1, 10, base.maxConcurrentDownloads);
   next.bridgePort = clampNumber(next.bridgePort, 1024, 65535, base.bridgePort);
+  next.autoToolsAttemptedAt = Number.isFinite(Number(next.autoToolsAttemptedAt))
+    ? Math.max(0, Number(next.autoToolsAttemptedAt))
+    : 0;
   next.embedMetadata = Boolean(next.embedMetadata);
   next.downloadSubtitles = Boolean(next.downloadSubtitles);
   next.extensionBridge = Boolean(next.extensionBridge);
   next.autoDownloadFromExtension = Boolean(next.autoDownloadFromExtension);
 
   // enhanced booleans
-  const bools = ['outputSubfolder','downloadChapters','downloadThumbnail','downloadInfoJson','writeDescription','sponsorblock','restrictFilenames','embedChapters','parseMetadata','skipDownload','autoUpdateYtdlp','minimizeToTray','autoStart','showNotifications','noPostOverwrites','continueOnError','enableHistory','enableFavorites','showSiteIcons','smoothAnimations','pauseOnError'];
+  const bools = ['outputSubfolder','downloadChapters','downloadThumbnail','downloadInfoJson','writeDescription','sponsorblock','restrictFilenames','embedChapters','parseMetadata','skipDownload','autoUpdateYtdlp','autoToolsPrepared','minimizeToTray','autoStart','showNotifications','noPostOverwrites','continueOnError','enableHistory','enableFavorites','showSiteIcons','smoothAnimations','pauseOnError'];
   for (const k of bools) if (k in next) next[k] = Boolean(next[k]);
 
   next.history = Array.isArray(next.history) ? next.history.filter(h=>h && typeof h.url==='string' && /^https?:\/\/\S+$/.test(h.url)).slice(0,500) : [];
+  next.downloadFiles = Array.isArray(next.downloadFiles)
+    ? next.downloadFiles
+      .filter(f => f && typeof f.url === 'string' && typeof f.path === 'string' && f.path.length < 2000)
+      .slice(0, 500)
+    : [];
   next.favorites = Array.isArray(next.favorites) ? next.favorites.filter(f=>f && typeof f.url==='string').slice(0,200) : [];
+
+  // Site profiles are small, local and strictly validated before being saved.
+  const profiles = {};
+  if (next.siteProfiles && typeof next.siteProfiles === 'object' && !Array.isArray(next.siteProfiles)) {
+    for (const [key, value] of Object.entries(next.siteProfiles).slice(0, 100)) {
+      if (!/^[a-z0-9.-]{1,120}$/i.test(key) || !value || typeof value !== 'object') continue;
+      const quality = String(value.quality || 'best');
+      const validQuality = quality === 'best' || (/^\d+$/.test(quality) && Number(quality) >= 144 && Number(quality) <= 4320);
+      profiles[key] = {
+        mode: value.mode === 'audio' ? 'audio' : 'video',
+        quality: validQuality ? quality : 'best',
+        audioFormat: AUDIO_FORMATS.includes(String(value.audioFormat)) ? String(value.audioFormat) : base.audioFormat,
+        cookieSource: COOKIE_SOURCES.includes(String(value.cookieSource)) ? String(value.cookieSource) : base.cookieSource,
+        at: Number.isFinite(Number(value.at)) ? Math.max(0, Number(value.at)) : 0
+      };
+    }
+  }
+  next.siteProfiles = profiles;
+
   next.maxHistory = clampNumber(next.maxHistory, 20, 1000, 200);
   next.retryFailed = clampNumber(next.retryFailed, 0, 5, 0);
   next.uiScale = ['90','100','110','125','150'].includes(String(next.uiScale)) ? String(next.uiScale) : '100';

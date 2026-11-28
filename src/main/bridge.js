@@ -3,7 +3,8 @@
 const http = require('http');
 
 const DEFAULT_PORT = 47821;
-const PORT_ATTEMPTS = 5;
+// The extension probes 47821–47830; keep both sides in sync.
+const PORT_ATTEMPTS = 10;
 const MAX_BODY_BYTES = 256 * 1024;
 const RATE_LIMIT_WINDOW_MS = 60000;
 const RATE_LIMIT_MAX = 40;

@@ -1444,6 +1444,57 @@ html[data-theme="dark"] .queue-progress { background: var(--surface-3); }
   animation: indet 1.2s ease-in-out infinite;
 }
 
+/* First-run engine setup banner (below the topbar). */
+.engine-setup {
+  margin: 10px 18px 0;
+  padding: 10px 14px;
+  border: 1px solid var(--border-strong);
+  border-radius: 12px;
+  background: var(--surface-card);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+}
+
+.engine-setup.is-hidden { display: none; }
+
+.engine-setup-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--ink);
+  font-size: 12.5px;
+  font-weight: 600;
+}
+
+.engine-setup-head .icon { color: var(--accent); animation: spin 1.4s linear infinite; }
+
+.engine-setup[data-phase="done"] .icon { animation: none; }
+
+.engine-setup-track {
+  height: 6px;
+  margin-top: 9px;
+  border-radius: 999px;
+  background: var(--surface-3);
+  overflow: hidden;
+}
+
+.engine-setup-track span {
+  display: block;
+  height: 100%;
+  width: 0;
+  border-radius: inherit;
+  background: var(--accent);
+  transition: width 0.25s var(--ease);
+}
+
+.engine-setup-track span.is-indeterminate {
+  width: 30% !important;
+  animation: indet 1.2s ease-in-out infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
 .env-card-foot {
   display: flex;
   align-items: center;

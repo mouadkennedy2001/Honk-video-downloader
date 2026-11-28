@@ -18,7 +18,7 @@ const fs = require('fs');
 const path = require('path');
 const http = require('http');
 const https = require('https');
-const { execFileSync } = require('child_process');
+const { spawnSync } = require('child_process');
 const binaries = require('./binaries');
 
 const INFO_TIMEOUT_MS = 20000;
@@ -27,6 +27,9 @@ const CACHE_MS = 30000;
 
 const FORMATS = new Set(['mp3', 'flac', 'ogg', 'opus', 'm4a', 'wav']);
 const LIST_TYPES = new Set(['playlist', 'album', 'artist', 'show', 'episode']);
+// spotdl only reads metadata from Spotify; the audio itself comes from these
+// providers. Listing several lets spotdl fall back automatically per song.
+const AUDIO_PROVIDERS = ['youtube-music', 'youtube', 'soundcloud', 'bandcamp'];
 
 let cachedCommand = null;
 let cachedAt = 0;
@@ -110,15 +113,20 @@ function pythonCandidates() {
 
 function runCheck(candidate, args, env) {
   try {
-    const output = execFileSync(candidate.command, [...candidate.prefixArgs, ...args], {
+    // spawnSync keeps a broken Python/spotdl install from printing its own
+    // traceback into the app's check output or the UI.
+    const result = spawnSync(candidate.command, [...candidate.prefixArgs, ...args], {
       encoding: 'utf8',
       timeout: 12000,
       windowsHide: true,
       maxBuffer: 1024 * 512,
-      env: env || process.env
+      env: env || process.env,
+      stdio: ['ignore', 'pipe', 'pipe']
     });
 
-    return String(output)
+    if (result.error || result.status !== 0) return null;
+
+    return String(result.stdout || '')
       .split(/\r?\n/)
       .map((line) => line.trim())
       .find(Boolean) || null;
@@ -312,9 +320,12 @@ async function getInfo(rawUrl) {
   };
 }
 
-function buildDownloadArgs(options) {
+// `attempt` rotates the source order and bitrate for a silent retry after a
+// failed download. No error is shown to the user while a fallback still works.
+function buildDownloadArgs(options, attempt = 0) {
   const requestedFormat = String(options.audioFormat || '').toLowerCase();
   const format = FORMATS.has(requestedFormat) ? requestedFormat : 'mp3';
+  const providers = attempt > 0 ? [...AUDIO_PROVIDERS].reverse() : AUDIO_PROVIDERS;
 
   const templateParts = [options.outputDir];
   if (options.playlist && options.outputSubfolder) templateParts.push('{list-name}');
@@ -329,6 +340,10 @@ function buildDownloadArgs(options) {
     '--log-level', 'INFO',
     '--headless',
     '--format', format,
+    '--audio', ...providers,
+    // "auto" keeps the original source bitrate instead of re-encoding at 128k.
+    '--bitrate', attempt > 0 ? '128k' : 'auto',
+    '--max-retries', '3',
     '--output', path.join(...templateParts),
     '--restrict', 'strict',
     '--max-filename-length', '150',
@@ -336,6 +351,7 @@ function buildDownloadArgs(options) {
     '--threads', '1'
   ];
 
+  if (attempt > 0) args.push('--dont-filter-results');
   if (options.ffmpegPath) args.push('--ffmpeg', options.ffmpegPath);
   if (options.proxy) args.push('--proxy', options.proxy);
 
